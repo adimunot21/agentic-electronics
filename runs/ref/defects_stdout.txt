@@ -13,6 +13,9 @@
   DRC_VIOLATIONS   predicted pass      observed passed   ok
   DRC_UNCONNECTED  predicted pass      observed passed   ok
   DRC_PARITY       predicted pass      observed passed   ok
+  (unpredicted change) BOM_CONSISTENCY: baseline blocked -> failed
+  (unpredicted change) REQ-FLAT-CORNERS: baseline passed -> failed
+  (unpredicted change) REQ-GAIN-CORNERS: baseline passed -> failed
 
 == D2_opamp_inputs_swapped_in_intent: ALL PREDICTIONS MATCHED
   ERC              predicted pass      observed passed   ok
@@ -28,6 +31,9 @@
   (unpredicted change) REQ-BIAS: baseline passed -> blocked
   (unpredicted change) REQ-IQ: baseline passed -> blocked
   (unpredicted change) REQ-FLAT: baseline passed -> failed
+  (unpredicted change) REQ-SETTLE: baseline passed -> blocked
+  (unpredicted change) REQ-FLAT-CORNERS: baseline passed -> failed
+  (unpredicted change) REQ-GAIN-CORNERS: baseline passed -> failed
 
 == D3_symbol_pin_numbers_swapped: PREDICTION MISMATCH
   ERC              predicted pass      observed failed   <-- MISMATCH
@@ -43,6 +49,9 @@
   (unpredicted change) REQ-IQ: baseline passed -> blocked
   (unpredicted change) REQ-FLAT: baseline passed -> failed
   (unpredicted change) REQ-HEADROOM: baseline passed -> failed
+  (unpredicted change) REQ-SETTLE: baseline passed -> blocked
+  (unpredicted change) REQ-FLAT-CORNERS: baseline passed -> failed
+  (unpredicted change) REQ-GAIN-CORNERS: baseline passed -> failed
 
 == D4_missing_routed_track: ALL PREDICTIONS MATCHED
   ERC              predicted pass      observed passed   ok

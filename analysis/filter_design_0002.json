@@ -1,0 +1,17 @@
+{
+ "note": "Values after patch 0002 (corner-driven cutoff scaling k=1.08, snapped to E96). analysis/filter_design.json is the ORIGINAL (pre-0002) derivation and is superseded for resistors R1-R5; capacitors/topology/order unchanged.",
+ "k": 1.08,
+ "fc_target_hz": 1729.7,
+ "params": {
+  "R1": 59000.0,
+  "R2": 76800.0,
+  "R3": 6190.0,
+  "R4": 16500.0,
+  "R5": 16500.0,
+  "C1": 1.8e-08,
+  "C2": 1e-09,
+  "C3": 5.6e-09,
+  "Cin": 2.2e-06
+ },
+ "evidence": "runs/ref/review/corner/ (fix_scan.py, fix_scan2.py, candidate2.py); verification runs/ref/review/before_after/patch-0002"
+}

@@ -3,7 +3,7 @@ import itertools, sys
 from pathlib import Path
 from ae.sim import SimRun, settling_run
 riso, cf = float(sys.argv[1]), float(sys.argv[2])
-base = Path("runs/ref/dev")
+base = Path("runs/ref/baseline")
 worst = 0.0
 print(f"candidate RISO={riso} ohm, CF={cf} pF")
 print(f"{'RISO tol':>9} {'CF tol':>7} {'Cs pF':>6} {'Ron':>5} {'|err| mV':>9}")

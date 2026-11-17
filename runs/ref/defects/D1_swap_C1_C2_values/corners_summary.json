@@ -1,7 +1,7 @@
 {
  "n": 1024,
  "completed": 1024,
- "wall_s": 17.4,
+ "wall_s": 46.5,
  "worst_flat": {
   "corner": {
    "R1": "lo",
@@ -15,15 +15,15 @@
    "C4": "lo",
    "Rs": "lo"
   },
-  "gain_400hz_V_per_V": 0.26893289662859704,
-  "passband_flatness_dB_max_abs": 12.72415917899053,
-  "stopband_abs_gain_dB_max_19k_to_1M": -68.85558405840386,
-  "zin_min_ohm": 65786.99608165467
+  "gain_400hz_V_per_V": 0.2938468166384163,
+  "passband_flatness_dB_max_abs": 12.14180587021717,
+  "stopband_abs_gain_dB_max_19k_to_1M": -66.34192273218298,
+  "zin_min_ohm": 59523.72772560441
  },
  "flat_fail": 1024,
- "gain_min": 0.25312948485936176,
- "gain_max": 0.2986581863876405,
+ "gain_min": 0.27645220993636305,
+ "gain_max": 0.32582195636788797,
  "gain_fail": 1024,
- "stop_worst": -67.05886911856845,
+ "stop_worst": -64.55123704112145,
  "stop_fail": 0
 }

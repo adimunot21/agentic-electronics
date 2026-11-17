@@ -1,0 +1,83 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-11-17T21:44:07",
+    "ignored_checks": [
+        {
+            "description": "Global label only appears once in the schematic",
+            "key": "single_global_label"
+        },
+        {
+            "description": "Four connection points are joined together",
+            "key": "four_way_junction"
+        },
+        {
+            "description": "SPICE model issue",
+            "key": "simulation_model_issue"
+        },
+        {
+            "description": "Assigned footprint doesn't match footprint filters",
+            "key": "footprint_filter"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.8",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/53300b2c-d65f-56e8-b7da-3c23708a6a10",
+            "violations": [
+                {
+                    "description": "Symbol 'LM358' doesn't match copy in library 'Amplifier_Operational'",
+                    "items": [
+                        {
+                            "description": "Symbol U1 [LM358]",
+                            "pos": {
+                                "x": 127.0,
+                                "y": 177.8
+                            },
+                            "uuid": "014a0a48-e213-50b2-b543-2d017bb5d0c0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol 'LM358' doesn't match copy in library 'Amplifier_Operational'",
+                    "items": [
+                        {
+                            "description": "Symbol U1 [LM358]",
+                            "pos": {
+                                "x": 228.6,
+                                "y": 63.5
+                            },
+                            "uuid": "4ac9b572-a0a8-5b65-8c90-ea35e5501843"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                },
+                {
+                    "description": "Symbol 'LM358' doesn't match copy in library 'Amplifier_Operational'",
+                    "items": [
+                        {
+                            "description": "Symbol U1 [LM358]",
+                            "pos": {
+                                "x": 228.6,
+                                "y": 127.0
+                            },
+                            "uuid": "67b1bcb3-7ca6-516d-ba40-95c2fbf2a53e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                }
+            ]
+        }
+    ],
+    "source": "fe_aaf_001.kicad_sch"
+}

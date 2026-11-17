@@ -22,8 +22,8 @@
 * Native `freerouting-cli` 2.5.0 unusable (diagnosed); jar used. Jar not covered by the publisher checksum file (own hash recorded).
 * TI model licence not stated in the file: model never committed; reproduce by download + hash.
 
-## Failed under worst-case analysis
-* **REQ-FLAT-CORNERS: failed.** 112 of 1024 corners inside the contract tolerances exceed 0.5 dB (worst 0.599 dB, C1 -5 %/C2,C3 +5 % family); MC yield 99.7 % meets the statistical criterion. Patch 0002 (proposed, verified in `runs/ref/proposal-0002`, not adopted) passes all corners. See `docs/review-extract.md` sections 6-7.
+## Worst-case analysis (history)
+* **REQ-FLAT-CORNERS failed on the pre-0002 design; passes on the adopted baseline** (patch 0002, development baseline only; `docs/before-after-0002.md`). Pre-0002 detail: 112 of 1024 corners inside the contract tolerances exceed 0.5 dB (worst 0.599 dB, C1 -5 %/C2,C3 +5 % family); the old MC yield (99.7 %) is void for the current design; the rerun has 0 failures in 2000. Patch 0002 (proposed, verified in `runs/ref/proposal-0002`, not adopted) passes all corners. See `docs/review-extract.md` sections 6-7.
 
 ## Model/coverage limits (nothing below is claimed by simulation)
 * **Shimmed TI model: startup, saturation and overload recovery are UNVALIDATED** (`MODEL_*` checks, `not_tested`). Linear agreement with the original does not validate them.

@@ -1,0 +1,73 @@
+{
+ "label": "adopted-0002",
+ "netlist": "runs/ref/baseline/fe_aaf_001.net",
+ "limits": {
+  "gain_400Hz_V_per_V": [
+   1.235,
+   1.365
+  ],
+  "alias_dB_abs_at_19kHz_and_above": -55.8,
+  "flatness_dB": 0.5
+ },
+ "nominal": {
+  "Rs=100": {
+   "gain_400Hz": 1.3011328035570473,
+   "gain_margin_lo": 0.0661328035570472,
+   "gain_margin_hi": 0.06386719644295269,
+   "alias_19kHz_exact_dB": -60.34500279938557,
+   "alias_worst_19k_to_1M_dB": -60.34500279938557,
+   "alias_margin_dB": 4.545002799385571,
+   "flatness_dB": 0.09748138794806893,
+   "flatness_margin_dB": 0.40251861205193107
+  },
+  "Rs=0.01": {
+   "gain_400Hz": 1.3033272614063176,
+   "gain_margin_lo": 0.06832726140631751,
+   "gain_margin_hi": 0.061672738593682386,
+   "alias_19kHz_exact_dB": -60.33030524960851,
+   "alias_worst_19k_to_1M_dB": -60.33030524960851,
+   "alias_margin_dB": 4.53030524960851,
+   "flatness_dB": 0.0979711262197327,
+   "flatness_margin_dB": 0.4020288737802673
+  }
+ },
+ "corners": {
+  "n": 1024,
+  "completed": 1024,
+  "gain_min": 1.24338294379962,
+  "gain_min_margin": 0.008382943799619902,
+  "gain_max": 1.3636736113526455,
+  "gain_max_margin": 0.0013263886473544595,
+  "alias_worst_dB": -58.73526536671747,
+  "alias_margin_dB": 2.9352653667174735,
+  "alias_worst_corner": {
+   "R1": "lo",
+   "R2": "lo",
+   "R3": "lo",
+   "R4": "lo",
+   "R5": "hi",
+   "C1": "lo",
+   "C2": "lo",
+   "C3": "lo",
+   "C4": "hi",
+   "Rs": "lo"
+  },
+  "flat_worst_dB": 0.4022427579821821,
+  "flat_margin_dB": 0.09775724201781788,
+  "flat_fail_count": 0,
+  "gain_fail_count": 0,
+  "alias_fail_count": 0,
+  "flat_worst_corner": {
+   "R1": "lo",
+   "R2": "hi",
+   "R3": "lo",
+   "R4": "lo",
+   "R5": "hi",
+   "C1": "lo",
+   "C2": "hi",
+   "C3": "hi",
+   "C4": "lo",
+   "Rs": "lo"
+  }
+ }
+}

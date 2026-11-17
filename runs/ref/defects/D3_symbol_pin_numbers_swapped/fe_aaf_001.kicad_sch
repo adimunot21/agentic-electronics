@@ -2252,7 +2252,7 @@
 		)
 		(uuid "fed90475-8073-5ca4-8bec-b12e32ffa2f9")
 	)
-	(text "Stage 1: inverting MFB (Q=1, gain 1.3). Stage 2: inverting 1st-order. Net non-inverting, fc = 1.60 kHz. Bias VMID = VREF/2."
+	(text "Stage 1: inverting MFB (Q=1, gain 1.3). Stage 2: inverting 1st-order. Net non-inverting, fc ~ 1.73 kHz (patch 0002; was 1.60). Bias VMID = VREF/2."
 		(exclude_from_sim yes)
 		(at 25.4 31.75 0)
 		(effects
@@ -2543,7 +2543,7 @@
 				)
 			)
 		)
-		(property "Value" "64.9k"
+		(property "Value" "59k"
 			(at 127 54.3 270)
 			(effects
 				(font
@@ -2569,7 +2569,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "RC0603FR-0764K9L"
+		(property "MPN" "RC0603FR-0759KL"
 			(at 127 50.8 270)
 			(effects
 				(font
@@ -2578,7 +2578,16 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "listing_verified"
+			(at 127 50.8 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "1%"
 			(at 127 50.8 270)
 			(effects
 				(font
@@ -2628,7 +2637,7 @@
 				)
 			)
 		)
-		(property "Value" "84.5k"
+		(property "Value" "76.8k"
 			(at 165.1 79.7 270)
 			(effects
 				(font
@@ -2654,7 +2663,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "RC0603FR-0784K5L"
+		(property "MPN" "RC0603FR-0776K8L"
 			(at 165.1 76.2 270)
 			(effects
 				(font
@@ -2663,7 +2672,16 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "listing_verified"
+			(at 165.1 76.2 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "1%"
 			(at 165.1 76.2 270)
 			(effects
 				(font
@@ -2713,7 +2731,7 @@
 				)
 			)
 		)
-		(property "Value" "6.49k"
+		(property "Value" "6.19k"
 			(at 190.5 54.3 270)
 			(effects
 				(font
@@ -2739,7 +2757,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "RC0603FR-076K49L"
+		(property "MPN" "RC0603FR-076K19L"
 			(at 190.5 50.8 270)
 			(effects
 				(font
@@ -2748,7 +2766,16 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "listing_verified"
+			(at 190.5 50.8 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "1%"
 			(at 190.5 50.8 270)
 			(effects
 				(font
@@ -2798,7 +2825,7 @@
 				)
 			)
 		)
-		(property "Value" "17.8k"
+		(property "Value" "16.5k"
 			(at 165.1 117.8 270)
 			(effects
 				(font
@@ -2824,7 +2851,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "RC0603FR-0717K8L"
+		(property "MPN" "RC0603FR-0716K5L"
 			(at 165.1 114.3 270)
 			(effects
 				(font
@@ -2833,7 +2860,16 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "listing_verified"
+			(at 165.1 114.3 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "1%"
 			(at 165.1 114.3 270)
 			(effects
 				(font
@@ -2883,7 +2919,7 @@
 				)
 			)
 		)
-		(property "Value" "17.8k"
+		(property "Value" "16.5k"
 			(at 190.5 130.5 270)
 			(effects
 				(font
@@ -2909,7 +2945,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "RC0603FR-0717K8L"
+		(property "MPN" "RC0603FR-0716K5L"
 			(at 190.5 127 270)
 			(effects
 				(font
@@ -2918,7 +2954,16 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "listing_verified"
+			(at 190.5 127 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "1%"
 			(at 190.5 127 270)
 			(effects
 				(font
@@ -3005,7 +3050,16 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "listing_verified"
+			(at 50.8 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "0.1%"
 			(at 50.8 127 0)
 			(effects
 				(font
@@ -3092,7 +3146,16 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "listing_verified"
+			(at 50.8 152.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "0.1%"
 			(at 50.8 152.4 0)
 			(effects
 				(font
@@ -3177,7 +3240,16 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "listing_verified"
+			(at 266.7 127 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "1%"
 			(at 266.7 127 270)
 			(effects
 				(font
@@ -3264,7 +3336,25 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "verified"
+			(at 152.4 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "5%"
+			(at 152.4 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Dielectric" "C0G"
 			(at 152.4 83.82 0)
 			(effects
 				(font
@@ -3349,7 +3439,25 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "verified"
+			(at 190.5 76.2 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "5%"
+			(at 190.5 76.2 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Dielectric" "C0G"
 			(at 190.5 76.2 270)
 			(effects
 				(font
@@ -3434,7 +3542,25 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "verified"
+			(at 190.5 142.24 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "5%"
+			(at 190.5 142.24 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Dielectric" "C0G"
 			(at 190.5 142.24 270)
 			(effects
 				(font
@@ -3521,7 +3647,25 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "verified"
+			(at 299.72 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "5%"
+			(at 299.72 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Dielectric" "C0G"
 			(at 299.72 139.7 0)
 			(effects
 				(font
@@ -3606,7 +3750,34 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "verified"
+			(at 88.9 50.8 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "20%"
+			(at 88.9 50.8 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Dielectric" "X7R"
+			(at 88.9 50.8 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Voltage" "16V"
 			(at 88.9 50.8 270)
 			(effects
 				(font
@@ -3684,7 +3855,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "unselected"
+		(property "MPN" "C1206C106K8RACTU"
 			(at 76.2 139.7 0)
 			(effects
 				(font
@@ -3693,7 +3864,43 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "verified"
+			(at 76.2 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "20%"
+			(at 76.2 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Dielectric" "X7R"
+			(at 76.2 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Voltage" "10V"
+			(at 76.2 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Kemet"
 			(at 76.2 139.7 0)
 			(effects
 				(font
@@ -3762,7 +3969,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "unselected"
+		(property "MPN" "C1206C106K8RACTU"
 			(at 76.2 177.8 0)
 			(effects
 				(font
@@ -3771,7 +3978,43 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "verified"
+			(at 76.2 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "20%"
+			(at 76.2 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Dielectric" "X7R"
+			(at 76.2 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Voltage" "10V"
+			(at 76.2 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Kemet"
 			(at 76.2 177.8 0)
 			(effects
 				(font
@@ -3840,7 +4083,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "unselected"
+		(property "MPN" "C0603C104K4RACTU"
 			(at 50.8 177.8 0)
 			(effects
 				(font
@@ -3849,7 +4092,43 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "verified"
+			(at 50.8 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Tolerance" "10%"
+			(at 50.8 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Dielectric" "X7R"
+			(at 50.8 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Voltage" "16V"
+			(at 50.8 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Kemet"
 			(at 50.8 177.8 0)
 			(effects
 				(font
@@ -3891,7 +4170,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "generic 1x03 2.54 mm pin header"
+		(property "Value" "UNRESOLVED"
 			(at 60.96 64.77 0)
 			(effects
 				(font
@@ -3918,7 +4197,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "generic 1x03 2.54 mm pin header"
+		(property "MPN" "UNRESOLVED"
 			(at 58.42 63.5 0)
 			(effects
 				(font
@@ -3927,7 +4206,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "unresolved"
 			(at 58.42 63.5 0)
 			(effects
 				(font
@@ -3972,7 +4251,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "generic 1x03 2.54 mm pin header"
+		(property "Value" "UNRESOLVED"
 			(at 276.86 102.87 0)
 			(effects
 				(font
@@ -3999,7 +4278,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "generic 1x03 2.54 mm pin header"
+		(property "MPN" "UNRESOLVED"
 			(at 274.32 101.6 0)
 			(effects
 				(font
@@ -4008,7 +4287,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN_Status" "unverified_candidate"
+		(property "MPN_Status" "unresolved"
 			(at 274.32 101.6 0)
 			(effects
 				(font

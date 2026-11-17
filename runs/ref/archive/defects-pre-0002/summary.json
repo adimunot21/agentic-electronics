@@ -1,0 +1,99 @@
+[
+  {
+    "defect": "D1_swap_C1_C2_values",
+    "what": "values of C1 (18n, node X to GND) and C2 (1n, feedback) swapped in the schematic (manual-edit style)",
+    "rows": [
+      {
+        "check": "ERC",
+        "predicted": "pass",
+        "observed": "passed",
+        "match": true
+      },
+      {
+        "check": "NETLIST_INTENT",
+        "predicted": "pass",
+        "observed": "passed",
+        "match": true
+      },
+      {
+        "check": "PIN_SYMBOL",
+        "predicted": "pass",
+        "observed": "passed",
+        "match": true
+      },
+      {
+        "check": "PIN_WIRING",
+        "predicted": "pass",
+        "observed": "passed",
+        "match": true
+      },
+      {
+        "check": "DECK_VS_NETLIST",
+        "predicted": "pass",
+        "observed": "passed",
+        "match": true
+      },
+      {
+        "check": "REQ-GAIN",
+        "predicted": "fail",
+        "observed": "failed",
+        "match": true
+      },
+      {
+        "check": "REQ-FLAT",
+        "predicted": "fail",
+        "observed": "failed",
+        "match": true
+      },
+      {
+        "check": "REQ-ALIAS",
+        "predicted": "pass",
+        "observed": "passed",
+        "match": true
+      },
+      {
+        "check": "REQ-ZIN",
+        "predicted": "pass",
+        "observed": "passed",
+        "match": true
+      },
+      {
+        "check": "REQ-BIAS",
+        "predicted": "pass",
+        "observed": "passed",
+        "match": true
+      },
+      {
+        "check": "DRC_VIOLATIONS",
+        "predicted": "pass",
+        "observed": "passed",
+        "match": true
+      },
+      {
+        "check": "DRC_UNCONNECTED",
+        "predicted": "pass",
+        "observed": "passed",
+        "match": true
+      },
+      {
+        "check": "DRC_PARITY",
+        "predicted": "pass",
+        "observed": "passed",
+        "match": true
+      }
+    ],
+    "all_predictions_matched": true,
+    "unpredicted_changes": [
+      {
+        "check": "BOM_CONSISTENCY",
+        "baseline": "blocked",
+        "defect_run": "failed"
+      },
+      {
+        "check": "REQ-GAIN-CORNERS",
+        "baseline": "passed",
+        "defect_run": "failed"
+      }
+    ]
+  }
+]

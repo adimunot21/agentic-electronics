@@ -1,0 +1,16 @@
+* test bench (generated)
+.include settle_loaded_dut.cir
+Vcc P5V 0 DC 5.0
+Vref VREF 0 DC 3.3
+Vsrc src 0 DC 0 SIN(0 1.0 1000)
+Rs src AIN 100.0
+.model SWM SW(Ron=200.0 Roff=1G Vt=0.5 Vh=0.05)
+Ssamp AOUT cs ctl 0 SWM
+Cs cs 0 10.0p
+Vctl ctl 0 PULSE(0 1 3.447983200e-03 1n 1n 1u 1)
+.ic v(cs)=0.362329
+.control
+tran 1u 3.449983200e-03 0 1u
+wrdata ld.csv v(cs)
+.endc
+.end

@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/work/fe_aaf_001.kicad_sch")
-		(date "2026-11-17T21:43:14")
+		(date "2026-11-17T23:17:32")
 		(tool "Eeschema 10.0.8")
 		(sheet
 			(number "1")
@@ -62,7 +62,11 @@
 				(field
 					(name "MPN") "C0805C183J5GACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
+				(field
+					(name "Tolerance") "5%")
+				(field
+					(name "Dielectric") "C0G")
 				(field
 					(name "Manufacturer") "Kemet")
 				(field
@@ -85,7 +89,15 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "5%")
+			)
+			(property
+				(name "Dielectric")
+				(value "C0G")
 			)
 			(property
 				(name "Manufacturer")
@@ -134,7 +146,11 @@
 				(field
 					(name "MPN") "C0805C102J5GACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
+				(field
+					(name "Tolerance") "5%")
+				(field
+					(name "Dielectric") "C0G")
 				(field
 					(name "Manufacturer") "Kemet")
 				(field
@@ -157,7 +173,15 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "5%")
+			)
+			(property
+				(name "Dielectric")
+				(value "C0G")
 			)
 			(property
 				(name "Manufacturer")
@@ -206,7 +230,11 @@
 				(field
 					(name "MPN") "C0805C562J5GACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
+				(field
+					(name "Tolerance") "5%")
+				(field
+					(name "Dielectric") "C0G")
 				(field
 					(name "Manufacturer") "Kemet")
 				(field
@@ -229,7 +257,15 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "5%")
+			)
+			(property
+				(name "Dielectric")
+				(value "C0G")
 			)
 			(property
 				(name "Manufacturer")
@@ -278,7 +314,13 @@
 				(field
 					(name "MPN") "C1206C225K4RACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
+				(field
+					(name "Tolerance") "20%")
+				(field
+					(name "Dielectric") "X7R")
+				(field
+					(name "Voltage") "16V")
 				(field
 					(name "Manufacturer") "Kemet")
 				(field
@@ -301,7 +343,19 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "20%")
+			)
+			(property
+				(name "Dielectric")
+				(value "X7R")
+			)
+			(property
+				(name "Voltage")
+				(value "16V")
 			)
 			(property
 				(name "Manufacturer")
@@ -350,7 +404,11 @@
 				(field
 					(name "MPN") "C0805C331J5GACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
+				(field
+					(name "Tolerance") "5%")
+				(field
+					(name "Dielectric") "C0G")
 				(field
 					(name "Manufacturer") "Kemet")
 				(field
@@ -373,7 +431,15 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "5%")
+			)
+			(property
+				(name "Dielectric")
+				(value "C0G")
 			)
 			(property
 				(name "Manufacturer")
@@ -420,9 +486,17 @@
 			(footprint "Capacitor_SMD:C_1206_3216Metric")
 			(fields
 				(field
-					(name "MPN") "unselected")
+					(name "MPN") "C1206C106K8RACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
+				(field
+					(name "Tolerance") "20%")
+				(field
+					(name "Dielectric") "X7R")
+				(field
+					(name "Voltage") "10V")
+				(field
+					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
 				(field
@@ -439,11 +513,27 @@
 			)
 			(property
 				(name "MPN")
-				(value "unselected")
+				(value "C1206C106K8RACTU")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "20%")
+			)
+			(property
+				(name "Dielectric")
+				(value "X7R")
+			)
+			(property
+				(name "Voltage")
+				(value "10V")
+			)
+			(property
+				(name "Manufacturer")
+				(value "Kemet")
 			)
 			(property
 				(name "Sheetname")
@@ -486,9 +576,17 @@
 			(footprint "Capacitor_SMD:C_1206_3216Metric")
 			(fields
 				(field
-					(name "MPN") "unselected")
+					(name "MPN") "C1206C106K8RACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
+				(field
+					(name "Tolerance") "20%")
+				(field
+					(name "Dielectric") "X7R")
+				(field
+					(name "Voltage") "10V")
+				(field
+					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
 				(field
@@ -505,11 +603,27 @@
 			)
 			(property
 				(name "MPN")
-				(value "unselected")
+				(value "C1206C106K8RACTU")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "20%")
+			)
+			(property
+				(name "Dielectric")
+				(value "X7R")
+			)
+			(property
+				(name "Voltage")
+				(value "10V")
+			)
+			(property
+				(name "Manufacturer")
+				(value "Kemet")
 			)
 			(property
 				(name "Sheetname")
@@ -552,9 +666,17 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "unselected")
+					(name "MPN") "C0603C104K4RACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
+				(field
+					(name "Tolerance") "10%")
+				(field
+					(name "Dielectric") "X7R")
+				(field
+					(name "Voltage") "16V")
+				(field
+					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -571,11 +693,27 @@
 			)
 			(property
 				(name "MPN")
-				(value "unselected")
+				(value "C0603C104K4RACTU")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "10%")
+			)
+			(property
+				(name "Dielectric")
+				(value "X7R")
+			)
+			(property
+				(name "Voltage")
+				(value "16V")
+			)
+			(property
+				(name "Manufacturer")
+				(value "Kemet")
 			)
 			(property
 				(name "Sheetname")
@@ -614,13 +752,13 @@
 		)
 		(comp
 			(ref "J1")
-			(value "generic 1x03 2.54 mm pin header")
+			(value "UNRESOLVED")
 			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
 			(fields
 				(field
-					(name "MPN") "generic 1x03 2.54 mm pin header")
+					(name "MPN") "UNRESOLVED")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "unresolved")
 				(field
 					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
 				(field
@@ -637,11 +775,11 @@
 			)
 			(property
 				(name "MPN")
-				(value "generic 1x03 2.54 mm pin header")
+				(value "UNRESOLVED")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "unresolved")
 			)
 			(property
 				(name "Sheetname")
@@ -683,13 +821,13 @@
 		)
 		(comp
 			(ref "J2")
-			(value "generic 1x03 2.54 mm pin header")
+			(value "UNRESOLVED")
 			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
 			(fields
 				(field
-					(name "MPN") "generic 1x03 2.54 mm pin header")
+					(name "MPN") "UNRESOLVED")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "unresolved")
 				(field
 					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
 				(field
@@ -706,11 +844,11 @@
 			)
 			(property
 				(name "MPN")
-				(value "generic 1x03 2.54 mm pin header")
+				(value "UNRESOLVED")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "unresolved")
 			)
 			(property
 				(name "Sheetname")
@@ -752,13 +890,15 @@
 		)
 		(comp
 			(ref "R1")
-			(value "64.9k")
+			(value "59k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "RC0603FR-0764K9L")
+					(name "MPN") "RC0603FR-0759KL")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
+				(field
+					(name "Tolerance") "1%")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -777,11 +917,15 @@
 			)
 			(property
 				(name "MPN")
-				(value "RC0603FR-0764K9L")
+				(value "RC0603FR-0759KL")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -824,13 +968,15 @@
 		)
 		(comp
 			(ref "R2")
-			(value "84.5k")
+			(value "76.8k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "RC0603FR-0784K5L")
+					(name "MPN") "RC0603FR-0776K8L")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
+				(field
+					(name "Tolerance") "1%")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -849,11 +995,15 @@
 			)
 			(property
 				(name "MPN")
-				(value "RC0603FR-0784K5L")
+				(value "RC0603FR-0776K8L")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -896,13 +1046,15 @@
 		)
 		(comp
 			(ref "R3")
-			(value "6.49k")
+			(value "6.19k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "RC0603FR-076K49L")
+					(name "MPN") "RC0603FR-076K19L")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
+				(field
+					(name "Tolerance") "1%")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -921,11 +1073,15 @@
 			)
 			(property
 				(name "MPN")
-				(value "RC0603FR-076K49L")
+				(value "RC0603FR-076K19L")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -968,13 +1124,15 @@
 		)
 		(comp
 			(ref "R4")
-			(value "17.8k")
+			(value "16.5k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "RC0603FR-0717K8L")
+					(name "MPN") "RC0603FR-0716K5L")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
+				(field
+					(name "Tolerance") "1%")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -993,11 +1151,15 @@
 			)
 			(property
 				(name "MPN")
-				(value "RC0603FR-0717K8L")
+				(value "RC0603FR-0716K5L")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -1040,13 +1202,15 @@
 		)
 		(comp
 			(ref "R5")
-			(value "17.8k")
+			(value "16.5k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "RC0603FR-0717K8L")
+					(name "MPN") "RC0603FR-0716K5L")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
+				(field
+					(name "Tolerance") "1%")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -1065,11 +1229,15 @@
 			)
 			(property
 				(name "MPN")
-				(value "RC0603FR-0717K8L")
+				(value "RC0603FR-0716K5L")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -1118,7 +1286,9 @@
 				(field
 					(name "MPN") "RC0603FR-07475RL")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
+				(field
+					(name "Tolerance") "1%")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -1141,7 +1311,11 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -1190,7 +1364,9 @@
 				(field
 					(name "MPN") "RT0603BRD0710KL")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
+				(field
+					(name "Tolerance") "0.1%")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -1213,7 +1389,11 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "0.1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -1262,7 +1442,9 @@
 				(field
 					(name "MPN") "RT0603BRD0710KL")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
+				(field
+					(name "Tolerance") "0.1%")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -1285,7 +1467,11 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "0.1%")
 			)
 			(property
 				(name "Manufacturer")

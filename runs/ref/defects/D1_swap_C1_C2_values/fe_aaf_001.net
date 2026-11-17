@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/work/fe_aaf_001.kicad_sch")
-		(date "2026-11-17T22:27:24")
+		(date "2026-11-17T23:15:25")
 		(tool "Eeschema 10.0.8")
 		(sheet
 			(number "1")
@@ -890,11 +890,11 @@
 		)
 		(comp
 			(ref "R1")
-			(value "64.9k")
+			(value "59k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "RC0603FR-0764K9L")
+					(name "MPN") "RC0603FR-0759KL")
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
@@ -917,7 +917,7 @@
 			)
 			(property
 				(name "MPN")
-				(value "RC0603FR-0764K9L")
+				(value "RC0603FR-0759KL")
 			)
 			(property
 				(name "MPN_Status")
@@ -968,11 +968,11 @@
 		)
 		(comp
 			(ref "R2")
-			(value "84.5k")
+			(value "76.8k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "RC0603FR-0784K5L")
+					(name "MPN") "RC0603FR-0776K8L")
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
@@ -995,7 +995,7 @@
 			)
 			(property
 				(name "MPN")
-				(value "RC0603FR-0784K5L")
+				(value "RC0603FR-0776K8L")
 			)
 			(property
 				(name "MPN_Status")
@@ -1046,11 +1046,11 @@
 		)
 		(comp
 			(ref "R3")
-			(value "6.49k")
+			(value "6.19k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "RC0603FR-076K49L")
+					(name "MPN") "RC0603FR-076K19L")
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
@@ -1073,7 +1073,7 @@
 			)
 			(property
 				(name "MPN")
-				(value "RC0603FR-076K49L")
+				(value "RC0603FR-076K19L")
 			)
 			(property
 				(name "MPN_Status")
@@ -1124,11 +1124,11 @@
 		)
 		(comp
 			(ref "R4")
-			(value "17.8k")
+			(value "16.5k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "RC0603FR-0717K8L")
+					(name "MPN") "RC0603FR-0716K5L")
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
@@ -1151,7 +1151,7 @@
 			)
 			(property
 				(name "MPN")
-				(value "RC0603FR-0717K8L")
+				(value "RC0603FR-0716K5L")
 			)
 			(property
 				(name "MPN_Status")
@@ -1202,11 +1202,11 @@
 		)
 		(comp
 			(ref "R5")
-			(value "17.8k")
+			(value "16.5k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "RC0603FR-0717K8L")
+					(name "MPN") "RC0603FR-0716K5L")
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
@@ -1229,7 +1229,7 @@
 			)
 			(property
 				(name "MPN")
-				(value "RC0603FR-0717K8L")
+				(value "RC0603FR-0716K5L")
 			)
 			(property
 				(name "MPN_Status")

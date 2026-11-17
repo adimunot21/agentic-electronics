@@ -135,12 +135,13 @@ def dc_corners(run: SimRun, req_bias, req_iq) -> None:
 
 
 def ac_run(run: SimRun, ideal_fn, rs: float, tag: str) -> dict:
-    tb = header(rs=rs, src="DC 0 AC 1") + ".control\nop\nac dec 40 10 10Meg\nwrdata ac.csv v(src) v(ain) v(aout)\n.endc\n.end\n"
-    rec = run.ng(f"ac_{tag}", tb.replace("ac.csv", f"ac_{tag}.csv"))
+    tb = header(rs=rs, src="DC 0 AC 1") + ".control\nop\nac dec 40 10 10Meg\nwrdata ac.csv v(src) v(ain) v(aout)\nac lin 1 19k 19k\nwrdata ac19.csv v(src) v(aout)\n.endc\n.end\n"
+    rec = run.ng(f"ac_{tag}", tb.replace("ac.csv", f"ac_{tag}.csv").replace("ac19.csv", f"ac19_{tag}.csv"))
     if rec.outcome != "passed":
         return {"blocked": True}
     f, (vsrc, vain, vaout) = sm.read_wrdata(run.work / f"ac_{tag}.csv", 3, True)
-    return sm.ac_metrics(f, vsrc, vain, vaout, rs_ohm=rs, ideal_mag=np.abs(ideal_fn(f, rs)))
+    _, (v19s, v19o) = sm.read_wrdata(run.work / f"ac19_{tag}.csv", 2, True)
+    return sm.ac_metrics(f, vsrc, vain, vaout, rs_ohm=rs, ideal_mag=np.abs(ideal_fn(f, rs)), ratio_19k=complex(v19o[0] / v19s[0]))
 
 
 def tran_headroom(run: SimRun) -> dict:

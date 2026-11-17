@@ -11,24 +11,25 @@ BOM_CONSISTENCY   blocked   15 lines: 14 consistent, 0 MISMATCH, 1 unresolved | 
 DECK_VS_NETLIST   passed    40 pin connections identical between deck and KiCad netlist
 REQ-BIAS          passed    worst of 32 corners (supply x VREF x Vos_A x Vos_B x divider skew): (5.25, 3.333, -1, 1, -1); Vos co
 REQ-IQ            passed    model Iq (typical per datasheet); datasheet MAX 190 uA/amp would give 0.38 mA: analysis shows margin
-REQ-GAIN          passed    Rs=100: 1.3001, Rs=0: 1.3021 (nominal parts)
+REQ-GAIN          passed    Rs=100: 1.3011, Rs=0: 1.3033 (nominal parts)
 REQ-FLAT          passed    nominal parts, Rs 0 and 100
 REQ-ALIAS         passed    19 kHz..1 MHz, nominal parts, real op-amp model
 REQ-ZIN           passed    50 Hz-1 kHz, Rs=100
 REQ-STAB          failed    rev 2 (in force): 10 Hz-10 MHz vs ideal op-amp, no floor; the excess sits at levels far below -90 dB
 REQ-STAB-R3-AC-PEAKING-PROPOSEDpassed    AC-PEAKING ONLY. Rev 3 (PROPOSED, NOT APPROVED): ideal floored at -90 dB; does NOT establish stabili
-REQ-HEADROOM      passed    1.0 Vpk at 50/400/1000 Hz, supply and VREF corners: min 0.317 V, max 2.964 V (n=12)
-REQ-SETTLE        passed    sample cap precharged to 0.385 V, acquisition at the 2.913 V peak (t=3.4662 ms), 1 us
+REQ-HEADROOM      passed    1.0 Vpk at 50/400/1000 Hz, supply and VREF corners: min 0.317 V, max 2.965 V (n=12)
+REQ-SETTLE        passed    sample cap precharged to 0.362 V, acquisition at the 2.936 V peak (t=3.4480 ms), 1 us
 REQ-NOISE         passed    1 Hz-20 kHz incl. 100 ohm source; model carries noise sources (datasheet en 14 nV/rtHz @1k); not val
 MODEL_STARTUP     not_testedPower-up behaviour of the SHIMMED TI model is unvalidated: the unmodified model has no DC operating 
 MODEL_SATURATION  not_testedOutput saturation / rail-limit behaviour of the shimmed model is unvalidated (headroom is only check
 MODEL_OVERLOAD_RECOVERYnot_testedThe overload-recovery clamp instance X_SW_OR is patched OUT of the model: recovery from overdrive is
-REQ-FLAT-CORNERS  failed    WORST-CASE (all 1024 vertices of the contract tolerance box, real model): 112 corners exceed 0.5 dB;
-REQ-GAIN-CORNERS  passed    gain range over all corners 1.2412..1.3634 vs 1.235..1.365
-REQ-ALIAS-CORNERS passed    worst stopband over all corners -61.9 dB
+REQ-FLAT-CORNERS  passed    WORST-CASE (all 1024 vertices of the contract tolerance box, real model): 0 corners exceed 0.5 dB; w
+REQ-GAIN-CORNERS  passed    gain range over all corners 1.2434..1.3637 vs 1.235..1.365
+REQ-ALIAS-CORNERS passed    worst stopband over all corners -58.7 dB
 DRC_VIOLATIONS    passed    0 items
 DRC_UNCONNECTED   passed    0 items
 DRC_PARITY        passed    0 items
 REQ-BOM           failed    15 BOM lines; 1 without a selected MPN ['J1,J2']; by evidence level: listing_verified: ['R1', 'R2', 
 REQ-MFG           passed    board 40.0 x 30.0 mm; 10 non-empty fabrication files; project rules min track/space 0.15, drill 0.3 
-{"generate_schematic": 0.28, "erc": 4.52, "netlist": 1.21, "pin_audit": 0.02, "bom_consistency": 0.01, "deck_check": 0.01, "simulation": 33.63, "corners": 26.65, "router_final_score": 1000.0, "pcb": 16.39, "release": 4.43, "total_wall_s": 87.2}
+{"generate_schematic": 0.26, "erc": 4.76, "netlist": 1.23, "pin_audit": 0.02, "bom_consistency": 0.01, "deck_check": 0.02, "simulation": 34.83, "corners": 38.2, "router_final_score": 1000.0, "pcb": 15.76, "release": 4.48, "total_wall_s": 99.6}
+uv run ae run reference --out runs/ref/baseline  18.90s user 1.55s system 20% cpu 1:41.98 total

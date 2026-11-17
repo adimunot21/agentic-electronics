@@ -1,7 +1,8 @@
 id: 0002-flatness-corner-fix
 author: "assistant (manual reference loop; not an autonomous agent)"
 date: 2026-11-17
-status: PROPOSED - NOT ADOPTED (verified in runs/ref/proposal-0002; baseline design unchanged)
+status: ADOPTED 2026-11-17 as the local DEVELOPMENT baseline (gate: unchanged gain and alias limits pass at all 1024 corners, runs/ref/review/before_after). NOT an approval of REQ-STAB rev 3 or of any contract change.
+superseded_baseline: runs/ref/archive/baseline-pre-0002 (kept, with its failures)
 base: {file: designs/fe-aaf-001/components.yaml, sha256: 64cb16c04c1e6d7ff1c4c5a18256f0967abeef4aeae68b080517d4e5a8a20f6e}
 reason: >
   REQ-FLAT fails at worst-case corners inside the contract tolerances: 112 of 1024 vertices exceed 0.5 dB, worst 0.599 dB (at 1 kHz, LP droop;

@@ -1,3 +1,5 @@
+> **BANNER (2026-11-17, later):** sections 0-10 below describe the **pre-patch-0002** design. Patch 0002 has since been adopted as the local development baseline; see [`before-after-0002.md`](before-after-0002.md). The alias figures quoted below (e.g. -63.5 dB, "7.7 dB margin") were evaluated at 19.95 kHz and are 1.27 dB too generous; corrected values are in that document.
+
 # Review extract (2026-11-17): D1 result, model/patch, REQ-STAB, settling + Monte Carlo, BOM verification
 
 Raw evidence: `runs/ref/baseline/record.json`, `runs/ref/defects/D1_swap_C1_C2_values/`, `runs/ref/review/` (one-off scripts + outputs), `evidence/bom-verification.yaml`.

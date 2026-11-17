@@ -35,7 +35,7 @@ def run_mc(run_dir: Path, netlist: Path, n: int | None = None) -> dict:
         rs = float(rng.uniform(0.01, 100.0))
         samples.append((scale, rs))
         (work / f"s{i}_dut.cir").write_text(sim.deck(scale=scale))
-        tb = header(rs=rs, src="DC 0 AC 1").replace("@DUT@", f"s{i}_dut.cir") + f".control\nop\nac dec 20 10 10Meg\nwrdata s{i}.csv v(src) v(ain) v(aout)\n.endc\n.end\n"
+        tb = header(rs=rs, src="DC 0 AC 1").replace("@DUT@", f"s{i}_dut.cir") + f".control\nop\nac dec 20 10 10Meg\nwrdata s{i}.csv v(src) v(ain) v(aout)\nac lin 1 19k 19k\nwrdata s{i}_19.csv v(src) v(aout)\n.endc\n.end\n"
         (work / f"s{i}.cir").write_text(tb)
     t0 = time.monotonic()
     rec = run_in_image("mc", ["bash", "-c", f"seq 0 {n-1} | xargs -P 10 -I{{}} sh -c 'timeout 60 ngspice -b -o s{{}}.log s{{}}.cir >/dev/null 2>&1; true'"], work, timeout_s=3600)
@@ -50,7 +50,8 @@ def run_mc(run_dir: Path, netlist: Path, n: int | None = None) -> dict:
             blocked += 1
             continue
         f, (vs, va, vo) = sm.read_wrdata(csv_path, 3, True)
-        m = sm.ac_metrics(f, vs, va, vo, rs_ohm=rs, ideal_mag=np.abs(ideal(f, rs)))
+        _, (v19s, v19o) = sm.read_wrdata(work / f"s{i}_19.csv", 2, True)
+        m = sm.ac_metrics(f, vs, va, vo, rs_ohm=rs, ideal_mag=np.abs(ideal(f, rs)), ratio_19k=complex(v19o[0] / v19s[0]))
         ok = {"REQ-GAIN": req["REQ-GAIN"]["min"] <= m["gain_400hz_V_per_V"] <= req["REQ-GAIN"]["max"],
               "REQ-FLAT": m["passband_flatness_dB_max_abs"] <= req["REQ-FLAT"]["max"],
               "REQ-ALIAS": m["stopband_abs_gain_dB_max_19k_to_1M"] <= req["REQ-ALIAS"]["max"],
@@ -91,7 +92,7 @@ def run_corners(run_dir: Path, netlist: Path) -> dict:
     for i, combo in enumerate(corners):
         v = {n: CORNER_SPAN[n][c] for n, c in zip(names, combo)}
         (work / f"k{i}_dut.cir").write_text(sim.deck(scale={k: v[k] for k in names if k != "Rs"}))
-        (work / f"k{i}.cir").write_text(header(rs=v["Rs"], src="DC 0 AC 1").replace("@DUT@", f"k{i}_dut.cir") + f".control\nop\nac dec 20 10 10Meg\nwrdata k{i}.csv v(src) v(ain) v(aout)\n.endc\n.end\n")
+        (work / f"k{i}.cir").write_text(header(rs=v["Rs"], src="DC 0 AC 1").replace("@DUT@", f"k{i}_dut.cir") + f".control\nop\nac dec 20 10 10Meg\nwrdata k{i}.csv v(src) v(ain) v(aout)\nac lin 1 19k 19k\nwrdata k{i}_19.csv v(src) v(aout)\n.endc\n.end\n")
     rec = run_in_image("corners", ["bash", "-c", f"seq 0 {len(corners)-1} | xargs -P 10 -I{{}} sh -c 'timeout 60 ngspice -b -o k{{}}.log k{{}}.cir >/dev/null 2>&1; true'"], work, timeout_s=1800)
     rows = []
     for i, combo in enumerate(corners):
@@ -100,7 +101,8 @@ def run_corners(run_dir: Path, netlist: Path) -> dict:
             continue
         v = {n: CORNER_SPAN[n][c] for n, c in zip(names, combo)}
         f, (vs, va, vo) = sm.read_wrdata(p, 3, True)
-        m = sm.ac_metrics(f, vs, va, vo, rs_ohm=v["Rs"])
+        _, (v19s, v19o) = sm.read_wrdata(work / f"k{i}_19.csv", 2, True)
+        m = sm.ac_metrics(f, vs, va, vo, rs_ohm=v["Rs"], ratio_19k=complex(v19o[0] / v19s[0]))
         rows.append({"corner": {n: ("lo" if c == 0 else "hi") for n, c in zip(names, combo)}, **{k: m[k] for k in ("gain_400hz_V_per_V", "passband_flatness_dB_max_abs", "stopband_abs_gain_dB_max_19k_to_1M", "zin_min_ohm")}})
     worst_flat = max(rows, key=lambda r: r["passband_flatness_dB_max_abs"]) if rows else None
     return {"n": len(corners), "completed": len(rows), "wall_s": round(rec.wall_s, 1), "rows": rows, "worst_flat": worst_flat,

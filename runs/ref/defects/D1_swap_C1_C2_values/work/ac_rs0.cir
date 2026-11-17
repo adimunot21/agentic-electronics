@@ -8,5 +8,7 @@ Rs src AIN 0.01
 op
 ac dec 40 10 10Meg
 wrdata ac_rs0.csv v(src) v(ain) v(aout)
+ac lin 1 19k 19k
+wrdata ac19_rs0.csv v(src) v(aout)
 .endc
 .end

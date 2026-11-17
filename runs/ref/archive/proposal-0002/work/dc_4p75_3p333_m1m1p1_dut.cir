@@ -1,0 +1,22 @@
+* DUT deck generated from KiCad netlist (do not edit; regenerate)
+.include opa2314_ngspice_shim.lib
+C1 X 0 18n
+C2 N_INV N_S1 1n
+C3 N_INV2 N_S2 5.6n
+C4 AIN N_IN 2.2u
+C5 AOUT 0 330p
+C6 VMID 0 10u
+C7 P5V 0 10u
+C8 P5V 0 100n
+R1 N_IN X 59k
+R2 X N_S1 76.8k
+R3 X N_INV 6.19k
+R4 N_S1 N_INV2 16.5k
+R5 N_INV2 N_S2 16.5k
+R6 N_S2 AOUT 475
+R7 VREF VMID 10010
+R8 VMID 0 9990
+V_vosA VMID_vosA VMID DC -0.0025  ; TB_ONLY
+XU1A VMID_vosA N_INV P5V 0 N_S1 OPA2314
+V_vosB VMID_vosB VMID DC -0.0025  ; TB_ONLY
+XU1B VMID_vosB N_INV2 P5V 0 N_S2 OPA2314

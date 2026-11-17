@@ -8,7 +8,7 @@ IDEAL_FLOOR_DB = -90.0   # requirements/fe-aaf-001.yaml REQ-STAB (rev 3)
 
 def read_wrdata(path, n_vectors: int, complex_data: bool) -> tuple[np.ndarray, list[np.ndarray]]:
     """ngspice `wrdata` layout: for each vector: [x, re(, im)] repeated. Returns (x, [vectors])."""
-    raw = np.loadtxt(path)
+    raw = np.atleast_2d(np.loadtxt(path))
     stride = 3 if complex_data else 2
     if raw.shape[1] != stride * n_vectors:
         raise ValueError(f"{path}: {raw.shape[1]} columns, expected {stride * n_vectors}")
@@ -24,7 +24,9 @@ def interp_db(freq: np.ndarray, gain_mag: np.ndarray, at_hz: float) -> float:
     return float(np.interp(np.log10(at_hz), np.log10(freq), 20 * np.log10(gain_mag)))
 
 
-def ac_metrics(freq, v_src, v_ain, v_aout, rs_ohm: float, ideal_mag: np.ndarray | None = None) -> dict:
+def ac_metrics(freq, v_src, v_ain, v_aout, rs_ohm: float, ideal_mag: np.ndarray | None = None, ratio_19k: complex | None = None) -> dict:
+    """ratio_19k: v(aout)/v(src) from a dedicated single-point AC run AT EXACTLY 19 kHz. The sweep grid has no 19 kHz point (18.84k, 19.95k), and the
+    response falls ~60 dB/decade there, so evaluating only grid points >= 19 kHz flatters the alias result by ~1.3 dB."""
     gain = np.abs(v_aout / v_src)
     g400_db = interp_db(freq, gain, 400.0)
     in_band = (freq >= 50) & (freq <= 1000)
@@ -35,7 +37,8 @@ def ac_metrics(freq, v_src, v_ain, v_aout, rs_ohm: float, ideal_mag: np.ndarray 
     out = {
         "gain_400hz_V_per_V": 10 ** (g400_db / 20),
         "passband_flatness_dB_max_abs": float(np.max(np.abs(flat))),
-        "stopband_abs_gain_dB_max_19k_to_1M": float(np.max(20 * np.log10(gain[stop]))),
+        "stopband_abs_gain_dB_max_19k_to_1M": float(max(np.max(20 * np.log10(gain[stop])), 20 * np.log10(abs(ratio_19k)) if ratio_19k is not None else -1e9)),
+        "gain_at_exactly_19kHz_dB": (float(20 * np.log10(abs(ratio_19k))) if ratio_19k is not None else None),
         "zin_min_ohm": float(np.min(zin[in_band])) if zin is not None else None,
     }
     if ideal_mag is not None:

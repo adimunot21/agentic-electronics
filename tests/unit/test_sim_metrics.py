@@ -27,3 +27,21 @@ def test_acquisition_error_sign_and_units():
     ref = np.full_like(t, 2.9)
     loaded = 2.9 - 0.001 * np.exp(-t / 0.3e-6)
     assert abs(sm.acquisition_error_mv(t, loaded, t, ref, 1e-6) - (-1000 * np.exp(-1e-6 / 0.3e-6) * 1e-3)) < 1e-6
+
+
+def test_alias_is_evaluated_at_exactly_19khz_not_only_on_grid_points():
+    f = 10 * 10 ** (np.arange(0, 261) / 40)                       # the suite's sweep grid: 18.84 kHz, 19.95 kHz, no 19 kHz point
+    mag = (1.0 + (f / 1600.0) ** 6) ** -0.5                       # monotone 3rd-order roll-off
+    ones = np.ones_like(f)
+    grid_only = sm.ac_metrics(f, ones, 0 * ones, mag, 100.0)["stopband_abs_gain_dB_max_19k_to_1M"]
+    exact = (1.0 + (19000 / 1600.0) ** 6) ** -0.5
+    with_exact = sm.ac_metrics(f, ones, 0 * ones, mag, 100.0, ratio_19k=exact)
+    assert with_exact["stopband_abs_gain_dB_max_19k_to_1M"] > grid_only + 1.0        # grid-only flatters by > 1 dB
+    assert abs(with_exact["gain_at_exactly_19kHz_dB"] - 20 * np.log10(exact)) < 1e-9
+
+
+def test_read_wrdata_accepts_a_single_row_file(tmp_path):
+    p = tmp_path / "one.csv"
+    p.write_text(" 1.9e4 1.0 0.0 1.9e4 2.0 0.5\n")
+    x, (a, b) = sm.read_wrdata(p, 2, True)
+    assert x.shape == (1,) and a[0] == 1.0 and b[0] == 2.0 + 0.5j

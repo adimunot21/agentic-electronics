@@ -14,14 +14,14 @@ Evidence: `runs/ref/baseline/record.json` (outcomes, commands, versions, input h
 | Requirements/acceptance contract | 14 requirements, assumptions/derived/verify-method tagged | `requirements/fe-aaf-001.yaml` |
 | Filter derivation | order 3 Butterworth (order 2 misses the alias spec by ~15 dB); E96/E12 values | `analysis/derive_filter.py`, `analysis/filter_design.json` |
 | Component evidence | OPA2314AID selected over MCP6002 (model unobtainable) and TLV9062 (Iq too high) | `docs/component-selection.md`, `evidence/pins/`, `models/manifest.yaml` |
-| Schematic (editable) | generated KiCad 10 schematic, ERC clean | `runs/ref/baseline/fe_aaf_001.kicad_sch` |
+| Schematic (editable) | generated KiCad 10 schematic, ERC clean (figures: `docs/figures/`) | `runs/ref/baseline/fe_aaf_001.kicad_sch` |
 | Simulation | ngspice, TI op-amp model, 32 DC corners + AC + transient + noise + ADC acquisition | `runs/ref/baseline/work/`, `record.json` |
 | PCB | placed, autorouted, GND pour, DRC 0 / unconnected 0 / parity 0 | `runs/ref/baseline/fe_aaf_001.kicad_pcb` |
 | Release | BOM, Gerbers, drill, CPL (generated, **not** fab-checked) | `runs/ref/baseline/release/` |
 | Failure + repair | REQ-SETTLE failed (1.40 mV vs 0.403), diagnosed, repaired by patch 0001, rerun | `runs/ref/repair-0001/` |
 | Controlled defects | 4 defects vs predictions committed beforehand | `designs/fe-aaf-001/defects.yaml`, `runs/ref/defects/` |
 
-Failing in the baseline (26 passed, 1 blocked, 3 failed, 3 not_tested): **REQ-FLAT-CORNERS** (a real worst-case failure inside the specified tolerances; a correction is proposed and verified but not adopted), **REQ-STAB** under the in-force revision 2 (rev 3, AC-peaking only, passes and is NOT approved), and **REQ-BOM** (J1/J2 have no MPN). Model startup/saturation/overload behaviour is explicitly `not_tested`. See [`docs/review-extract.md`](docs/review-extract.md) and limitations.
+**Current local development baseline = pre-patch + patch 0002** (resistors R1-R5 rescaled after a worst-case corner failure of REQ-FLAT; see [`docs/before-after-0002.md`](docs/before-after-0002.md); the old baseline with its failures is archived in `runs/ref/archive/`). Baseline: 27 passed, 1 blocked, 2 failed, 3 not_tested. Failing: **REQ-STAB** under the in-force revision 2 (rev 3, AC-peaking only, passes and is NOT approved) and **REQ-BOM** (J1/J2 have no MPN). Model startup/saturation/overload behaviour is explicitly `not_tested`. See [`docs/review-extract.md`](docs/review-extract.md) and limitations.
 
 ## Run it
 ```bash

@@ -101,7 +101,7 @@ def build(name: str = "fe_aaf_001", nets: dict | None = None) -> SchematicBuilde
     builder.add_power_flag("GND", (165.1, 190.5))
     builder.add_power_flag("+5V", (190.5, 190.5))
     builder.note("FE-AAF-001: 3rd-order Butterworth anti-alias filter. MANUAL REFERENCE DESIGN (not agent-generated).", (25.4, 25.4), 2.0)
-    builder.note("Stage 1: inverting MFB (Q=1, gain 1.3). Stage 2: inverting 1st-order. Net non-inverting, fc = 1.60 kHz. Bias VMID = VREF/2.", (25.4, 31.75), 1.27)
+    builder.note("Stage 1: inverting MFB (Q=1, gain 1.3). Stage 2: inverting 1st-order. Net non-inverting, fc ~ 1.73 kHz (patch 0002; was 1.60). Bias VMID = VREF/2.", (25.4, 31.75), 1.27)
     return builder
 
 

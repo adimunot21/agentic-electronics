@@ -1,0 +1,77 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-11-17T21:45:45",
+    "ignored_checks": [
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.8",
+    "schematic_parity": [],
+    "source": "fe_aaf_001.kicad_pcb",
+    "unconnected_items": [
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 2 [/N_INV] of R3 on F.Cu",
+                    "pos": {
+                        "x": 12.825,
+                        "y": 8.5
+                    },
+                    "uuid": "adf44ade-b20b-4e78-9a02-4a45f1c15227"
+                },
+                {
+                    "description": "Track [/N_INV] on F.Cu, length 2.3688 mm",
+                    "pos": {
+                        "x": 14.5,
+                        "y": 14.95
+                    },
+                    "uuid": "f035942a-1f6e-4fbc-ae40-2fda1b85916a"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        }
+    ],
+    "violations": [
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [/N_INV] on F.Cu, length 2.3688 mm",
+                    "pos": {
+                        "x": 14.5,
+                        "y": 14.95
+                    },
+                    "uuid": "f035942a-1f6e-4fbc-ae40-2fda1b85916a"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        }
+    ]
+}
