@@ -1,7 +1,7 @@
 {
   "run_id": "D1_swap_C1_C2_values",
   "label": "D1_swap_C1_C2_values",
-  "created_utc": "2026-11-17T21:43:07+00:00",
+  "created_utc": "2026-11-17T22:28:43+00:00",
   "environment": {
     "kicad_cli": "10.0.8",
     "ngspice": "** ngspice-44.2 : Circuit level simulation program",
@@ -10,40 +10,43 @@
     "jre_image": "eclipse-temurin@sha256:945247f9d092703e0c6be92243ef3c51640229e23ab34d353c8dcdc73e6cd4e6",
     "freerouting_jar_sha256": "f6f51bb02245e8e717f9359bd260cc9c5c0b1bc0acc8b7cb2cd5b8ffeb5de3c7",
     "host_python": "3.12.3",
-    "git_commit": "c43906c2cdc3675b0a81fd8bf2a361b49e7610be"
+    "git_commit": "efbeea7bbaaed2a37e63ecb999c22259f07c8cd3"
   },
   "inputs_sha256": {
-    "board": "360a7e3323a8665200ca609450a72473c13be0400232d7ae9f1abd5a70ee7559",
-    "checks_metrics_code": "fc94453cf9008a464f4461617c8ec7b17c6fd57897f883dcbfba0340ad2a3d30",
-    "checks_sim_code": "1d9191a0179f28d0cd33910a93120810d96d0ca96f711e9b9587a68c6319520d",
-    "components": "a173d96762fbd0bb79c0188174f4e8b819fc3dc587be398e1dc46e2c7b620506",
+    "board": "980dd2c24f5590b1fe52716cab3c3e9ce2041cb3edd64499f6bd7f32574d1808",
+    "checks_metrics_code": "1e13b7a2ffc398e2995445bd30d1ff96ac7785ce9b14317e3e1cd9a890cbf087",
+    "checks_sim_code": "3106fc06b35257dfcf5ddefd40c8127c07610cda7f0cf8b01858075fe20552a9",
+    "components": "64cb16c04c1e6d7ff1c4c5a18256f0967abeef4aeae68b080517d4e5a8a20f6e",
     "dut_deck": "2ec8190638aa7d5847174ee32e7c066ba8160dff1389cd47a307bcd67d7f63aa",
     "freerouting_jar": "f6f51bb02245e8e717f9359bd260cc9c5c0b1bc0acc8b7cb2cd5b8ffeb5de3c7",
     "kicad_project": "c40367e8b5f76d9d0745211b439aa90969412ddb2297e6b18ccdb2606bc11fe5",
     "kicad_symbol_libs_tree": "09d6cbe5fb43aa8b497e88cd766c11968ad1e91407d6d1c77e6752d87d8812b7",
     "model_original": "36b70848dc6b35224529b58870803b26e5d33b0739786938c149835c03a031fe",
     "model_shim": "8ad0db9d5272a7801707a209fd3212d0b1517dc40bba8428339a50c71e9b5cb9",
-    "netlist": "65514ccb6b4f0c877538c1e1d1c7d2d155d9a3679ec40a663a2be5570f5c1f52",
+    "netlist": "84a936bb6ce2aa7b8e45fa5c9562cad8736da0b46205f908cc660748a678b9ec",
     "pin_evidence": "517c67ca5b9706f45cbf7306d14db1de01bafc704504cd501e5463515584912a",
     "placement": "8d25a0312460a891688d37e554655be1d26a55157f467abb69e89dcd7b296978",
-    "requirements": "b1ce298f1cbb9cb17faaf32c8b518421b2d319f2b0f7ae09bea37fe7243e27a9",
-    "schematic": "3dd602979179d1fcb9042ef7570f74c67a5b3637a85d402efd43ce5dc44768a9"
+    "requirements": "4767130a0f72f059b0cc002354c8527ba7aedc4fc1ef512380e78d2751e64b25",
+    "schematic": "82a01542c147e9b31fcee58b764d55dbd0d562d82fd749b984c5722d3af2ddcc"
   },
   "summary": {
-    "passed": 22,
-    "failed": 3
+    "passed": 23,
+    "failed": 7,
+    "not_tested": 3
   },
   "timings_s": {
-    "generate_schematic": 0.29,
-    "erc": 4.58,
+    "generate_schematic": 0.3,
+    "erc": 5.05,
     "netlist": 1.21,
     "pin_audit": 0.02,
-    "deck_check": 0.01,
-    "simulation": 33.41,
+    "bom_consistency": 0.01,
+    "deck_check": 0.02,
+    "simulation": 33.18,
+    "corners": 26.41,
     "router_final_score": 1000.0,
-    "pcb": 14.85,
-    "release": 4.37,
-    "total_wall_s": 58.8
+    "pcb": 14.67,
+    "release": 4.47,
+    "total_wall_s": 85.4
   },
   "checks": [
     {
@@ -119,6 +122,14 @@
       "margin": null
     },
     {
+      "id": "BOM_CONSISTENCY",
+      "outcome": "failed",
+      "detail": "15 lines: 12 consistent, 2 MISMATCH, 1 unresolved | C1: VALUE: schematic 1n but MPN C0805C183J5GACTU decodes to 1.8e-08; C2: VALUE: schematic 18n but MPN C0805C102J5GACTU decodes to 1e-09 | unresolved: J1,J2 | C6,C7: derating warning: 5.25 V applied is 52% of the 10 V rating (X7R/X5R lose capacitance with DC bias; not quantified)",
+      "value": null,
+      "limit": "",
+      "margin": null
+    },
+    {
       "id": "DECK_VS_NETLIST",
       "outcome": "passed",
       "detail": "40 pin connections identical between deck and KiCad netlist",
@@ -176,11 +187,19 @@
     },
     {
       "id": "REQ-STAB",
-      "outcome": "passed",
-      "detail": "10 Hz-10 MHz vs ideal-op-amp response; max excess at 10 Hz (sim 2.2 dB vs ideal 2.2 dB); transient ringing not tested",
-      "value": -0.04579577226561504,
+      "outcome": "failed",
+      "detail": "rev 2 (in force): 10 Hz-10 MHz vs ideal op-amp, no floor; the excess sits at levels far below -90 dB (see contract revisions); transient ringing not tested",
+      "value": 78.02894503040363,
       "limit": "<= 3.0",
-      "margin": 3.045795772265615
+      "margin": -75.02894503040363
+    },
+    {
+      "id": "REQ-STAB-R3-AC-PEAKING-PROPOSED",
+      "outcome": "passed",
+      "detail": "AC-PEAKING ONLY. Rev 3 (PROPOSED, NOT APPROVED): ideal floored at -90 dB; does NOT establish stability (no oscillation, transient-ringing or phase-margin test); max excess at 50119 Hz (sim -88.2 dB vs ideal -88.7 dB)",
+      "value": 0.5073128476058173,
+      "limit": "<= 3.0",
+      "margin": 2.4926871523941827
     },
     {
       "id": "REQ-HEADROOM",
@@ -205,6 +224,54 @@
       "value": 0.003217996,
       "limit": "<= 0.2",
       "margin": 0.196782004
+    },
+    {
+      "id": "MODEL_STARTUP",
+      "outcome": "not_tested",
+      "detail": "Power-up behaviour of the SHIMMED TI model is unvalidated: the unmodified model has no DC operating point in ngspice 44.2 (transient fallback gave wrong bias); all results start from the shim's .op, no supply-ramp transient was run or compared.",
+      "value": null,
+      "limit": "",
+      "margin": null
+    },
+    {
+      "id": "MODEL_SATURATION",
+      "outcome": "not_tested",
+      "detail": "Output saturation / rail-limit behaviour of the shimmed model is unvalidated (headroom is only checked inside 0.1-3.2 V, never driven into the rails; model output swing vs datasheet not compared).",
+      "value": null,
+      "limit": "",
+      "margin": null
+    },
+    {
+      "id": "MODEL_OVERLOAD_RECOVERY",
+      "outcome": "not_tested",
+      "detail": "The overload-recovery clamp instance X_SW_OR is patched OUT of the model: recovery from overdrive is not modelled. Linear agreement (identical follower -3 dB/peaking/noise vs the original) does NOT validate startup, saturation or overload behaviour.",
+      "value": null,
+      "limit": "",
+      "margin": null
+    },
+    {
+      "id": "REQ-FLAT-CORNERS",
+      "outcome": "failed",
+      "detail": "WORST-CASE (all 1024 vertices of the contract tolerance box, real model): 1024 corners exceed 0.5 dB; worst 12.724 dB at {'R1': 'lo', 'R2': 'hi', 'R3': 'hi', 'R4': 'lo', 'R5': 'hi', 'C1': 'lo', 'C2': 'hi', 'C3': 'hi', 'C4': 'lo', 'Rs': 'lo'}",
+      "value": 12.72415917899053,
+      "limit": "<= 0.5",
+      "margin": -12.22415917899053
+    },
+    {
+      "id": "REQ-GAIN-CORNERS",
+      "outcome": "failed",
+      "detail": "gain range over all corners 0.2531..0.2987 vs 1.235..1.365",
+      "value": 0.2986581863876405,
+      "limit": "1.235..1.365",
+      "margin": -0.9818705151406384
+    },
+    {
+      "id": "REQ-ALIAS-CORNERS",
+      "outcome": "passed",
+      "detail": "worst stopband over all corners -67.1 dB",
+      "value": -67.05886911856845,
+      "limit": "<= -55.8",
+      "margin": 11.258869118568455
     },
     {
       "id": "DRC_VIOLATIONS",
@@ -233,7 +300,7 @@
     {
       "id": "REQ-BOM",
       "outcome": "failed",
-      "detail": "15 BOM lines; 3 without a selected MPN ['C6,C7', 'C8', 'J1,J2']; 14 with unverified MPN evidence",
+      "detail": "15 BOM lines; 1 without a selected MPN ['J1,J2']; by evidence level: listing_verified: ['R1', 'R2', 'R3', 'R4,R5', 'R6', 'R7,R8']; unresolved: ['J1,J2']; verified: ['C1', 'C2', 'C3', 'C4', 'C5', 'C6,C7', 'C8', 'U1']",
       "value": null,
       "limit": "",
       "margin": null
@@ -262,8 +329,8 @@
         "fe_aaf_001.kicad_sch"
       ],
       "exit_code": 0,
-      "wall_s": 4.578,
-      "peak_rss_mb": 1281.9,
+      "wall_s": 5.052,
+      "peak_rss_mb": 1282.3,
       "outcome": "passed",
       "stdout_tail": "Found 0 violations\nSaved ERC Report to erc.json\n",
       "stderr_tail": ""
@@ -283,7 +350,7 @@
       ],
       "exit_code": 0,
       "wall_s": 1.207,
-      "peak_rss_mb": 225.3,
+      "peak_rss_mb": 228.0,
       "outcome": "passed",
       "stdout_tail": "",
       "stderr_tail": ""
@@ -298,8 +365,8 @@
         "dc_4p75_3p267_m1m1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.396,
-      "peak_rss_mb": 13.1,
+      "wall_s": 0.381,
+      "peak_rss_mb": 13.2,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.633112e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -314,8 +381,8 @@
         "dc_4p75_3p267_m1m1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.392,
-      "peak_rss_mb": 13.3,
+      "wall_s": 0.38,
+      "peak_rss_mb": 13.4,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.629844e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -331,7 +398,7 @@
       ],
       "exit_code": 0,
       "wall_s": 0.365,
-      "peak_rss_mb": 13.1,
+      "peak_rss_mb": 13.2,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.643112e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -346,8 +413,8 @@
         "dc_4p75_3p267_m1p1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.361,
-      "peak_rss_mb": 13.4,
+      "wall_s": 0.372,
+      "peak_rss_mb": 13.1,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.639845e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -362,7 +429,7 @@
         "dc_4p75_3p267_p1m1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.395,
+      "wall_s": 0.388,
       "peak_rss_mb": 13.2,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.628111e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
@@ -378,8 +445,8 @@
         "dc_4p75_3p267_p1m1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.395,
-      "peak_rss_mb": 13.2,
+      "wall_s": 0.388,
+      "peak_rss_mb": 13.1,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.624844e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -394,8 +461,8 @@
         "dc_4p75_3p267_p1p1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.4,
-      "peak_rss_mb": 13.1,
+      "wall_s": 0.403,
+      "peak_rss_mb": 13.5,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.638112e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -410,8 +477,8 @@
         "dc_4p75_3p267_p1p1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.379,
-      "peak_rss_mb": 13.1,
+      "wall_s": 0.384,
+      "peak_rss_mb": 13.3,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.634845e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -426,8 +493,8 @@
         "dc_4p75_3p333_m1m1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.372,
-      "peak_rss_mb": 13.5,
+      "wall_s": 0.376,
+      "peak_rss_mb": 13.1,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.666145e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -442,8 +509,8 @@
         "dc_4p75_3p333_m1m1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.383,
-      "peak_rss_mb": 13.1,
+      "wall_s": 0.412,
+      "peak_rss_mb": 13.2,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.662812e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -458,8 +525,8 @@
         "dc_4p75_3p333_m1p1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.371,
-      "peak_rss_mb": 13.3,
+      "wall_s": 0.36,
+      "peak_rss_mb": 13.1,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.676145e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -474,8 +541,8 @@
         "dc_4p75_3p333_m1p1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.361,
-      "peak_rss_mb": 13.2,
+      "wall_s": 0.377,
+      "peak_rss_mb": 13.5,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.672812e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -490,8 +557,8 @@
         "dc_4p75_3p333_p1m1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.38,
-      "peak_rss_mb": 13.2,
+      "wall_s": 0.378,
+      "peak_rss_mb": 13.3,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.661145e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -506,8 +573,8 @@
         "dc_4p75_3p333_p1m1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.372,
-      "peak_rss_mb": 13.2,
+      "wall_s": 0.38,
+      "peak_rss_mb": 12.9,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.657812e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -522,8 +589,8 @@
         "dc_4p75_3p333_p1p1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.392,
-      "peak_rss_mb": 13.2,
+      "wall_s": 0.376,
+      "peak_rss_mb": 13.3,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.671145e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -538,8 +605,8 @@
         "dc_4p75_3p333_p1p1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.38,
-      "peak_rss_mb": 13.3,
+      "wall_s": 0.373,
+      "peak_rss_mb": 13.2,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.667812e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -554,8 +621,8 @@
         "dc_5p25_3p267_m1m1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.378,
-      "peak_rss_mb": 13.1,
+      "wall_s": 0.367,
+      "peak_rss_mb": 13.2,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.633116e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -570,8 +637,8 @@
         "dc_5p25_3p267_m1m1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.377,
-      "peak_rss_mb": 13.2,
+      "wall_s": 0.371,
+      "peak_rss_mb": 13.3,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.629849e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -586,8 +653,8 @@
         "dc_5p25_3p267_m1p1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.372,
-      "peak_rss_mb": 13.2,
+      "wall_s": 0.365,
+      "peak_rss_mb": 13.3,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.643116e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -602,8 +669,8 @@
         "dc_5p25_3p267_m1p1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.375,
-      "peak_rss_mb": 13.2,
+      "wall_s": 0.372,
+      "peak_rss_mb": 13.1,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.639849e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -618,8 +685,8 @@
         "dc_5p25_3p267_p1m1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.394,
-      "peak_rss_mb": 13.0,
+      "wall_s": 0.386,
+      "peak_rss_mb": 13.2,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.628116e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -634,8 +701,8 @@
         "dc_5p25_3p267_p1m1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.391,
-      "peak_rss_mb": 13.4,
+      "wall_s": 0.374,
+      "peak_rss_mb": 13.3,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.624849e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -650,8 +717,8 @@
         "dc_5p25_3p267_p1p1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.377,
-      "peak_rss_mb": 13.1,
+      "wall_s": 0.38,
+      "peak_rss_mb": 13.4,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.638116e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -666,8 +733,8 @@
         "dc_5p25_3p267_p1p1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.376,
-      "peak_rss_mb": 13.4,
+      "wall_s": 0.382,
+      "peak_rss_mb": 13.2,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.634849e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -682,8 +749,8 @@
         "dc_5p25_3p333_m1m1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.384,
-      "peak_rss_mb": 13.3,
+      "wall_s": 0.389,
+      "peak_rss_mb": 13.1,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.666150e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -698,8 +765,8 @@
         "dc_5p25_3p333_m1m1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.381,
-      "peak_rss_mb": 13.1,
+      "wall_s": 0.407,
+      "peak_rss_mb": 13.3,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.662816e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -714,8 +781,8 @@
         "dc_5p25_3p333_m1p1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.366,
-      "peak_rss_mb": 13.1,
+      "wall_s": 0.38,
+      "peak_rss_mb": 13.3,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.676150e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -730,8 +797,8 @@
         "dc_5p25_3p333_m1p1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.39,
-      "peak_rss_mb": 13.2,
+      "wall_s": 0.371,
+      "peak_rss_mb": 13.3,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.672817e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -746,7 +813,7 @@
         "dc_5p25_3p333_p1m1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.396,
+      "wall_s": 0.378,
       "peak_rss_mb": 13.2,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.661149e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
@@ -762,8 +829,8 @@
         "dc_5p25_3p333_p1m1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.376,
-      "peak_rss_mb": 13.3,
+      "wall_s": 0.377,
+      "peak_rss_mb": 13.1,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.657816e+00\ni(vcc) = -3.00281e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -778,8 +845,8 @@
         "dc_5p25_3p333_p1p1m1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.39,
-      "peak_rss_mb": 13.2,
+      "wall_s": 0.369,
+      "peak_rss_mb": 13.5,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.671150e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -794,8 +861,8 @@
         "dc_5p25_3p333_p1p1p1.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.367,
-      "peak_rss_mb": 13.4,
+      "wall_s": 0.385,
+      "peak_rss_mb": 13.1,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nv(aout) = 1.667817e+00\ni(vcc) = -3.00000e-04\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -810,8 +877,8 @@
         "ac_rs100.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.452,
-      "peak_rss_mb": 18.1,
+      "wall_s": 0.446,
+      "peak_rss_mb": 18.2,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 241\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -826,8 +893,8 @@
         "ac_rs0.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.452,
-      "peak_rss_mb": 18.5,
+      "wall_s": 0.439,
+      "peak_rss_mb": 18.6,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 1\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 241\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -842,8 +909,8 @@
         "tran_1000_4p75_3p267.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.986,
-      "peak_rss_mb": 23.5,
+      "wall_s": 0.959,
+      "peak_rss_mb": 24.1,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch              3.2685e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.37663e-09\ne.xu1a.e_e3#branch                -4.46478e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                        -0.00016335\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch             1.3875e-09\nv.xu1b.v_vcm_max#branch            -3.7625e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch             1.3875e-09\nv.xu1a.v_vcm_max#branch            -3.7625e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 4013\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -858,7 +925,7 @@
         "tran_1000_4p75_3p333.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.986,
+      "wall_s": 0.936,
       "peak_rss_mb": 24.0,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch              3.2685e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.37671e-09\ne.xu1a.e_e3#branch                -4.79479e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                        -0.00016665\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch             1.3875e-09\nv.xu1b.v_vcm_max#branch            -3.7625e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch             1.3875e-09\nv.xu1a.v_vcm_max#branch            -3.7625e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 4013\nNote: Simulation executed from .control section \n",
@@ -874,8 +941,8 @@
         "tran_1000_5p25_3p267.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.951,
-      "peak_rss_mb": 23.9,
+      "wall_s": 0.96,
+      "peak_rss_mb": 23.8,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch             3.12639e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.62641e-09\ne.xu1a.e_e3#branch                -3.21482e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                        -0.00016335\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch             1.5125e-09\nv.xu1b.v_vcm_max#branch            -4.1375e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch             1.5125e-09\nv.xu1a.v_vcm_max#branch            -4.1375e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 4013\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -890,8 +957,8 @@
         "tran_1000_5p25_3p333.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.969,
-      "peak_rss_mb": 24.0,
+      "wall_s": 0.942,
+      "peak_rss_mb": 23.9,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch             2.98428e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.62649e-09\ne.xu1a.e_e3#branch                -3.54483e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                        -0.00016665\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch             1.5125e-09\nv.xu1b.v_vcm_max#branch            -4.1375e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch             1.5125e-09\nv.xu1a.v_vcm_max#branch            -4.1375e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 4013\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -906,8 +973,8 @@
         "tran_50_4p75_3p267.cir"
       ],
       "exit_code": 0,
-      "wall_s": 1.237,
-      "peak_rss_mb": 29.3,
+      "wall_s": 1.242,
+      "peak_rss_mb": 29.1,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch              3.2685e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.37663e-09\ne.xu1a.e_e3#branch                -4.46478e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                        -0.00016335\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch             1.3875e-09\nv.xu1b.v_vcm_max#branch            -3.7625e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch             1.3875e-09\nv.xu1a.v_vcm_max#branch            -3.7625e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 6016\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -922,8 +989,8 @@
         "tran_50_4p75_3p333.cir"
       ],
       "exit_code": 0,
-      "wall_s": 1.186,
-      "peak_rss_mb": 29.4,
+      "wall_s": 1.236,
+      "peak_rss_mb": 29.2,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch              3.2685e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.37671e-09\ne.xu1a.e_e3#branch                -4.79479e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                        -0.00016665\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch             1.3875e-09\nv.xu1b.v_vcm_max#branch            -3.7625e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch             1.3875e-09\nv.xu1a.v_vcm_max#branch            -3.7625e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 6016\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -938,7 +1005,7 @@
         "tran_50_5p25_3p267.cir"
       ],
       "exit_code": 0,
-      "wall_s": 1.254,
+      "wall_s": 1.23,
       "peak_rss_mb": 29.3,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch             3.12639e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.62641e-09\ne.xu1a.e_e3#branch                -3.21482e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                        -0.00016335\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch             1.5125e-09\nv.xu1b.v_vcm_max#branch            -4.1375e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch             1.5125e-09\nv.xu1a.v_vcm_max#branch            -4.1375e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 6016\nNote: Simulation executed from .control section \n",
@@ -954,7 +1021,7 @@
         "tran_50_5p25_3p333.cir"
       ],
       "exit_code": 0,
-      "wall_s": 1.264,
+      "wall_s": 1.212,
       "peak_rss_mb": 29.2,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch             2.98428e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.62649e-09\ne.xu1a.e_e3#branch                -3.54483e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                        -0.00016665\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch             1.5125e-09\nv.xu1b.v_vcm_max#branch            -4.1375e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch             1.5125e-09\nv.xu1a.v_vcm_max#branch            -4.1375e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 6016\nNote: Simulation executed from .control section \n",
@@ -970,7 +1037,7 @@
         "tran_400_4p75_3p267.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.972,
+      "wall_s": 0.961,
       "peak_rss_mb": 24.0,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch              3.2685e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.37663e-09\ne.xu1a.e_e3#branch                -4.46478e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                        -0.00016335\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch             1.3875e-09\nv.xu1b.v_vcm_max#branch            -3.7625e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch             1.3875e-09\nv.xu1a.v_vcm_max#branch            -3.7625e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 4015\nNote: Simulation executed from .control section \n",
@@ -986,8 +1053,8 @@
         "tran_400_4p75_3p333.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.921,
-      "peak_rss_mb": 24.1,
+      "wall_s": 0.907,
+      "peak_rss_mb": 24.2,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch              3.2685e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.37671e-09\ne.xu1a.e_e3#branch                -4.79479e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                        -0.00016665\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch             1.3875e-09\nv.xu1b.v_vcm_max#branch            -3.7625e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch             1.3875e-09\nv.xu1a.v_vcm_max#branch            -3.7625e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 4015\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -1002,7 +1069,7 @@
         "tran_400_5p25_3p267.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.944,
+      "wall_s": 0.956,
       "peak_rss_mb": 24.0,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch             3.12639e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.62641e-09\ne.xu1a.e_e3#branch                -3.21482e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                        -0.00016335\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch             1.5125e-09\nv.xu1b.v_vcm_max#branch            -4.1375e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch             1.5125e-09\nv.xu1a.v_vcm_max#branch            -4.1375e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 4015\nNote: Simulation executed from .control section \n",
@@ -1018,8 +1085,8 @@
         "tran_400_5p25_3p333.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.975,
-      "peak_rss_mb": 23.9,
+      "wall_s": 0.996,
+      "peak_rss_mb": 24.2,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch             2.98428e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.62649e-09\ne.xu1a.e_e3#branch                -3.54483e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                        -0.00016665\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch             1.5125e-09\nv.xu1b.v_vcm_max#branch            -4.1375e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch             1.5125e-09\nv.xu1a.v_vcm_max#branch            -4.1375e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 4015\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -1034,7 +1101,7 @@
         "settle_ref.cir"
       ],
       "exit_code": 0,
-      "wall_s": 1.028,
+      "wall_s": 1.041,
       "peak_rss_mb": 25.0,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_i_nn.e1#branch                      0\ne.xu1a.x_e_n.e3#branch             3.12639e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.50166e-09\ne.xu1a.e_e3#branch                -4.00481e-10\ne.xu1a.e_e2#branch                           0\nvsrc#branch                                  0\nvref#branch                          -0.000165\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch               1.45e-09\nv.xu1b.v_vcm_max#branch              -3.95e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch               1.45e-09\nv.xu1a.v_vcm_max#branch              -3.95e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 4511\nNote: Simulation executed from .control section \n",
@@ -1050,8 +1117,8 @@
         "settle_loaded.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.878,
-      "peak_rss_mb": 23.1,
+      "wall_s": 0.921,
+      "peak_rss_mb": 22.8,
       "outcome": "passed",
       "stdout_tail": "             0\ne.xu1a.x_e_n.e3#branch             3.12639e-13\ne.xu1a.x_e_n.e2#branch                       0\ne.xu1a.x_e_n.e1#branch                       0\ne.xu1a.e_e6#branch                 2.50166e-09\ne.xu1a.e_e3#branch                -4.00481e-10\ne.xu1a.e_e2#branch                           0\nvctl#branch                                  0\nvsrc#branch                                  0\nvref#branch                          -0.000165\nvcc#branch                             -0.0003\nv.xu1b.v_vcm_min#branch               1.45e-09\nv.xu1b.v_vcm_max#branch              -3.95e-09\nv.xu1b.v_v_orp#branch                        0\nv.xu1b.v_v_orn#branch                        0\nv.xu1b.v_v_iscp#branch                  -2e-08\nv.xu1b.v_v_iscn#branch                   2e-08\nv.xu1b.v_v_grp#branch                -2.06e-07\nv.xu1b.v_v_grn#branch                 2.06e-07\nv.xu1a.v_vcm_min#branch               1.45e-09\nv.xu1a.v_vcm_max#branch              -3.95e-09\nv.xu1a.v_v_orp#branch                        0\nv.xu1a.v_v_orn#branch                        0\nv.xu1a.v_v_iscp#branch                  -2e-08\nv.xu1a.v_v_iscn#branch                   2e-08\nv.xu1a.v_v_grp#branch                -2.06e-07\nv.xu1a.v_v_grn#branch                 2.06e-07\na.xu1b.x_clawp.ag1#branch_1_0                0\na.xu1b.x_clawn.ag1#branch_1_0                0\na.xu1a.x_clawp.ag1#branch_1_0                0\na.xu1a.x_clawn.ag1#branch_1_0                0\n\n\nNo. of Data Rows : 3650\nNote: Simulation executed from .control section \n",
       "stderr_tail": ""
@@ -1066,7 +1133,7 @@
         "noise.cir"
       ],
       "exit_code": 0,
-      "wall_s": 0.382,
+      "wall_s": 0.398,
       "peak_rss_mb": 13.1,
       "outcome": "passed",
       "stdout_tail": "\nNote: Compatibility modes selected: ps a\n\n\nCircuit: * test bench (generated)\n\nReducing trtol to 1 for xspice 'A' devices\nDoing analysis at TEMP = 27.000000 and TNOM = 27.000000\n\nUsing SPARSE 1.3 as Direct Linear Solver\nNote: Starting dynamic gmin stepping\nNote: Dynamic gmin stepping completed\n\nNo. of Data Rows : 87\n\nNo. of Data Rows : 1\nonoise_total = 3.217996e-06\nNote: Simulation executed from .control section \n",
@@ -1081,8 +1148,8 @@
         "board.json"
       ],
       "exit_code": 0,
-      "wall_s": 2.142,
-      "peak_rss_mb": 277.5,
+      "wall_s": 2.102,
+      "peak_rss_mb": 277.6,
       "outcome": "passed",
       "stdout_tail": "reference texts placed: 23\nbuilt /work/fe_aaf_001.kicad_pcb: 23 footprints, 12 nets, 1 zones\n",
       "stderr_tail": ""
@@ -1097,10 +1164,10 @@
         "fe_aaf_001.dsn"
       ],
       "exit_code": 0,
-      "wall_s": 0.868,
-      "peak_rss_mb": 157.2,
+      "wall_s": 0.888,
+      "peak_rss_mb": 155.5,
       "outcome": "passed",
-      "stdout_tail": "ExportSpecctraDSN -> fe_aaf_001.dsn ok=True size=13348\n",
+      "stdout_tail": "ExportSpecctraDSN -> fe_aaf_001.dsn ok=True size=13302\n",
       "stderr_tail": ""
     },
     {
@@ -1110,7 +1177,7 @@
         "run",
         "--rm",
         "--name",
-        "ae-route-2ed64b94",
+        "ae-route-6d8c4f7d",
         "--network",
         "none",
         "--hostname",
@@ -1132,10 +1199,10 @@
         "java -jar /opt/fr/freerouting-2.5.0.jar --gui.enabled=false -de fe_aaf_001.dsn -do fe_aaf_001.ses -mp 20; rc=$?; echo \"AE_MAXRSS_KB $(( $(cat /sys/fs/cgroup/memory.peak 2>/dev/null || echo 0) / 1024 ))\" >&2; exit $rc"
       ],
       "exit_code": 0,
-      "wall_s": 6.373,
-      "peak_rss_mb": 500.4,
+      "wall_s": 5.929,
+      "peak_rss_mb": 490.7,
       "outcome": "passed",
-      "stdout_tail": "6c5aee40abdc1' was completed in 0.70 seconds with the score of 840.00 (0 unrouted and 0 violations).\n2026-11-17 21:42:56.213 INFO   [517464\\94287D] Optimizer pass #1: optimizer score 800.00 -> 840.00 (IMPROVED, 5.0000%), router score: 1000.00, incomplete connections: 0, clearance violations: 0.\n2026-11-17 21:42:56.919 INFO   [517464\\94287D] Optimizer pass #2 on board '2a1016584f8e9e5d9fa77a0cbec05f32' was completed in 0.67 seconds with the score of 860.00 (0 unrouted and 0 violations).\n2026-11-17 21:42:56.939 INFO   [517464\\94287D] Optimizer pass #2: optimizer score 840.00 -> 860.00 (IMPROVED, 2.3810%), router score: 1000.00, incomplete connections: 0, clearance violations: 0.\n2026-11-17 21:42:56.939 INFO   [517464\\94287D] Stopping optimizer because the improvement in this pass (2.3810%) is below the threshold (2.50%).\n2026-11-17 21:42:56.960 INFO   [517464\\94287D] Optimization stage completed:. Baseline router score: 1000.00, baseline optimizer score: 800.00, final router score: 1000.00, final optimizer score: 860.00, completed in 1.50 seconds, using 7.56 total CPU seconds, 1.16 GB total allocated, and 166.3 MB peak heap usage.\n2026-11-17 21:42:56.969 INFO   [517464\\94287D] Job '517464\\94287D' finished with state: COMPLETED (elapsed: 3.16 seconds, finished at UTC: 2026-11-17T21:42:56.968376904Z).\n2026-11-17 21:42:57.012 INFO   Saving output file '/work/fe_aaf_001.ses' (SES)...\n2026-11-17 21:42:57.014 INFO   Successfully saved output file '/work/fe_aaf_001.ses' (8532 bytes).\n",
+      "stdout_tail": "f130a6054f1ca' was completed in 0.66 seconds with the score of 845.00 (0 unrouted and 0 violations).\n2026-11-17 22:28:32.150 INFO   [13604F\\94F1DF] Optimizer pass #1: optimizer score 815.00 -> 845.00 (IMPROVED, 3.6810%), router score: 1000.00, incomplete connections: 0, clearance violations: 0.\n2026-11-17 22:28:32.686 INFO   [13604F\\94F1DF] Optimizer pass #2 on board '189550e68ca774cec17cb867b5c86394' was completed in 0.49 seconds with the score of 860.00 (0 unrouted and 0 violations).\n2026-11-17 22:28:32.700 INFO   [13604F\\94F1DF] Optimizer pass #2: optimizer score 845.00 -> 860.00 (IMPROVED, 1.7751%), router score: 1000.00, incomplete connections: 0, clearance violations: 0.\n2026-11-17 22:28:32.700 INFO   [13604F\\94F1DF] Stopping optimizer because the improvement in this pass (1.7751%) is below the threshold (2.50%).\n2026-11-17 22:28:32.717 INFO   [13604F\\94F1DF] Optimization stage completed:. Baseline router score: 1000.00, baseline optimizer score: 815.00, final router score: 1000.00, final optimizer score: 860.00, completed in 1.29 seconds, using 7.32 total CPU seconds, 1.18 GB total allocated, and 178.5 MB peak heap usage.\n2026-11-17 22:28:32.727 INFO   [13604F\\94F1DF] Job '13604F\\94F1DF' finished with state: COMPLETED (elapsed: 2.76 seconds, finished at UTC: 2026-11-17T22:28:32.726385900Z).\n2026-11-17 22:28:32.727 INFO   Saving output file '/work/fe_aaf_001.ses' (SES)...\n2026-11-17 22:28:32.730 INFO   Successfully saved output file '/work/fe_aaf_001.ses' (9291 bytes).\n",
       "stderr_tail": ""
     },
     {
@@ -1149,10 +1216,10 @@
         "fe_aaf_001.kicad_pcb"
       ],
       "exit_code": 0,
-      "wall_s": 1.093,
-      "peak_rss_mb": 264.2,
+      "wall_s": 1.095,
+      "peak_rss_mb": 265.9,
       "outcome": "passed",
-      "stdout_tail": "ImportSpecctraSES ok=True tracks_after_import=83\nsaved fe_aaf_001.kicad_pcb (zones refilled: 1)\n",
+      "stdout_tail": "ImportSpecctraSES ok=True tracks_after_import=97\nsaved fe_aaf_001.kicad_pcb (zones refilled: 1)\n",
       "stderr_tail": ""
     },
     {
@@ -1172,8 +1239,8 @@
         "fe_aaf_001.kicad_pcb"
       ],
       "exit_code": 0,
-      "wall_s": 4.366,
-      "peak_rss_mb": 1627.6,
+      "wall_s": 4.649,
+      "peak_rss_mb": 1597.2,
       "outcome": "passed",
       "stdout_tail": "Found 0 violations\nFound 0 unconnected items\nFound 0 schematic parity issues\nSaved DRC Report to drc.json\n",
       "stderr_tail": ""
@@ -1198,8 +1265,8 @@
         "fe_aaf_001.kicad_sch"
       ],
       "exit_code": 0,
-      "wall_s": 1.249,
-      "peak_rss_mb": 225.5,
+      "wall_s": 1.325,
+      "peak_rss_mb": 226.5,
       "outcome": "passed",
       "stdout_tail": "Wrote bill of materials to 'release/bom.csv'.\n",
       "stderr_tail": ""
@@ -1219,8 +1286,8 @@
         "fe_aaf_001.kicad_pcb"
       ],
       "exit_code": 0,
-      "wall_s": 1.15,
-      "peak_rss_mb": 231.4,
+      "wall_s": 1.185,
+      "peak_rss_mb": 230.8,
       "outcome": "passed",
       "stdout_tail": "Plotted to 'release/gerbers/fe_aaf_001-F_Cu.gbr'.\nPlotted to 'release/gerbers/fe_aaf_001-B_Cu.gbr'.\nPlotted to 'release/gerbers/fe_aaf_001-F_Paste.gbr'.\nPlotted to 'release/gerbers/fe_aaf_001-F_Silkscreen.gbr'.\nPlotted to 'release/gerbers/fe_aaf_001-B_Silkscreen.gbr'.\nPlotted to 'release/gerbers/fe_aaf_001-F_Mask.gbr'.\nPlotted to 'release/gerbers/fe_aaf_001-B_Mask.gbr'.\nPlotted to 'release/gerbers/fe_aaf_001-Edge_Cuts.gbr'.\n",
       "stderr_tail": ""
@@ -1241,8 +1308,8 @@
         "fe_aaf_001.kicad_pcb"
       ],
       "exit_code": 0,
-      "wall_s": 0.984,
-      "peak_rss_mb": 118.4,
+      "wall_s": 0.98,
+      "peak_rss_mb": 117.3,
       "outcome": "passed",
       "stdout_tail": "Created file 'release/gerbers/fe_aaf_001.drl'\nDone.\n",
       "stderr_tail": ""
@@ -1265,8 +1332,8 @@
         "fe_aaf_001.kicad_pcb"
       ],
       "exit_code": 0,
-      "wall_s": 0.969,
-      "peak_rss_mb": 118.4,
+      "wall_s": 0.942,
+      "peak_rss_mb": 118.3,
       "outcome": "passed",
       "stdout_tail": "Wrote position data to 'release/cpl.csv'.\n",
       "stderr_tail": ""

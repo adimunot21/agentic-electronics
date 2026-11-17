@@ -26,10 +26,10 @@ def apply_patch(patch_path: Path, repo_root: Path, *, dry_run: bool = False) -> 
         raise PatchConflict(f"{patch['id']}: base hash {patch['base']['sha256'][:10]} != current {current[:10]} for {target.name}")
     text = target.read_text()
     for ch in patch["changes"]:
-        pat = re.compile(rf'^(  {re.escape(ch["part"])}:.*?){re.escape(ch["field"])}: "{re.escape(ch["from"])}"', re.M)
+        pat = re.compile(rf'^(  {re.escape(ch["part"])}:.*?){re.escape(ch["field"])}: ("?){re.escape(ch["from"])}\2', re.M)
         if not pat.search(text):
             raise PatchConflict(f"{patch['id']}: {ch['part']}.{ch['field']} is not currently {ch['from']!r}")
-        text = pat.sub(lambda m: f'{m.group(1)}{ch["field"]}: "{ch["to"]}"', text, count=1)
+        text = pat.sub(lambda m: f'{m.group(1)}{ch["field"]}: {m.group(2)}{ch["to"]}{m.group(2)}', text, count=1)
         for key, new in ch.get("also", {}).items():
             pat2 = re.compile(rf'^(  {re.escape(ch["part"])}:.*?){key}: "[^"]*"', re.M)
             if not pat2.search(text):

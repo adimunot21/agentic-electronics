@@ -20,7 +20,7 @@ from typing import Callable
 
 import yaml
 
-from ae import pcb, pin_audit, release, spice
+from ae import bomcheck, pcb, pin_audit, release, spice
 from ae.designs import fe_aaf_001 as design
 from ae.evidence import collect_inputs
 from ae.ownership import guarded_write
@@ -113,6 +113,10 @@ def run_reference(run_dir: Path, *, label: str = "reference", nets: dict | None 
         r = pin_audit.audit_wiring(pins_ref, run_dir / net, "U1", U1_EXPECTED)
         rec.add("PIN_WIRING", r.outcome, r.detail)
 
+    with timed(rec, "bom_consistency"):
+        o, d, _lines = bomcheck.check_netlist(run_dir / net)
+        rec.add("BOM_CONSISTENCY", o, d)
+
     with timed(rec, "deck_check"):
         deck = spice.build_dut_deck(run_dir / net, pins_ref, "opa2314_ngspice_shim.lib")
         o, d = spice.check_deck_vs_netlist(deck, run_dir / net, pins_ref)
@@ -127,6 +131,22 @@ def run_reference(run_dir: Path, *, label: str = "reference", nets: dict | None 
             for m in evaluate_all(sim):
                 rec.add(m.req, m.outcome, m.detail, m.value, m.limit, m.margin)
             rec.stages += sim.stages
+
+    rec.add("MODEL_STARTUP", "not_tested", "Power-up behaviour of the SHIMMED TI model is unvalidated: the unmodified model has no DC operating point in ngspice 44.2 (transient fallback gave wrong bias); all results start from the shim's .op, no supply-ramp transient was run or compared.")
+    rec.add("MODEL_SATURATION", "not_tested", "Output saturation / rail-limit behaviour of the shimmed model is unvalidated (headroom is only checked inside 0.1-3.2 V, never driven into the rails; model output swing vs datasheet not compared).")
+    rec.add("MODEL_OVERLOAD_RECOVERY", "not_tested", "The overload-recovery clamp instance X_SW_OR is patched OUT of the model: recovery from overdrive is not modelled. Linear agreement (identical follower -3 dB/peaking/noise vs the original) does NOT validate startup, saturation or overload behaviour.")
+    with timed(rec, "corners"):
+        from ae.mc import run_corners
+        cr = run_corners(run_dir, run_dir / net)
+        if cr["completed"] != cr["n"]:
+            for cid in ("REQ-FLAT-CORNERS", "REQ-GAIN-CORNERS", "REQ-ALIAS-CORNERS"):
+                rec.add(cid, "blocked", f"only {cr['completed']} of {cr['n']} corners completed")
+        else:
+            wf = cr["worst_flat"]
+            rec.add("REQ-FLAT-CORNERS", "failed" if cr["flat_fail"] else "passed", f"WORST-CASE (all {cr['n']} vertices of the contract tolerance box, real model): {cr['flat_fail']} corners exceed 0.5 dB; worst {wf['passband_flatness_dB_max_abs']:.3f} dB at {wf['corner']}", wf["passband_flatness_dB_max_abs"], "<= 0.5", 0.5 - wf["passband_flatness_dB_max_abs"])
+            rec.add("REQ-GAIN-CORNERS", "failed" if cr["gain_fail"] else "passed", f"gain range over all corners {cr['gain_min']:.4f}..{cr['gain_max']:.4f} vs 1.235..1.365", cr["gain_max"], "1.235..1.365", min(1.365 - cr["gain_max"], cr["gain_min"] - 1.235))
+            rec.add("REQ-ALIAS-CORNERS", "failed" if cr["stop_fail"] else "passed", f"worst stopband over all corners {cr['stop_worst']:.1f} dB", cr["stop_worst"], "<= -55.8", -55.8 - cr["stop_worst"])
+        (run_dir / "corners_summary.json").write_text(json.dumps({k: v for k, v in cr.items() if k != "rows"}, indent=1, default=float))
 
     with timed(rec, "pcb"):
         b = pcb.build_board(run_dir, REPO_ROOT / "designs/fe-aaf-001/placement.yaml")

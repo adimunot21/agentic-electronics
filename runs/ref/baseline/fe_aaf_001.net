@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/work/fe_aaf_001.kicad_sch")
-		(date "2026-11-17T22:07:54")
+		(date "2026-11-17T22:29:34")
 		(tool "Eeschema 10.0.8")
 		(sheet
 			(number "1")
@@ -64,6 +64,10 @@
 				(field
 					(name "MPN_Status") "verified")
 				(field
+					(name "Tolerance") "5%")
+				(field
+					(name "Dielectric") "C0G")
+				(field
 					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
@@ -86,6 +90,14 @@
 			(property
 				(name "MPN_Status")
 				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "5%")
+			)
+			(property
+				(name "Dielectric")
+				(value "C0G")
 			)
 			(property
 				(name "Manufacturer")
@@ -136,6 +148,10 @@
 				(field
 					(name "MPN_Status") "verified")
 				(field
+					(name "Tolerance") "5%")
+				(field
+					(name "Dielectric") "C0G")
+				(field
 					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
@@ -158,6 +174,14 @@
 			(property
 				(name "MPN_Status")
 				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "5%")
+			)
+			(property
+				(name "Dielectric")
+				(value "C0G")
 			)
 			(property
 				(name "Manufacturer")
@@ -208,6 +232,10 @@
 				(field
 					(name "MPN_Status") "verified")
 				(field
+					(name "Tolerance") "5%")
+				(field
+					(name "Dielectric") "C0G")
+				(field
 					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
@@ -230,6 +258,14 @@
 			(property
 				(name "MPN_Status")
 				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "5%")
+			)
+			(property
+				(name "Dielectric")
+				(value "C0G")
 			)
 			(property
 				(name "Manufacturer")
@@ -280,6 +316,12 @@
 				(field
 					(name "MPN_Status") "verified")
 				(field
+					(name "Tolerance") "20%")
+				(field
+					(name "Dielectric") "X7R")
+				(field
+					(name "Voltage") "16V")
+				(field
 					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
@@ -302,6 +344,18 @@
 			(property
 				(name "MPN_Status")
 				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "20%")
+			)
+			(property
+				(name "Dielectric")
+				(value "X7R")
+			)
+			(property
+				(name "Voltage")
+				(value "16V")
 			)
 			(property
 				(name "Manufacturer")
@@ -352,6 +406,10 @@
 				(field
 					(name "MPN_Status") "verified")
 				(field
+					(name "Tolerance") "5%")
+				(field
+					(name "Dielectric") "C0G")
+				(field
 					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
@@ -374,6 +432,14 @@
 			(property
 				(name "MPN_Status")
 				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "5%")
+			)
+			(property
+				(name "Dielectric")
+				(value "C0G")
 			)
 			(property
 				(name "Manufacturer")
@@ -424,6 +490,12 @@
 				(field
 					(name "MPN_Status") "verified")
 				(field
+					(name "Tolerance") "20%")
+				(field
+					(name "Dielectric") "X7R")
+				(field
+					(name "Voltage") "10V")
+				(field
 					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
@@ -446,6 +518,18 @@
 			(property
 				(name "MPN_Status")
 				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "20%")
+			)
+			(property
+				(name "Dielectric")
+				(value "X7R")
+			)
+			(property
+				(name "Voltage")
+				(value "10V")
 			)
 			(property
 				(name "Manufacturer")
@@ -496,6 +580,12 @@
 				(field
 					(name "MPN_Status") "verified")
 				(field
+					(name "Tolerance") "20%")
+				(field
+					(name "Dielectric") "X7R")
+				(field
+					(name "Voltage") "10V")
+				(field
 					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
@@ -518,6 +608,18 @@
 			(property
 				(name "MPN_Status")
 				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "20%")
+			)
+			(property
+				(name "Dielectric")
+				(value "X7R")
+			)
+			(property
+				(name "Voltage")
+				(value "10V")
 			)
 			(property
 				(name "Manufacturer")
@@ -568,6 +670,12 @@
 				(field
 					(name "MPN_Status") "verified")
 				(field
+					(name "Tolerance") "10%")
+				(field
+					(name "Dielectric") "X7R")
+				(field
+					(name "Voltage") "16V")
+				(field
 					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
@@ -590,6 +698,18 @@
 			(property
 				(name "MPN_Status")
 				(value "verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "10%")
+			)
+			(property
+				(name "Dielectric")
+				(value "X7R")
+			)
+			(property
+				(name "Voltage")
+				(value "16V")
 			)
 			(property
 				(name "Manufacturer")
@@ -778,6 +898,8 @@
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
+					(name "Tolerance") "1%")
+				(field
 					(name "Manufacturer") "Yageo")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
@@ -800,6 +922,10 @@
 			(property
 				(name "MPN_Status")
 				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -850,6 +976,8 @@
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
+					(name "Tolerance") "1%")
+				(field
 					(name "Manufacturer") "Yageo")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
@@ -872,6 +1000,10 @@
 			(property
 				(name "MPN_Status")
 				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -922,6 +1054,8 @@
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
+					(name "Tolerance") "1%")
+				(field
 					(name "Manufacturer") "Yageo")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
@@ -944,6 +1078,10 @@
 			(property
 				(name "MPN_Status")
 				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -994,6 +1132,8 @@
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
+					(name "Tolerance") "1%")
+				(field
 					(name "Manufacturer") "Yageo")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
@@ -1016,6 +1156,10 @@
 			(property
 				(name "MPN_Status")
 				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -1066,6 +1210,8 @@
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
+					(name "Tolerance") "1%")
+				(field
 					(name "Manufacturer") "Yageo")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
@@ -1088,6 +1234,10 @@
 			(property
 				(name "MPN_Status")
 				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -1138,6 +1288,8 @@
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
+					(name "Tolerance") "1%")
+				(field
 					(name "Manufacturer") "Yageo")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
@@ -1160,6 +1312,10 @@
 			(property
 				(name "MPN_Status")
 				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -1210,6 +1366,8 @@
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
+					(name "Tolerance") "0.1%")
+				(field
 					(name "Manufacturer") "Yageo")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
@@ -1232,6 +1390,10 @@
 			(property
 				(name "MPN_Status")
 				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "0.1%")
 			)
 			(property
 				(name "Manufacturer")
@@ -1282,6 +1444,8 @@
 				(field
 					(name "MPN_Status") "listing_verified")
 				(field
+					(name "Tolerance") "0.1%")
+				(field
 					(name "Manufacturer") "Yageo")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
@@ -1304,6 +1468,10 @@
 			(property
 				(name "MPN_Status")
 				(value "listing_verified")
+			)
+			(property
+				(name "Tolerance")
+				(value "0.1%")
 			)
 			(property
 				(name "Manufacturer")

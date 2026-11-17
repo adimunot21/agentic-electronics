@@ -1,0 +1,12 @@
+* test bench (generated)
+.include k642_dut.cir
+Vcc P5V 0 DC 5.0
+Vref VREF 0 DC 3.3
+Vsrc src 0 DC 0 AC 1
+Rs src AIN 0.01
+.control
+op
+ac dec 20 10 10Meg
+wrdata k642.csv v(src) v(ain) v(aout)
+.endc
+.end

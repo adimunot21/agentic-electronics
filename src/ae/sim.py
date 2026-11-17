@@ -188,11 +188,19 @@ def settling_run(run: SimRun, cs_pf: float = 10.0, ron_ohm: float = 200.0) -> tu
     return err, f"sample cap precharged to {v_min:.3f} V, acquisition at the {np.max(v[window]):.3f} V peak (t={t_peak*1e3:.4f} ms), 1 us"
 
 
-def load_ideal():
+def load_ideal(netlist: Path | None = None):
+    """Ideal-op-amp reference response. With a netlist, the component values come from THAT schematic export (REQ-STAB text: 'the same component
+    values'); without, from the design-time derivation JSON (kept only for the review scripts)."""
     spec = importlib.util.spec_from_file_location("derive_filter", REPO_ROOT / "analysis" / "derive_filter.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    params = json.loads((REPO_ROOT / "analysis" / "filter_design.json").read_text())["params"]
+    if netlist is None:
+        params = json.loads((REPO_ROOT / "analysis" / "filter_design.json").read_text())["params"]
+    else:
+        from ae.netlist import read_netlist
+        from ae.spice import parse_si
+        vals = {c["ref"]: parse_si(c["value"]) for c in read_netlist(netlist)[0] if c["ref"][0] in "RC"}
+        params = {"R1": vals["R1"], "R2": vals["R2"], "R3": vals["R3"], "R4": vals["R4"], "R5": vals["R5"], "C1": vals["C1"], "C2": vals["C2"], "C3": vals["C3"], "Cin": vals["C4"]}
     return lambda f, rs: mod.ideal_total_response(f, params, rs=rs)
 
 
@@ -200,7 +208,7 @@ def evaluate_all(run: SimRun) -> list[Measurement]:
     contract = {r["id"]: r for r in yaml.safe_load((REPO_ROOT / "requirements/fe-aaf-001.yaml").read_text())["requirements"]}
     run.prepare()
     dc_corners(run, contract["REQ-BIAS"], contract["REQ-IQ"])
-    ideal = load_ideal()
+    ideal = load_ideal(run.netlist)
     ac_hi, ac_lo = ac_run(run, ideal, 100.0, "rs100"), ac_run(run, ideal, 0.01, "rs0")
     if ac_hi.get("blocked") or ac_lo.get("blocked"):
         for r in ("REQ-GAIN", "REQ-FLAT", "REQ-ALIAS", "REQ-ZIN", "REQ-STAB"):
@@ -220,8 +228,8 @@ def evaluate_all(run: SimRun) -> list[Measurement]:
         run.add("REQ-STAB", "peaking_above_ideal_dB_max_unfloored", pk2, "<= 3.0", "passed" if pk2 <= 3.0 else "failed",
                 "rev 2 (in force): 10 Hz-10 MHz vs ideal op-amp, no floor; the excess sits at levels far below -90 dB (see contract revisions); transient ringing not tested", 3.0 - pk2)
         pk3 = max(ac_hi["peaking_above_ideal_dB_max"], ac_lo["peaking_above_ideal_dB_max"])
-        run.add("REQ-STAB-R3-PROPOSED", "peaking_above_ideal_dB_max", pk3, "<= 3.0", "passed" if pk3 <= 3.0 else "failed",
-                f"rev 3 (PROPOSED, NOT APPROVED): ideal floored at -90 dB; max excess at {ac_hi['peaking_at_hz']:.0f} Hz (sim {ac_hi['gain_at_peak_dB']:.1f} dB vs ideal {ac_hi['ideal_at_peak_dB']:.1f} dB)", 3.0 - pk3)
+        run.add("REQ-STAB-R3-AC-PEAKING-PROPOSED", "peaking_above_ideal_dB_max", pk3, "<= 3.0", "passed" if pk3 <= 3.0 else "failed",
+                f"AC-PEAKING ONLY. Rev 3 (PROPOSED, NOT APPROVED): ideal floored at -90 dB; does NOT establish stability (no oscillation, transient-ringing or phase-margin test); max excess at {ac_hi['peaking_at_hz']:.0f} Hz (sim {ac_hi['gain_at_peak_dB']:.1f} dB vs ideal {ac_hi['ideal_at_peak_dB']:.1f} dB)", 3.0 - pk3)
     hr = tran_headroom(run)
     if hr["blocked"] or hr["n"] == 0:
         run.add("REQ-HEADROOM", "output_range_V", None, "0.10..3.20", "blocked", f"{hr['blocked']} runs blocked")

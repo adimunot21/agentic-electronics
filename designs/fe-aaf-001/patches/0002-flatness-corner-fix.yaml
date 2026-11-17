@@ -1,0 +1,23 @@
+id: 0002-flatness-corner-fix
+author: "assistant (manual reference loop; not an autonomous agent)"
+date: 2026-11-17
+status: PROPOSED - NOT ADOPTED (verified in runs/ref/proposal-0002; baseline design unchanged)
+base: {file: designs/fe-aaf-001/components.yaml, sha256: 64cb16c04c1e6d7ff1c4c5a18256f0967abeef4aeae68b080517d4e5a8a20f6e}
+reason: >
+  REQ-FLAT fails at worst-case corners inside the contract tolerances: 112 of 1024 vertices exceed 0.5 dB, worst 0.599 dB (at 1 kHz, LP droop;
+  C4/bias irrelevant). Limit NOT changed. Smallest correction found that meets flatness, gain and alias at ALL corners: scale the five filter
+  resistors by 1/1.08 (cutoff 1601 -> ~1730 Hz, gain ratios kept), snapped to E96. Rejected: stage-2 pole only (gain corner 1.3657-1.3705 > 1.365),
+  stage-1 only (flatness worse). Evidence: runs/ref/review/corner/ (fix_scan*.py, candidate2.py).
+changes:
+  - {part: R1, field: value, from: "64.9k", to: "59k", also: {mpn_candidate: "RC0603FR-0759KL"}}
+  - {part: R1, field: mpn_status, from: "listing_verified", to: "unverified_candidate"}
+  - {part: R2, field: value, from: "84.5k", to: "76.8k", also: {mpn_candidate: "RC0603FR-0776K8L"}}
+  - {part: R2, field: mpn_status, from: "listing_verified", to: "unverified_candidate"}
+  - {part: R3, field: value, from: "6.49k", to: "6.19k", also: {mpn_candidate: "RC0603FR-076K19L"}}
+  - {part: R3, field: mpn_status, from: "listing_verified", to: "unverified_candidate"}
+  - {part: R4, field: value, from: "17.8k", to: "16.5k", also: {mpn_candidate: "RC0603FR-0716K5L"}}
+  - {part: R4, field: mpn_status, from: "listing_verified", to: "unverified_candidate"}
+  - {part: R5, field: value, from: "17.8k", to: "16.5k", also: {mpn_candidate: "RC0603FR-0716K5L"}}
+  - {part: R5, field: mpn_status, from: "listing_verified", to: "unverified_candidate"}
+invalidates: [schematic, netlist, deck, all simulation results, pcb values, BOM, new MPNs unverified, filter_design.json]
+not_invalidated: [pin audit, footprints (0603 unchanged), C values, op-amp]

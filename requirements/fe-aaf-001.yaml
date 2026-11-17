@@ -116,7 +116,7 @@ requirements:
       status: PROPOSED - NOT APPROVED (needs human review)
       text: "As revision 2, but the ideal curve is floored at -90 dB before comparing: gain must not exceed max(ideal, -90 dB) + 3 dB."
       check: {metric: peaking_above_ideal_dB_max, max: 3.0, ideal_floor_dB: -90}
-      reported_as: REQ-STAB-R3-PROPOSED
+      reported_as: REQ-STAB-R3-AC-PEAKING-PROPOSED
 
   - id: REQ-IQ
     text: "Total quiescent supply current <= 1.0 mA at 5 V."

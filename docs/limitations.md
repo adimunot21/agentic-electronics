@@ -22,7 +22,13 @@
 * Native `freerouting-cli` 2.5.0 unusable (diagnosed); jar used. Jar not covered by the publisher checksum file (own hash recorded).
 * TI model licence not stated in the file: model never committed; reproduce by download + hash.
 
+## Failed under worst-case analysis
+* **REQ-FLAT-CORNERS: failed.** 112 of 1024 corners inside the contract tolerances exceed 0.5 dB (worst 0.599 dB, C1 -5 %/C2,C3 +5 % family); MC yield 99.7 % meets the statistical criterion. Patch 0002 (proposed, verified in `runs/ref/proposal-0002`, not adopted) passes all corners. See `docs/review-extract.md` sections 6-7.
+
 ## Model/coverage limits (nothing below is claimed by simulation)
+* **Shimmed TI model: startup, saturation and overload recovery are UNVALIDATED** (`MODEL_*` checks, `not_tested`). Linear agreement with the original does not validate them.
+* C4 (X7R) DC-bias capacitance: manufacturer data not obtained (coverage missing); bounded by sensitivity only.
+* REQ-STAB rev 3 covers AC peaking only; it does not establish stability.
 * Overload/saturation recovery is not modelled after the shim; ESD cells are modelled by TI but not exercised.
 * Temperature (only Vos drift via TEMP), PSRR/CMRR vs frequency at the board level, supply sequencing, hot-plug.
 * Tolerance yield: ngspice Monte Carlo with the real model, N=2000, seed 20261117: 99.7 % pass all AC requirements, flatness-limited (worst 0.514 dB vs 0.5). Covers AC requirements only; DC/transient/noise are corner/nominal. Distributions are assumptions (uniform), not lot data. `runs/ref/mc/mc_results.json`.

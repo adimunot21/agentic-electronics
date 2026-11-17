@@ -21,7 +21,7 @@ Evidence: `runs/ref/baseline/record.json` (outcomes, commands, versions, input h
 | Failure + repair | REQ-SETTLE failed (1.40 mV vs 0.403), diagnosed, repaired by patch 0001, rerun | `runs/ref/repair-0001/` |
 | Controlled defects | 4 defects vs predictions committed beforehand | `designs/fe-aaf-001/defects.yaml`, `runs/ref/defects/` |
 
-Failing in the baseline: **REQ-BOM** (J1/J2 headers have no MPN; 6 resistor lines verified only to family-spec + listing level) and **REQ-STAB** under the in-force revision 2 (a proposed revision 3 passes and is reported side by side, not approved). See [`docs/review-extract.md`](docs/review-extract.md) and limitations.
+Failing in the baseline (26 passed, 1 blocked, 3 failed, 3 not_tested): **REQ-FLAT-CORNERS** (a real worst-case failure inside the specified tolerances; a correction is proposed and verified but not adopted), **REQ-STAB** under the in-force revision 2 (rev 3, AC-peaking only, passes and is NOT approved), and **REQ-BOM** (J1/J2 have no MPN). Model startup/saturation/overload behaviour is explicitly `not_tested`. See [`docs/review-extract.md`](docs/review-extract.md) and limitations.
 
 ## Run it
 ```bash

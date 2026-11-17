@@ -1,0 +1,17 @@
+
+== D1_swap_C1_C2_values: ALL PREDICTIONS MATCHED
+  ERC              predicted pass      observed passed   ok
+  NETLIST_INTENT   predicted pass      observed passed   ok
+  PIN_SYMBOL       predicted pass      observed passed   ok
+  PIN_WIRING       predicted pass      observed passed   ok
+  DECK_VS_NETLIST  predicted pass      observed passed   ok
+  REQ-GAIN         predicted fail      observed failed   ok
+  REQ-FLAT         predicted fail      observed failed   ok
+  REQ-ALIAS        predicted pass      observed passed   ok
+  REQ-ZIN          predicted pass      observed passed   ok
+  REQ-BIAS         predicted pass      observed passed   ok
+  DRC_VIOLATIONS   predicted pass      observed passed   ok
+  DRC_UNCONNECTED  predicted pass      observed passed   ok
+  DRC_PARITY       predicted pass      observed passed   ok
+  (unpredicted change) BOM_CONSISTENCY: baseline blocked -> failed
+  (unpredicted change) REQ-GAIN-CORNERS: baseline passed -> failed

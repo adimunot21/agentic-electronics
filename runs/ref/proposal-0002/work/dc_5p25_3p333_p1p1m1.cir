@@ -1,0 +1,11 @@
+* test bench (generated)
+.include dc_5p25_3p333_p1p1m1_dut.cir
+Vcc P5V 0 DC 5.25
+Vref VREF 0 DC 3.333
+Vsrc src 0 DC 0
+Rs src AIN 100.0
+.control
+op
+print v(aout) i(vcc)
+.endc
+.end

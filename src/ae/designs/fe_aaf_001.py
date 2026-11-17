@@ -72,6 +72,9 @@ def build(name: str = "fe_aaf_001", nets: dict | None = None) -> SchematicBuilde
     for ref, spec in comps.items():
         letter = "R" if ref[0] == "R" else "C" if ref[0] == "C" else "TP" if ref.startswith("TP") else ref[0]
         props = {"MPN": str(spec.get("mpn") or spec.get("mpn_candidate", "")), "MPN_Status": spec.get("mpn_status", "unknown")}
+        for field_name, key in (("Tolerance", "tol"), ("Dielectric", "dielectric"), ("Voltage", "voltage")):   # fields the MPN consistency check reads from the schematic
+            if key in spec:
+                props[field_name] = str(spec[key])
         if "datasheet_url" in spec:      # the generic LM358 symbol carries the LM358 datasheet link: override with the real part's
             props["Datasheet"] = spec["datasheet_url"]
         if "manufacturer" in spec or "manufacturer_candidate" in spec:
