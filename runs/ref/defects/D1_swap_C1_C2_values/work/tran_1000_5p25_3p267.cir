@@ -1,0 +1,11 @@
+* test bench (generated)
+.include tran_1000_5p25_3p267_dut.cir
+Vcc P5V 0 DC 5.25
+Vref VREF 0 DC 3.267
+Vsrc src 0 DC 0 SIN(0 1.0 1000)
+Rs src AIN 100.0
+.control
+tran 2e-06 0.008 0 2e-06
+wrdata tran_1000_5p25_3p267.csv v(aout)
+.endc
+.end

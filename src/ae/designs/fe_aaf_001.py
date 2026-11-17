@@ -65,10 +65,10 @@ def footprint_for(ref: str, spec: dict) -> str:
     return FOOTPRINTS[f"{pkg}_{kind}"]
 
 
-def build(name: str = "fe_aaf_001") -> SchematicBuilder:
+def build(name: str = "fe_aaf_001", nets: dict | None = None) -> SchematicBuilder:
     comps = load_components()
     builder = SchematicBuilder(name, SymbolLibrary(SYM_DIR), "FE-AAF-001 anti-alias front end (manual reference design)", paper="A3")
-    pin_net = {pin: net for net, pins in INTENDED_NETS.items() for pin in pins}
+    pin_net = {pin: net for net, pins in (nets or INTENDED_NETS).items() for pin in pins}
     for ref, spec in comps.items():
         letter = "R" if ref[0] == "R" else "C" if ref[0] == "C" else "TP" if ref.startswith("TP") else ref[0]
         props = {"MPN": str(spec.get("mpn") or spec.get("mpn_candidate", "")), "MPN_Status": spec.get("mpn_status", "unknown")}
@@ -102,8 +102,8 @@ def build(name: str = "fe_aaf_001") -> SchematicBuilder:
     return builder
 
 
-def intended_nets() -> dict[str, set[tuple[str, str]]]:
-    return {net: set(pins) for net, pins in INTENDED_NETS.items()}
+def intended_nets(nets: dict | None = None) -> dict[str, set[tuple[str, str]]]:
+    return {net: set(pins) for net, pins in (nets or INTENDED_NETS).items()}
 
 
 if __name__ == "__main__":

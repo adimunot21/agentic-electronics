@@ -1,0 +1,19 @@
+# Portable CI: nothing here needs a cloud account beyond the CI runner itself; `make test` / `make integration` run the same locally.
+name: ci
+on: [push, pull_request]
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - run: uv run pytest tests/unit -q          # KiCad-lib-dependent tests skip themselves when the libs are absent
+  integration:
+    runs-on: ubuntu-24.04
+    needs: unit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: ./scripts/bootstrap.sh              # pulls the digest-pinned images, hash-checks jar + TI model archive
+      - run: uv run pytest tests -q -m "integration or not integration"

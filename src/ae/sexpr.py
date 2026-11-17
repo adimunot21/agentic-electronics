@@ -86,9 +86,38 @@ def find(node: list, tag: str) -> list | None:
 
 
 def extract_symbol(lib_text: str, name: str) -> list:
-    """Return the top-level ``(symbol "name" ...)`` form from a .kicad_sym file."""
-    lib = parse(lib_text)
-    for child in find_all(lib, "symbol"):
+    """Return the top-level ``(symbol "name" ...)`` form from a .kicad_sym file.
+
+    Scans for the symbol's own text and parses only that slice (parsing a multi-MB library per lookup took ~60 s per run).
+    """
+    marker = f'\n\t(symbol "{name}"'
+    start = lib_text.find(marker)
+    if start < 0:
+        raise KeyError(f"symbol {name!r} not in library")
+    start += 2
+    depth, i, in_str = 0, start, False
+    while i < len(lib_text):
+        ch = lib_text[i]
+        if in_str:
+            if ch == "\\":
+                i += 1
+            elif ch == '"':
+                in_str = False
+        elif ch == '"':
+            in_str = True
+        elif ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+            if depth == 0:
+                return parse(lib_text[start:i + 1])
+        i += 1
+    raise ValueError(f"unbalanced symbol {name!r}")
+
+
+def extract_symbol_slow(lib_text: str, name: str) -> list:
+    """Reference implementation (full parse) kept for the equivalence test."""
+    for child in find_all(parse(lib_text), "symbol"):
         if child[1] == name:
             return child
     raise KeyError(f"symbol {name!r} not in library")

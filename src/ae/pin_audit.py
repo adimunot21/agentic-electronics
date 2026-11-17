@@ -28,6 +28,17 @@ class AuditResult:
     detail: str
 
 
+class EmbeddedSymbols(SymbolLibrary):
+    """Symbols as embedded in a schematic file (what KiCad actually uses), not the library on disk."""
+
+    def __init__(self, schematic_text: str):
+        super().__init__(Path("."))
+        self._embedded = {str(sym[1]): sym for sym in find_all(find(parse(schematic_text), "lib_symbols"), "symbol")}
+
+    def get(self, lib_id: str) -> list:
+        return self._embedded[lib_id]
+
+
 def symbol_functions(lib: SymbolLibrary, lib_id: str, units: tuple[int, ...] = (1, 2, 3)) -> dict[str, str]:
     """pin number -> normalised function ('+IN A', '-IN B', 'OUT A', 'V+', 'V-') for a generic dual op-amp symbol."""
     result: dict[str, str] = {}

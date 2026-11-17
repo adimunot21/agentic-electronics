@@ -20,6 +20,8 @@ from ae import sim_metrics as sm
 from ae.spice import build_dut_deck
 from ae.toolchain import REPO_ROOT, StageRecord, run_in_image
 
+SIM_TIMEOUT_S = 60
+STOP_AFTER_CONSECUTIVE_BLOCKED = 2     # progress/stop rule for corner sweeps
 MODEL_SHIM = "opa2314_ngspice_shim.lib"
 VOS_MAX_V = 2.5e-3          # datasheet SBOS563G p.7: |Vos| max 2.5 mV @25C; the model only reproduces ~typical
 SUPPLY = (4.75, 5.25)
@@ -61,11 +63,14 @@ class SimRun:
     def ng(self, name: str, tb: str, deck: str | None = None) -> StageRecord:
         (self.work / f"{name}_dut.cir").write_text(deck or self.deck())
         (self.work / f"{name}.cir").write_text(tb.replace("@DUT@", f"{name}_dut.cir"))
-        rec = run_in_image(name, ["ngspice", "-b", "-o", f"{name}.log", f"{name}.cir"], self.work)
+        # 60 s hard limit (normal runs take 1-5 s): a latched/non-converging circuit must end as `blocked`, not hang for the default 600 s
+        rec = run_in_image(name, ["ngspice", "-b", "-o", f"{name}.log", f"{name}.cir"], self.work, timeout_s=SIM_TIMEOUT_S)
         out = (self.work / f"{name}.log").read_text() if (self.work / f"{name}.log").exists() else rec.stdout
         rec.stdout = out
         fallback = "Transient op" in out
-        rec.outcome = "error" if rec.exit_code != 0 else ("blocked" if fallback else "passed")
+        rec.outcome = "blocked" if rec.exit_code == 124 else "error" if rec.exit_code != 0 else ("blocked" if fallback else "passed")
+        if rec.exit_code == 124:
+            rec.stderr += f"\nBLOCKED: ngspice exceeded {SIM_TIMEOUT_S} s (no convergence); container killed"
         if fallback:
             rec.stderr += "\nBLOCKED: ngspice fell back to 'transient op' (no true DC operating point); results not trusted"
         self.stages.append(rec)
@@ -98,23 +103,29 @@ def scan_vals(text: str, names: list[str]) -> dict[str, float]:
 
 # ---------------------------------------------------------------- analyses
 def dc_corners(run: SimRun, req_bias, req_iq) -> None:
-    worst_err, worst_iq, worst_cfg, blocked = 0.0, 0.0, None, 0
+    worst_err, worst_iq, worst_cfg, blocked, streak, ran = 0.0, 0.0, None, 0, 0, 0
     for vcc, vref, sa, sb, rbs in itertools.product(SUPPLY, VREF, (-1, 1), (-1, 1), (-1, 1)):
+        if streak >= STOP_AFTER_CONSECUTIVE_BLOCKED:      # explicit stop rule: no operating point twice in a row -> stop burning time
+            blocked += 1
+            continue
         scale = {"R7": 1 + rbs * RB_TOL, "R8": 1 - rbs * RB_TOL}
         deck = run.deck(vos_a=sa * VOS_MAX_V, vos_b=sb * VOS_MAX_V, scale=scale)
         name = f"dc_{vcc}_{vref}_{sa:+d}{sb:+d}{rbs:+d}".replace(".", "p").replace("+", "p").replace("-", "m")
         tb = header(vcc, vref, src="DC 0") + ".control\nop\nprint v(aout) i(vcc)\n.endc\n.end\n"
         rec = run.ng(name, tb, deck)
+        ran += 1
         if rec.outcome != "passed":
             blocked += 1
+            streak += 1
             continue
+        streak = 0
         vals = scan_vals(rec.stdout, ["v(aout)", "i(vcc)"])
         err = (vals["v(aout)"] - vref / 2) * 1e3
         if abs(err) > abs(worst_err):
             worst_err, worst_cfg = err, (vcc, vref, sa, sb, rbs)
         worst_iq = max(worst_iq, abs(vals["i(vcc)"]) * 1e3)
     if blocked:
-        run.add("REQ-BIAS", "output_dc_error_mV_max_abs", None, "<= 10", "blocked", f"{blocked} corner runs lacked a DC operating point")
+        run.add("REQ-BIAS", "output_dc_error_mV_max_abs", None, "<= 10", "blocked", f"{blocked} of 32 corner runs have no DC operating point ({ran} attempted; stopped after {STOP_AFTER_CONSECUTIVE_BLOCKED} consecutive blocked)")
         run.add("REQ-IQ", "iq_mA_max", None, "<= 1.0", "blocked", f"{blocked} corner runs blocked")
         return
     run.add("REQ-BIAS", "output_dc_error_mV_max_abs", abs(worst_err), "<= 10", "passed" if abs(worst_err) <= 10 else "failed",

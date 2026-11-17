@@ -1,0 +1,16 @@
+# Evidence-backed walkthrough (all numbers from `runs/ref/baseline/record.json` unless noted)
+
+1. **Contract before design** (`requirements/fe-aaf-001.yaml`): 0.5 Vpk interferer must alias to <= 1 LSB (0.806 mV) -> absolute gain <= -55.8 dB at >= 19 kHz.
+2. **Derivation, not assumption** (`analysis/derive_filter.py`): order 2 attenuates 38.9 dB vs 53.6 dB needed -> order 3 (64.4 dB). A symbolic MFB derivation disagreed with my first closed form; a hand re-derivation showed the closed form had the capacitors swapped (fixed, test added).
+3. **Part choice with evidence**: OPA2314AID (0.38 mA max Iq, 3 MHz); TLV9062 rejected on Iq alone (1.5 mA max); MCP6002 could not be simulated (model blocked).
+4. **A tool problem that would have silently corrupted every result**: with the unmodified TI model ngspice found no DC operating point and fell back to a short transient start, leaving VMID at 0.3 mV instead of 1.65 V. Diagnosed, minimal one-line shim (ADR-004), runs showing the fallback are marked blocked.
+5. **Real failure and repair** (`runs/ref/repair-0001/`): REQ-SETTLE failed, 1.40 mV vs 0.403 mV limit. Waveforms showed ringing, not a first-order tail; a RISO x CF sweep found a robust region; patch 0001 (R6 100->475 ohm, C5 1 nF->330 pF) passed with worst case 0.043 mV over tolerance and ADC-capacitance corners. Evidence from before the patch is reported stale (schematic, netlist, components) while model/pin evidence/contract are unchanged.
+6. **Final baseline**: 24 checks passed, 1 failed (REQ-BOM). Selected margins: gain 1.3001 (limit 1.235-1.365); flatness 0.247 dB (0.5); stopband -63.5 dB (-55.8, margin 7.7 dB); VMID error worst case 9.65 mV (10: **margin only 0.35 mV**, because stage 2 has DC gain 2 on Vos_B); output 0.317-2.964 V (0.10-3.20); Iq 0.300 mA; noise 9.6 uV rms. ERC 0; DRC 0 / unconnected 0 / parity 0. Monte Carlo (real model, N=2000): 99.7 % yield.
+7. **Visual inspection** of schematic and board (`runs/ref/baseline/sch-*.png`, `pcb_*_crop.png` if regenerated) found problems the checks could not: scattered placement forcing long back-layer detours that fragmented the GND pour; overlapping text; unannotated reference designators (CIN, CF...) that only the BOM exposed. All fixed and re-checked.
+8. **Defects** (`designs/fe-aaf-001/defects.yaml`, predictions committed *before* running): D2, D3, D4 results are in `runs/ref/defects/summary.json`. **D1 (swap C1/C2 values) is deliberately not summarised here**: predict first (which of ERC, netlist, pin audit, DRC, and which simulated requirements fail?), then open the record. Do not open `defects.yaml` before predicting: it holds my own prediction.
+   * One of my predictions was wrong (D3: ERC flagged the edited symbol against the library copy).
+
+## Runtime / resources (final baseline, 57.7 s wall, 12-core laptop)
+ngspice suite 33 s (49 runs, mostly container start-up, <= 30 MB each); board build+route+DRC 14.6 s (Freerouting 6.3 s, 556 MB); release 4.3 s; ERC 4.4 s (kicad-cli peak 1.3 GB); DRC 4.3 s (peak 1.6 GB);
+schematic generation 0.26 s (was 60 s before an O(library) re-parse bug was fixed: the first profile showed my own code, not an EDA tool, as the bottleneck). Real-model MC: 2000 AC runs in 33 s with 10 parallel workers.
+No model/API cost: no model was called.
