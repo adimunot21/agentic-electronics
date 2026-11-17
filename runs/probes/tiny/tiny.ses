@@ -1,0 +1,82 @@
+(session tiny
+  (base_design tiny)
+  (placement
+    (resolution um 10)
+    (component "Resistor_SMD:R_0603_1608Metric"
+      (place R2 190000 -120000 front 90)
+      (place R1 130000 -60000 front 0)
+    )
+    (component "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
+      (place J2 260000 -50000 front 0)
+      (place J1 50000 -50000 front 0)
+    )
+  )
+  (was_is
+  )
+  (routes 
+    (resolution um 10)
+    (parser
+      (host_cad "KiCad's Pcbnew")
+      (host_version "10.0.8")
+    )
+    (library_out 
+      (padstack "Via[0-1]_600:300_um"
+        (shape
+          (circle F.Cu 6000 0 0)
+        )
+        (shape
+          (circle B.Cu 6000 0 0)
+        )
+        (attach off)
+      )
+    )
+    (network_out 
+      (net GND
+        (wire
+          (path F.Cu 2000
+            260000 -75400
+            226350 -75400
+            190000 -111750
+          )
+        )
+      )
+      (net "/MID"
+        (wire
+          (path F.Cu 2000
+            260000 -50000
+            248483 -50000
+          )
+        )
+        (wire
+          (path F.Cu 2000
+            138250 -60000
+            148250 -50000
+            248483 -50000
+          )
+        )
+        (wire
+          (path F.Cu 2000
+            138250 -60000
+            138250 -76500
+            190000 -128250
+          )
+        )
+      )
+      (net "/VIN"
+        (wire
+          (path F.Cu 2000
+            50000 -50000
+            61517 -50000
+          )
+        )
+        (wire
+          (path F.Cu 2000
+            121750 -60000
+            71517 -60000
+            61517 -50000
+          )
+        )
+      )
+    )
+  )
+)

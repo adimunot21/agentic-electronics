@@ -1,0 +1,130 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-11-17T20:45:24",
+    "ignored_checks": [
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.8",
+    "schematic_parity": [],
+    "source": "tiny.kicad_pcb",
+    "unconnected_items": [
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 2 [/MID] of R1 on F.Cu",
+                    "pos": {
+                        "x": 13.825,
+                        "y": 6.0
+                    },
+                    "uuid": "28a667f1-b91a-4d16-926d-188c053e4b46"
+                },
+                {
+                    "description": "Pad 1 [/MID] of R2 on F.Cu",
+                    "pos": {
+                        "x": 19.0,
+                        "y": 12.825
+                    },
+                    "uuid": "b5cb7ad7-e899-494f-bf3f-fbdc1ad1596e"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 1 [/MID] of R2 on F.Cu",
+                    "pos": {
+                        "x": 19.0,
+                        "y": 12.825
+                    },
+                    "uuid": "b5cb7ad7-e899-494f-bf3f-fbdc1ad1596e"
+                },
+                {
+                    "description": "PTH pad 1 [/MID] of J2",
+                    "pos": {
+                        "x": 26.0,
+                        "y": 5.0
+                    },
+                    "uuid": "308347dd-1e3a-47ac-b6c5-d0d034d736af"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 2 [GND] of R2 on F.Cu",
+                    "pos": {
+                        "x": 19.0,
+                        "y": 11.175
+                    },
+                    "uuid": "6db06792-a7ff-4407-bed5-88da89d8e227"
+                },
+                {
+                    "description": "PTH pad 2 [GND] of J2",
+                    "pos": {
+                        "x": 26.0,
+                        "y": 7.54
+                    },
+                    "uuid": "4b7dbfac-5fa2-4a39-92a5-93a8c929a780"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/VIN] of J1",
+                    "pos": {
+                        "x": 5.0,
+                        "y": 5.0
+                    },
+                    "uuid": "345affe5-a7c8-48fc-9025-d2dfa2bea473"
+                },
+                {
+                    "description": "Pad 1 [/VIN] of R1 on F.Cu",
+                    "pos": {
+                        "x": 12.175,
+                        "y": 6.0
+                    },
+                    "uuid": "4af5e62b-eda8-4fb8-8f6b-bff92595b2c4"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        }
+    ],
+    "violations": []
+}

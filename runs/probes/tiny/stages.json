@@ -1,0 +1,169 @@
+[
+  {
+    "name": "erc",
+    "cmd": [
+      "kicad-cli",
+      "sch",
+      "erc",
+      "--format",
+      "json",
+      "--severity-all",
+      "-o",
+      "erc.json",
+      "tiny.kicad_sch"
+    ],
+    "exit_code": 0,
+    "wall_s": 4.375,
+    "peak_rss_mb": 1239.4,
+    "stdout": "Found 0 violations\nSaved ERC Report to erc.json\n",
+    "stderr": "",
+    "outcome": "passed"
+  },
+  {
+    "name": "netlist",
+    "cmd": [
+      "kicad-cli",
+      "sch",
+      "export",
+      "netlist",
+      "--format",
+      "kicadsexpr",
+      "-o",
+      "tiny.net",
+      "tiny.kicad_sch"
+    ],
+    "exit_code": 0,
+    "wall_s": 1.288,
+    "peak_rss_mb": 225.5,
+    "stdout": "",
+    "stderr": "",
+    "outcome": "passed"
+  },
+  {
+    "name": "build_board",
+    "cmd": [
+      "python3",
+      "/opt/ae/pcb_ops.py",
+      "build",
+      "board.json"
+    ],
+    "exit_code": 0,
+    "wall_s": 1.535,
+    "peak_rss_mb": 278.8,
+    "stdout": "built /work/tiny.kicad_pcb: 4 footprints, 3 nets, 1 zones\n",
+    "stderr": "",
+    "outcome": "passed"
+  },
+  {
+    "name": "drc_unrouted",
+    "cmd": [
+      "kicad-cli",
+      "pcb",
+      "drc",
+      "--schematic-parity",
+      "--format",
+      "json",
+      "--severity-all",
+      "--exit-code-violations",
+      "-o",
+      "drc_unrouted.json",
+      "tiny.kicad_pcb"
+    ],
+    "exit_code": 5,
+    "wall_s": 4.18,
+    "peak_rss_mb": 1594.5,
+    "stdout": "Found 0 violations\nFound 4 unconnected items\nFound 0 schematic parity issues\nSaved DRC Report to drc_unrouted.json\n",
+    "stderr": "",
+    "outcome": "passed"
+  },
+  {
+    "name": "export_dsn",
+    "cmd": [
+      "python3",
+      "/opt/ae/pcb_ops.py",
+      "dsn",
+      "tiny.kicad_pcb",
+      "tiny.dsn"
+    ],
+    "exit_code": 0,
+    "wall_s": 0.916,
+    "peak_rss_mb": 157.5,
+    "stdout": "ExportSpecctraDSN -> tiny.dsn ok=True size=4319\n",
+    "stderr": "",
+    "outcome": "passed"
+  },
+  {
+    "name": "freerouting",
+    "cmd": [
+      "docker",
+      "run",
+      "--rm",
+      "--name",
+      "ae-route-96675464",
+      "--network",
+      "none",
+      "--hostname",
+      "aebox",
+      "--add-host",
+      "aebox:127.0.0.1",
+      "-u",
+      "1000:1000",
+      "-w",
+      "/work",
+      "-v",
+      "/home/adimunot21/dev/agentic-electronics/runs/probes/tiny:/work:rw",
+      "-v",
+      "/home/adimunot21/dev/agentic-electronics/vendor/dl:/opt/fr:ro",
+      "--entrypoint",
+      "sh",
+      "eclipse-temurin@sha256:945247f9d092703e0c6be92243ef3c51640229e23ab34d353c8dcdc73e6cd4e6",
+      "-c",
+      "java -jar /opt/fr/freerouting-2.5.0.jar --gui.enabled=false -de tiny.dsn -do tiny.ses -mp 20; rc=$?; echo \"AE_MAXRSS_KB $(( $(cat /sys/fs/cgroup/memory.peak 2>/dev/null || echo 0) / 1024 ))\" >&2; exit $rc"
+    ],
+    "exit_code": 0,
+    "wall_s": 3.691,
+    "peak_rss_mb": 257.0,
+    "stdout": "2026-11-17 20:45:26.448 INFO   Freerouting v2.5.0 (build-date: 2026-10-05)\n2026-11-17 20:45:26.803 INFO   Hardware: 12 CPU cores, 280 CPU score, 8004 MB RAM\n2026-11-17 20:45:26.806 WARN   Deprecated settings path '-mp / --router.max_passes'; use '--router.autorouter.max_passes' instead. The old path will be removed in a future release.\n2026-11-17 20:45:26.807 WARN   GUI is disabled and you don't have a console available, so the only feedback from Freerouting is in the log.\n2026-11-17 20:45:26.971 WARN   Analytics tracking: first delivery failure in this window - /v1/analytics/identify - UnknownHostException: api.freerouting.app. Further failures will be aggregated and reported every 60 minutes. \u2192 Action: DNS resolution failed. Verify that this host has network access and that api.freerouting.app is reachable (try: nslookup api.freerouting.app).\n2026-11-17 20:45:27.867 WARN   Deprecated settings path 'router.max_passes'; use 'router.autorouter.max_passes' instead. The old path will be removed in a future release.\n2026-11-17 20:45:28.138 INFO   [4ED865\\C8E83B] Loading board file 'tiny.dsn'...\n2026-11-17 20:45:28.181 INFO   Layer 'B.Cu' contains a power plane / large copper pour covering >=30% of the board; associated net(s) configured for plane routing.\n2026-11-17 20:45:28.224 INFO   [4ED865\\C8E83B] Job '4ED865\\C8E83B' started at 2026-11-17T20:45:28.223922355Z.\n2026-11-17 20:45:28.274 INFO   [4ED865\\C8E83B] Pipeline thread limits: autorouter pass is single-threaded, optimizer.max_threads=11.\n2026-11-17 20:45:28.308 INFO   [4ED865\\C8E83B] Fanout stage started on board '446c7a899b50bca4e43aa745fa7e8618' with 4 of 4 SMD pins needing fanout (0 already connected, 0 netless).\n2026-11-17 20:45:28.635 INFO   [4ED865\\C8E83B] Fanout pass #1 on board '659be09fb3656bdaaea32f37eaed5b4f' completed in 0.31 seconds with 4 SMD pins fanouted, 0 not routed, 0 insert errors, +2 extra vias (0 SMD pins still to check in pass, ripup costs=100).\n2026-11-17 20:45:28.653 INFO   [4ED865\\C8E83B] Fanout pass #2 on board '659be09fb3656bdaaea32f37eaed5b4f' completed in 0.01 seconds with 0 SMD pins fanouted, 0 not routed, 0 insert errors, +0 extra vias (0 SMD pins still to check in pass, ripup costs=200).\n2026-11-17 20:45:28.655 INFO   [4ED865\\C8E83B] Fanout stage completed: started with 4 total SMD pins, completed in 0.34 seconds, escaped pins: 4/4 (100.0%), using 0.33 total CPU seconds, 0.02 GB total allocated, and 147.0 MB peak heap usage.\n2026-11-17 20:45:28.665 INFO   [4ED865\\C8E83B] Auto-routing stage started on board '659be09fb3656bdaaea32f37eaed5b4f' with baseline score 555.56 for 2 unrouted items.\n2026-11-17 20:45:28.761 INFO   [4ED865\\C8E83B] Auto-routing pass #1 on board '659be09fb3656bdaaea32f37eaed5b4f' was completed in 0.07 seconds with score 1000.00 (0 unrouted and 0 violations).\n2026-11-17 20:45:28.770 INFO   [4ED865\\C8E83B] Auto-routing pass #2 on board '2416574c2b5a61ce63a061523a088d35' was completed in 0.00 seconds with score 1000.00 (0 unrouted and 0 violations).\n2026-11-17 20:45:28.786 INFO   [4ED865\\C8E83B] Auto-routing stage completed: started with 4 unrouted nets, completed in 0.51 seconds, final score: 1000.00 (0 unrouted and 0 violations), using 0.00 total CPU seconds, 0.00 GB total allocated, and 0.0 MB peak heap usage.\n2026-11-17 20:45:28.793 INFO   [4ED865\\C8E83B] Skipping optimization stage: the board has no vias to eliminate and initial optimizer score (1000.00) is already >= 950.00.\n2026-11-17 20:45:28.798 INFO   [4ED865\\C8E83B] Job '4ED865\\C8E83B' finished with state: COMPLETED (elapsed: 0.57 seconds, finished at UTC: 2026-11-17T20:45:28.797408005Z).\n2026-11-17 20:45:28.832 INFO   Saving output file '/work/tiny.ses' (SES)...\n2026-11-17 20:45:28.834 INFO   Successfully saved output file '/work/tiny.ses' (1595 bytes).\n",
+    "stderr": "",
+    "outcome": "passed"
+  },
+  {
+    "name": "import_ses_fill",
+    "cmd": [
+      "python3",
+      "/opt/ae/pcb_ops.py",
+      "ses",
+      "tiny.kicad_pcb",
+      "tiny.ses",
+      "tiny_routed.kicad_pcb"
+    ],
+    "exit_code": 0,
+    "wall_s": 1.08,
+    "peak_rss_mb": 264.1,
+    "stdout": "ImportSpecctraSES ok=True tracks_after_import=10\nsaved tiny_routed.kicad_pcb (zones refilled: 1)\n",
+    "stderr": "",
+    "outcome": "passed"
+  },
+  {
+    "name": "drc_routed",
+    "cmd": [
+      "kicad-cli",
+      "pcb",
+      "drc",
+      "--schematic-parity",
+      "--format",
+      "json",
+      "--severity-all",
+      "--exit-code-violations",
+      "-o",
+      "drc_routed.json",
+      "tiny.kicad_pcb"
+    ],
+    "exit_code": 0,
+    "wall_s": 4.487,
+    "peak_rss_mb": 1618.7,
+    "stdout": "Found 0 violations\nFound 0 unconnected items\nFound 0 schematic parity issues\nSaved DRC Report to drc_routed.json\n",
+    "stderr": "",
+    "outcome": "passed"
+  }
+]
