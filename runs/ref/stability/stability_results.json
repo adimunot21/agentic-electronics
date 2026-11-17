@@ -1,0 +1,76 @@
+{
+ "loop_gain": {
+  "stage1_MFB(U1A)": {
+   "dc_loop_gain_dB": 103.9322963320412,
+   "crossover_hz": 3026299.504594828,
+   "phase_margin_deg": 66.69910926231921,
+   "gain_margin_dB": 12.007400109513705,
+   "phase_cross_hz": 8371659.844295743,
+   "stage": "stage1_MFB(U1A)",
+   "outcome": "measured",
+   "T_dB_at": {
+    "100": 83.28293478787535,
+    "1000": 50.49364601773511,
+    "10000": 41.71726916476216,
+    "100000": 30.164335574862807,
+    "1000000": 10.3362299010677
+   }
+  },
+  "stage2_1st_order(U1B)": {
+   "dc_loop_gain_dB": 105.32776623592241,
+   "crossover_hz": 1803512.5058544802,
+   "phase_margin_deg": 61.371250519443365,
+   "gain_margin_dB": 17.51253916426431,
+   "phase_cross_hz": 8139692.67069228,
+   "stage": "stage2_1st_order(U1B)",
+   "outcome": "measured",
+   "T_dB_at": {
+    "100": 85.36981339483756,
+    "1000": 66.25761459971791,
+    "10000": 50.88627955616161,
+    "100000": 31.075506000652446,
+    "1000000": 6.62669461536529
+   }
+  }
+ },
+ "input_step": {
+  "output_step_mV_ideal_late": 252.96770779903017,
+  "max_abs_diff_mV": 0.5404801045889585,
+  "max_abs_diff_pct_of_step": 0.21365577025283483,
+  "overshoot_pct_sim": 11.455480840744855,
+  "overshoot_pct_ideal": 11.337977529632091,
+  "residual_pp_mV_second_half_diff": 0.0009016788529159214,
+  "outcome": "measured",
+  "input_step_V": 0.2
+ },
+ "load_step": {
+  "outcome": "measured",
+  "load_step_A": 5e-05,
+  "real": {
+   "static_droop_mV": -23.759234874999756,
+   "peak_dev_mV": -24.12795999999995,
+   "overshoot_beyond_static_mV": 0.36872512500019106,
+   "recovery_to_band_us": 0.7606252999999973,
+   "band_mV": 0.05,
+   "sign_changes_outside_band": 1,
+   "release": {
+    "max_excursion_mV": 23.75865999999993,
+    "return_to_band_us": 0.7713887999999974,
+    "final_error_mV": 0.002990000000058224
+   }
+  },
+  "ideal": {
+   "static_droop_mV": -23.750009999999435,
+   "peak_dev_mV": -23.7500100000001,
+   "overshoot_beyond_static_mV": 6.661338147750939e-13,
+   "recovery_to_band_us": 0.9547999999999998,
+   "band_mV": 0.05,
+   "sign_changes_outside_band": 0,
+   "release": {
+    "max_excursion_mV": 23.7500100000001,
+    "return_to_band_us": 0.9622999999999958,
+    "final_error_mV": -1.0000000161269895e-05
+   }
+  }
+ }
+}

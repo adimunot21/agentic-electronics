@@ -42,6 +42,9 @@ def test_unresolved_is_never_a_pass():
         assert b.check_line("J1", F(mpn), "x", "Connector", 3.4)["outcome"] == "unresolved"
 
 
-def test_derating_warning_is_reported_not_hidden():
+def test_rating_margin_note_is_reported_not_hidden_and_never_fails_the_line():
     line = b.check_line("C7", F("C1206C106K8RACTU", tol="20%", diel="X7R"), "10u", "Capacitor_SMD:C_1206_3216Metric", 5.25)
-    assert line["outcome"] == "passed" and any("derating warning" in n for n in line["notes"])
+    assert line["outcome"] == "passed" and any("rating margin note" in n and "coverage under bias MISSING" in n for n in line["notes"])
+    assert not any("warning" in n.lower() for n in line["notes"])          # it is a note about missing evidence, not a rule-of-thumb verdict
+    c0g = b.check_line("C5", F("C0805C331J5GACTU"), "330p", CAP, 40.0)
+    assert not c0g["notes"] or all("rating margin" not in n for n in c0g["notes"])     # class I C0G has no bias loss: no note

@@ -4,10 +4,7 @@ from pathlib import Path
 from ae.sim import SimRun, settling_run
 riso, cf = float(sys.argv[1]), float(sys.argv[2])
 base = Path("runs/ref/baseline")
-from ae.netlist import read_netlist
-from ae.spice import parse_si
-_v = {c["ref"]: parse_si(c["value"]) for c in read_netlist(base / "fe_aaf_001.net")[0] if c["ref"] in ("R6", "C5")}
-R6_NET, C5_NET_PF = _v["R6"], _v["C5"] * 1e12      # scale relative to what the NETLIST holds (the old script assumed 100 ohm / 1000 pF)
+from ae.sim import absolute_scale   # perturbations are relative to the netlist actually simulated (see regression test)
 worst = 0.0
 print(f"candidate RISO={riso} ohm, CF={cf} pF")
 print(f"{'RISO tol':>9} {'CF tol':>7} {'Cs pF':>6} {'Ron':>5} {'|err| mV':>9}")
@@ -15,7 +12,7 @@ for rt, ct, cs, ron in itertools.product((-0.01, 0.0, 0.01), (-0.05, 0.0, 0.05),
     if (rt, ct) not in [(0, 0)] and abs(rt) + abs(ct) == 0.0: continue
     corner = (rt != 0 and ct != 0) or (rt == 0 and ct == 0)       # corners + nominal only (not edge midpoints)
     if not corner: continue
-    run = SimRun(work=base / "work_robust", netlist=base / "fe_aaf_001.net", deck_kw={"scale": {"C5": cf / C5_NET_PF * (1 + ct), "R6": riso / R6_NET * (1 + rt)}})
+    run = SimRun(work=base / "work_robust", netlist=base / "fe_aaf_001.net", deck_kw={"scale": {k: v * (1 + tol) for (k, v), tol in zip(absolute_scale(base / "fe_aaf_001.net", {"C5": cf * 1e-12, "R6": riso}).items(), (ct, rt))}})
     run.prepare()
     err, _ = settling_run(run, cs_pf=cs, ron_ohm=ron)
     e = abs(err) if err is not None else float("nan")

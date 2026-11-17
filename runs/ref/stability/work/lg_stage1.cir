@@ -1,0 +1,12 @@
+* test bench (generated)
+.include lg_stage1_dut.cir
+Vcc P5V 0 DC 5.0
+Vref VREF 0 DC 3.3
+Vsrc src 0 DC 0
+Rs src AIN 100.0
+.control
+op
+ac dec 50 10 100Meg
+wrdata lg_stage1.csv v(N_INV) v(N_INVA)
+.endc
+.end

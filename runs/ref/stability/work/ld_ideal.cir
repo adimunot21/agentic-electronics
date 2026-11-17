@@ -1,0 +1,12 @@
+* test bench (generated)
+.include ld_ideal_dut.cir
+Vcc P5V 0 DC 5.0
+Vref VREF 0 DC 3.3
+Vsrc src 0 DC 0
+Rs src AIN 100.0
+Iload AOUT 0 PULSE(0 5e-05 2e-05 10n 10n 3.9999999999999996e-05 1)
+.control
+tran 20n 0.0001 0 20n
+wrdata ld_ideal.csv v(aout)
+.endc
+.end

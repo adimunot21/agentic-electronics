@@ -105,8 +105,10 @@ def check_line(ref: str, f: dict, value: str, footprint: str, applied_v: float) 
             out["problems"].append(f"RATING: MPN {d['volt']:g} V < schematic {req_v:g} V")
         if d["volt"] < applied_v:
             out["problems"].append(f"RATING: MPN {d['volt']:g} V < max applied {applied_v:g} V")
-        elif applied_v / d["volt"] > 0.5:
-            out["notes"].append(f"derating warning: {applied_v:g} V applied is {100*applied_v/d['volt']:.0f}% of the {d['volt']:g} V rating (X7R/X5R lose capacitance with DC bias; not quantified)")
+        elif d["diel"] != "C0G" and applied_v / d["volt"] > 0.5:
+            # NOT a failure and NOT a contract requirement. The requirement that matters is functional: effective capacitance under DC bias (and temperature/age)
+            # must stay above what the circuit needs for that role (see docs/stability-and-capacitor-notes.md). The manufacturer bias curve was not obtained.
+            out["notes"].append(f"rating margin note: {applied_v:g} V applied = {100*applied_v/d['volt']:.0f}% of the {d['volt']:g} V rating; effective-capacitance coverage under bias MISSING (no manufacturer curve)")
     out["outcome"] = "failed" if out["problems"] else "passed"
     return out
 
@@ -135,7 +137,7 @@ def check_netlist(netlist: Path) -> tuple[str, str, list[dict]]:
         detail += " | " + "; ".join(f"{l['refs']}: {'; '.join(l['problems'])}" for l in bad)
     if open_:
         detail += " | unresolved: " + ", ".join(l["refs"] for l in open_)
-    warn = [f"{l['refs']}: {n}" for l in lines for n in l["notes"] if "warning" in n]
+    warn = [f"{l['refs']}: {n}" for l in lines for n in l["notes"] if "rating margin note" in n]
     if warn:
         detail += " | " + "; ".join(warn)
     outcome = "failed" if bad else ("blocked" if open_ else "passed")

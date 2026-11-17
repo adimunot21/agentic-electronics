@@ -1,0 +1,12 @@
+* test bench (generated)
+.include vref_ac_dut.cir
+Vcc P5V 0 DC 5.0
+Vref VREF 0 DC 3.3 AC 1
+Vsrc src 0 DC 0
+Rs src AIN 100.0
+.control
+op
+ac dec 20 10 10k
+wrdata vr.csv v(aout)
+.endc
+.end

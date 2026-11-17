@@ -82,6 +82,17 @@ class SimRun:
         return m
 
 
+def absolute_scale(netlist: Path, targets: dict[str, float]) -> dict[str, float]:
+    """Scale factors that put each part at an ABSOLUTE target value, relative to what the given netlist holds.
+
+    Regression (2026-11-17): a settling-robustness script scaled R6/C5 by target/100 ohm and target/1000 pF (the pre-patch values) while the netlist already held 475 ohm /
+    330 pF, double-scaling and reporting a bogus 7.77 mV. Deck perturbations must be relative to the netlist actually being simulated."""
+    from ae.netlist import read_netlist
+    from ae.spice import parse_si
+    held = {c["ref"]: parse_si(c["value"]) for c in read_netlist(netlist)[0] if c["ref"][0] in "RC"}
+    return {ref: target / held[ref] for ref, target in targets.items()}
+
+
 def header(vcc=5.0, vref=3.3, rs=100.0, src="DC 0 AC 1") -> str:
     return f"""* test bench (generated)
 .include @DUT@
