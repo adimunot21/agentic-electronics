@@ -1,0 +1,21 @@
+49 ngspice runs in 32.7s
+REQ-BIAS     passed     output_dc_error_mV_max_abs                  9.65  limit <= 10 margin=0.35
+             worst of 32 corners (supply x VREF x Vos_A x Vos_B x divider skew): (5.25, 3.333, -1, 1, -1); Vos corners = +-2.5 mV injected (datasheet max)
+REQ-IQ       passed     iq_mA_max                                 0.3003  limit <= 1.0 margin=0.7
+             model Iq (typical per datasheet); datasheet MAX 190 uA/amp would give 0.38 mA: analysis shows margin either way
+REQ-GAIN     passed     gain_400hz_V_per_V                           1.3  limit 1.235..1.365
+             Rs=100: 1.3001, Rs=0: 1.3021 (nominal parts)
+REQ-FLAT     passed     passband_flatness_dB_max_abs              0.2466  limit <= 0.5 margin=0.253
+             nominal parts, Rs 0 and 100
+REQ-ALIAS    passed     stopband_abs_gain_dB_max_19k_to_1M         -63.5  limit <= -55.8 margin=7.7
+             19 kHz..1 MHz, nominal parts, real op-amp model
+REQ-ZIN      passed     zin_min_ohm                            6.491e+04  limit >= 10000
+             50 Hz-1 kHz, Rs=100
+REQ-STAB     passed     peaking_above_ideal_dB_max                0.1127  limit <= 3.0 margin=2.89
+             10 Hz-10 MHz vs ideal-op-amp response; max excess at 53088 Hz (sim -88.9 dB vs ideal -89.0 dB); transient ringing not tested
+REQ-HEADROOM passed     output_range_V                                 -  limit 0.10..3.20 margin=0.217
+             1.0 Vpk at 50/400/1000 Hz, supply and VREF corners: min 0.317 V, max 2.964 V (n=12)
+REQ-SETTLE   failed     acquisition_error_mV_max_abs                 1.4  limit <= 0.403 margin=-0.997
+             sample cap precharged to 0.385 V, acquisition at the 2.913 V peak (t=3.4662 ms), 1 us
+REQ-NOISE    passed     output_noise_mV_rms                     0.009595  limit <= 0.2 margin=0.19
+             1 Hz-20 kHz incl. 100 ohm source; model carries noise sources (datasheet en 14 nV/rtHz @1k); not validated against hardware

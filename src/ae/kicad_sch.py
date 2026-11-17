@@ -46,6 +46,9 @@ class Part:
     rotation: int = 0
     unit: int = 1
     props: dict[str, str] = field(default_factory=dict)
+    in_bom: bool = True
+    ref_offset: tuple[float, float] | None = None    # (dx, dy) mm of the Reference text from the part origin
+    value_offset: tuple[float, float] | None = None
 
 
 class SymbolLibrary:
@@ -157,12 +160,16 @@ class SchematicBuilder:
                 )
         raise KeyError(f"{part.lib_id} unit {part.unit} has no pin {pin_number}")
 
-    def connect(self, ref: str, pin_number: str, net: str, unit: int = 1, stub: float = STUB) -> None:
+    def connect(self, ref: str, pin_number: str, net: str, unit: int = 1, stub: float = STUB, dogleg: float = 0.0) -> None:
         """Draw pin -> wire stub -> net label (or power symbol for GND/+5V/+3V3)."""
         part = self.parts[f"{ref}:{unit}"]
         px, py, (ox, oy) = self.pin_point(part, pin_number)
         ex, ey = round(px + ox * stub, 4), round(py + oy * stub, 4)
         self.items.append(self._wire((px, py), (ex, ey)))
+        if dogleg:   # extra vertical segment so power symbols clear neighbouring pins' wires
+            self.items.append(self._wire((ex, ey), (ex, round(ey + dogleg, 4))))
+            ey = round(ey + dogleg, 4)
+            ox, oy = 0, (1 if dogleg > 0 else -1)
         if net in POWER_NETS:
             self._power_symbol(net, ex, ey, outward=(ox, oy))
         else:
@@ -198,7 +205,8 @@ class SchematicBuilder:
         lib_id = POWER_NETS[net]
         ref = f"#PWR{len([k for k in self.parts if k.startswith('#PWR')]) + 1:02d}"
         # Power symbols have one pin at their origin; GND points down, +V points up.
-        rotation = 180 if (net == "GND") == (outward[1] < 0) else 0
+        up, down = outward[1] < 0, outward[1] > 0          # screen coordinates: y grows downward
+        rotation = (180 if up else 0) if net == "GND" else (180 if down else 0)
         part = Part(ref, lib_id, net, "", (x, y), rotation=rotation)
         self.add_part(part)
 
@@ -226,23 +234,27 @@ class SchematicBuilder:
         is_power = part.ref.startswith("#")
         sym = self.library.get(part.lib_id)
         pin_nums = sorted({p.number for p in self.library.pins(part.lib_id, part.unit)})
+        text_angle = 0 if is_power else (360 - part.rotation) % 360   # symbol rotation also rotates field text; compensate
+        horizontal_body = part.rotation in (90, 270)
         def prop(name: str, value: str, dx: float, dy: float, hide: bool = False) -> list:
             eff = ["effects", ["font", ["size", "1.27", "1.27"]]]
-            if name in ("Reference", "Value") and not hide and not is_power:
+            if name in ("Reference", "Value") and not hide and not is_power and not horizontal_body and part.ref_offset is None:
                 eff.append(["justify", "left"])
             if hide:
                 eff.append(["hide", "yes"])
-            return ["property", Q(name), Q(value), ["at", _num(part.at[0] + dx), _num(part.at[1] + dy), "0"], eff]
+            return ["property", Q(name), Q(value), ["at", _num(part.at[0] + dx), _num(part.at[1] + dy), str(text_angle)], eff]
+        ref_dx, ref_dy = part.ref_offset or ((0.0, -3.5) if horizontal_body else (2.54, -1.27))
+        val_dx, val_dy = part.value_offset or ((0.0, 3.5) if horizontal_body else (2.54, 1.27))
         lib_fields = {p[1]: p[2] for p in find_all(sym, "property")}
         children = [
             ["lib_id", Q(part.lib_id)],
             ["at", _num(part.at[0]), _num(part.at[1]), str(part.rotation)],
             ["unit", str(part.unit)],
-            ["exclude_from_sim", "no"], ["in_bom", "no" if is_power else "yes"],
+            ["exclude_from_sim", "no"], ["in_bom", "no" if (is_power or not part.in_bom) else "yes"],
             ["on_board", "no" if is_power else "yes"], ["dnp", "no"],
             ["uuid", Q(self.symbol_uuid(part.ref) if part.unit == 1 else str(uuid.uuid5(_NS, f"{self.name}/symbol/{part.ref}/u{part.unit}")))],
-            prop("Reference", part.ref, 2.54, -1.27, hide=is_power),
-            prop("Value", part.value, 2.54, 1.27, hide=False if not is_power else False),
+            prop("Reference", part.ref, ref_dx, ref_dy, hide=is_power),
+            prop("Value", part.value, val_dx, val_dy),
             prop("Footprint", part.footprint, 0, 0, hide=True),
             prop("Datasheet", part.props.get("Datasheet", str(lib_fields.get("Datasheet", ""))), 0, 0, hide=True),
         ]

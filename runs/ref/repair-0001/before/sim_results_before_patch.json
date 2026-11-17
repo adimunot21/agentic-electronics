@@ -1,0 +1,92 @@
+[
+  {
+    "req": "REQ-BIAS",
+    "metric": "output_dc_error_mV_max_abs",
+    "value": 9.649999999999936,
+    "limit": "<= 10",
+    "outcome": "passed",
+    "detail": "worst of 32 corners (supply x VREF x Vos_A x Vos_B x divider skew): (5.25, 3.333, -1, 1, -1); Vos corners = +-2.5 mV injected (datasheet max)",
+    "margin": 0.3500000000000636
+  },
+  {
+    "req": "REQ-IQ",
+    "metric": "iq_mA_max",
+    "value": 0.300281,
+    "limit": "<= 1.0",
+    "outcome": "passed",
+    "detail": "model Iq (typical per datasheet); datasheet MAX 190 uA/amp would give 0.38 mA: analysis shows margin either way",
+    "margin": 0.699719
+  },
+  {
+    "req": "REQ-GAIN",
+    "metric": "gain_400hz_V_per_V",
+    "value": 1.3000642101879671,
+    "limit": "1.235..1.365",
+    "outcome": "passed",
+    "detail": "Rs=100: 1.3001, Rs=0: 1.3021 (nominal parts)",
+    "margin": null
+  },
+  {
+    "req": "REQ-FLAT",
+    "metric": "passband_flatness_dB_max_abs",
+    "value": 0.24664921657875238,
+    "limit": "<= 0.5",
+    "outcome": "passed",
+    "detail": "nominal parts, Rs 0 and 100",
+    "margin": 0.2533507834212476
+  },
+  {
+    "req": "REQ-ALIAS",
+    "metric": "stopband_abs_gain_dB_max_19k_to_1M",
+    "value": -63.4951382644,
+    "limit": "<= -55.8",
+    "outcome": "passed",
+    "detail": "19 kHz..1 MHz, nominal parts, real op-amp model",
+    "margin": 7.695138264400001
+  },
+  {
+    "req": "REQ-ZIN",
+    "metric": "zin_min_ohm",
+    "value": 64914.457914637176,
+    "limit": ">= 10000",
+    "outcome": "passed",
+    "detail": "50 Hz-1 kHz, Rs=100",
+    "margin": null
+  },
+  {
+    "req": "REQ-STAB",
+    "metric": "peaking_above_ideal_dB_max",
+    "value": 0.11265374677540763,
+    "limit": "<= 3.0",
+    "outcome": "passed",
+    "detail": "10 Hz-10 MHz vs ideal-op-amp response; max excess at 53088 Hz (sim -88.9 dB vs ideal -89.0 dB); transient ringing not tested",
+    "margin": 2.8873462532245924
+  },
+  {
+    "req": "REQ-HEADROOM",
+    "metric": "output_range_V",
+    "value": null,
+    "limit": "0.10..3.20",
+    "outcome": "passed",
+    "detail": "1.0 Vpk at 50/400/1000 Hz, supply and VREF corners: min 0.317 V, max 2.964 V (n=12)",
+    "margin": 0.217096327
+  },
+  {
+    "req": "REQ-SETTLE",
+    "metric": "acquisition_error_mV_max_abs",
+    "value": 1.3996985459314715,
+    "limit": "<= 0.403",
+    "outcome": "failed",
+    "detail": "sample cap precharged to 0.385 V, acquisition at the 2.913 V peak (t=3.4662 ms), 1 us",
+    "margin": -0.9966985459314714
+  },
+  {
+    "req": "REQ-NOISE",
+    "metric": "output_noise_mV_rms",
+    "value": 0.009594839999999999,
+    "limit": "<= 0.2",
+    "outcome": "passed",
+    "detail": "1 Hz-20 kHz incl. 100 ohm source; model carries noise sources (datasheet en 14 nV/rtHz @1k); not validated against hardware",
+    "margin": 0.19040516000000002
+  }
+]

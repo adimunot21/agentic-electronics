@@ -1,0 +1,60 @@
+# Controlled defects, each applied to a SEPARATE COPY of the reference run. Predictions were written BEFORE any defect run.
+# Written: 2026-11-17, before the first `ae defects` execution. Source of D1 numbers: analytic ideal-op-amp model only
+# (analysis/derive_filter.py), not ngspice. outcome values: pass | fail | not_pass (fail or blocked, never pass) | any (no prediction).
+# Check ids: ERC, NETLIST_INTENT, PIN_SYMBOL, PIN_FOOTPRINT, PIN_SPICE_HEADER, PIN_WIRING, DECK_VS_NETLIST,
+#            REQ-* (simulation), DRC_VIOLATIONS, DRC_UNCONNECTED, DRC_PARITY
+defects:
+  - id: D1_swap_C1_C2_values
+    what: "values of C1 (18n, node X to GND) and C2 (1n, feedback) swapped in the schematic (manual-edit style)"
+    why_it_matters: "ERC/DRC/parity/netlist cannot see value errors; only simulation can. Analytic model: Q drops ~18x, passband gain 1.30 -> 0.27, flatness 12 dB; stopband attenuation IMPROVES (-67 dB) so REQ-ALIAS alone would not catch it."
+    expect:
+      ERC: pass
+      NETLIST_INTENT: pass
+      PIN_SYMBOL: pass
+      PIN_WIRING: pass
+      DECK_VS_NETLIST: pass
+      REQ-GAIN: fail
+      REQ-FLAT: fail
+      REQ-ALIAS: pass
+      REQ-ZIN: pass
+      REQ-BIAS: pass
+      DRC_VIOLATIONS: pass
+      DRC_UNCONNECTED: pass
+      DRC_PARITY: pass
+  - id: D2_opamp_inputs_swapped_in_intent
+    what: "U1A +IN/-IN connected to the opposite nets (VMID on pin 2, N_INV on pin 3): positive feedback"
+    why_it_matters: "A wiring error that is self-consistent everywhere downstream; only the datasheet-function wiring audit and the simulation can see it."
+    expect:
+      ERC: pass
+      NETLIST_INTENT: pass          # the intent itself is the (wrong) design
+      PIN_SYMBOL: pass
+      DECK_VS_NETLIST: pass
+      PIN_WIRING: fail
+      REQ-GAIN: not_pass
+      REQ-HEADROOM: not_pass
+      DRC_VIOLATIONS: pass
+      DRC_UNCONNECTED: pass
+      DRC_PARITY: pass
+  - id: D3_symbol_pin_numbers_swapped
+    what: "pin numbers 2 and 3 exchanged inside the symbol embedded in the schematic (copy/paste symbol bug); wires drawn unchanged"
+    why_it_matters: "Netlist, deck, board and parity all follow the wrong symbol consistently: only the independent datasheet audit and the simulation expose it."
+    expect:
+      ERC: pass
+      PIN_SYMBOL: fail
+      PIN_WIRING: fail
+      NETLIST_INTENT: fail          # intent says pin 3 on VMID; KiCad now reports pin 2
+      DECK_VS_NETLIST: pass         # deck follows the (wrong) netlist faithfully
+      REQ-GAIN: not_pass
+      DRC_VIOLATIONS: pass
+      DRC_UNCONNECTED: pass
+      DRC_PARITY: pass
+  - id: D4_missing_routed_track
+    what: "one routed F.Cu track of net N_INV deleted from the routed board"
+    why_it_matters: "Pure layout defect: schematic, simulation and datasheet audits are all blind to it; DRC connectivity is the detector."
+    expect:
+      ERC: pass
+      PIN_SYMBOL: pass
+      REQ-GAIN: pass
+      REQ-FLAT: pass
+      REQ-ALIAS: pass
+      DRC_UNCONNECTED: fail

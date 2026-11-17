@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pcbnew
 
-from ae.sexpr import find, find_all, parse
+from ae.netlist import read_netlist
 
 FP_LIB_DIR = Path("/usr/share/kicad/footprints")
 mm = pcbnew.FromMM
@@ -23,35 +23,6 @@ mm = pcbnew.FromMM
 
 def vec(x_mm: float, y_mm: float) -> "pcbnew.VECTOR2I":
     return pcbnew.VECTOR2I(mm(x_mm), mm(y_mm))
-
-
-def read_netlist(path: Path) -> tuple[list[dict], dict[str, list[tuple[str, str, str]]]]:
-    """Parse KiCad's own `sch export netlist --format kicadsexpr` output.
-
-    Returns (components, nets). components: ref/value/footprint/uuid/sheet path.
-    nets: net name -> [(ref, pin number, pinfunction)]. Net names are used verbatim
-    ("/MID" for local labels, "GND" for power) because the PCB must carry the same strings.
-    """
-    tree = parse(path.read_text())
-    comps = []
-    for comp in find_all(find(tree, "components"), "comp"):
-        comps.append(
-            {
-                "ref": str(find(comp, "ref")[1]),
-                "value": str(find(comp, "value")[1]),
-                "footprint": str(find(comp, "footprint")[1]),
-                "uuid": str(find(comp, "tstamps")[1]),
-                "sheet": str(find(find(comp, "sheetpath"), "tstamps")[1]),
-            }
-        )
-    nets: dict[str, list[tuple[str, str, str]]] = {}
-    for net in find_all(find(tree, "nets"), "net"):
-        nodes = []
-        for node in find_all(net, "node"):
-            pinfn = find(node, "pinfunction")
-            nodes.append((str(find(node, "ref")[1]), str(find(node, "pin")[1]), str(pinfn[1]) if pinfn else ""))
-        nets[str(find(net, "name")[1])] = nodes
-    return comps, nets
 
 
 def build(config_path: Path) -> None:
@@ -82,6 +53,10 @@ def build(config_path: Path) -> None:
         x, y, rot = placement[ref]
         fp.SetPosition(vec(x, y))
         fp.SetOrientationDegrees(rot)
+        for field_name, field_value in comp.get("fields", {}).items():     # carry custom schematic fields (MPN...) so parity sees them
+            if field_name not in ("Footprint", "Description", "Reference", "Value") and field_value:
+                fp.SetField(field_name, field_value)
+                fp.GetField(field_name).SetVisible(False)
         for pad in fp.Pads():
             key = (ref, pad.GetNumber())
             if key in pin_net:
@@ -122,9 +97,51 @@ def build(config_path: Path) -> None:
             zone.Outline().Append(mm(px), mm(py))
         board.Add(zone)
 
+    print(f"reference texts placed: {place_reference_texts(board)}")
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
     board.Save(cfg["output"])
     print(f"built {cfg['output']}: {len(comps)} footprints, {len(nets)} nets, {len(board.Zones())} zones")
+
+
+def place_reference_texts(board) -> int:
+    """Move each reference designator (silk) to the first free spot above/below/right/left of its footprint.
+
+    Free = text box does not touch any pad (inflated) or an already placed text box. Pure heuristic for legibility;
+    DRC (silk_over_copper / silk_overlap) is still the judge. Returns how many references had to move.
+    """
+    pads = []
+    for fp in board.GetFootprints():
+        for pad in fp.Pads():
+            bb = pad.GetBoundingBox()
+            pads.append((bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom()))
+    margin = mm(0.25)
+    placed: list[tuple[int, int, int, int]] = []
+    moved = 0
+    for fp in sorted(board.GetFootprints(), key=lambda f: f.GetReference()):
+        ref = fp.Reference()
+        text_w, text_h = mm(0.95 * max(2, len(fp.GetReference()))), mm(1.1)
+        body = fp.GetBoundingBox(False)      # footprint body incl. pads, excl. text
+        cx = (body.GetLeft() + body.GetRight()) // 2
+        cy = (body.GetTop() + body.GetBottom()) // 2
+        candidates = [(cx, body.GetTop() - mm(0.9)), (cx, body.GetBottom() + mm(0.9)),
+                      (body.GetRight() + text_w // 2 + mm(0.4), cy), (body.GetLeft() - text_w // 2 - mm(0.4), cy),
+                      (cx, body.GetTop() - mm(2.2)), (cx, body.GetBottom() + mm(2.2))]
+        chosen = None
+        for x, y in candidates:
+            box = (x - text_w // 2, y - text_h // 2, x + text_w // 2, y + text_h // 2)
+            inside = box[0] > mm(0.6) and box[1] > mm(0.6)
+            hit = any(not (box[2] + margin < p[0] or box[0] - margin > p[2] or box[3] + margin < p[1] or box[1] - margin > p[3]) for p in pads) \
+                or any(not (box[2] < q[0] or box[0] > q[2] or box[3] < q[1] or box[1] > q[3]) for q in placed)
+            if inside and not hit:
+                chosen = (x, y, box)
+                break
+        if chosen is None:
+            chosen = (*candidates[0], (candidates[0][0] - text_w // 2, candidates[0][1] - text_h // 2, candidates[0][0] + text_w // 2, candidates[0][1] + text_h // 2))
+        ref.SetPosition(pcbnew.VECTOR2I(int(chosen[0]), int(chosen[1])))
+        ref.SetTextAngleDegrees(0)
+        placed.append(chosen[2])
+        moved += 1
+    return moved
 
 
 def export_dsn(board_path: Path, out: Path) -> None:

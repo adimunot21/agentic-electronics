@@ -1,0 +1,13 @@
+{
+  "source_file": "models/cache/OPA2314/x/opa2314.lib",
+  "source_sha256": "36b70848dc6b35224529b58870803b26e5d33b0739786938c149835c03a031fe",
+  "shim_file": "models/cache/OPA2314/opa2314_ngspice_shim.lib",
+  "shim_sha256": "8ad0db9d5272a7801707a209fd3212d0b1517dc40bba8428339a50c71e9b5cb9",
+  "changes": [
+    "CRLF->LF",
+    "comment out instance X_SW_OR (1 line)"
+  ],
+  "not_modelled_after_shim": [
+    "overload/saturation recovery clamp (SW_OR)"
+  ]
+}

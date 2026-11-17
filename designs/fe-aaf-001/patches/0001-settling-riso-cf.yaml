@@ -1,0 +1,15 @@
+id: 0001-settling-riso-cf
+author: "assistant (manual reference loop; not an autonomous agent)"
+date: 2026-11-17
+status: applied
+base: {file: designs/fe-aaf-001/components.yaml, sha256: 7cdeaaaca52acbcadffd84fda934945a9e4cc7e3a5f14618c28d26b7a9a6cd6a}
+reason: >
+  REQ-SETTLE failed (|acquisition error| 1.40 mV vs 0.403 mV limit). Waveforms show underdamped ringing of AOUT after the
+  sampling kickback (RISO=100 ohm too low for the op-amp output vs CF). Sweep of RISO x CF (runs/ref/dev/sweep_riso_cf.txt)
+  shows a robust good region around RISO 330-470 ohm, CF 330-470 pF. Chosen RISO=475 (E96), CF=330 pF (E12 C0G); worst case over
+  RISO +-1 %, CF +-5 %, Cs 5-15 pF is 0.043 mV (scripts/robust_settle.py).
+changes:
+  - {part: RISO, field: value, from: "100", to: "475", also: {mpn_candidate: "RC0603FR-07475RL"}}
+  - {part: CF, field: value, from: "1n", to: "330p", also: {mpn_candidate: "C0805C331J5GACTU"}}
+invalidates: [schematic, netlist, spice deck, all simulation results, pcb (value text only), release BOM]
+not_invalidated: [pin audit (U1 unchanged), footprints (0603/0805 unchanged), filter derivation (stage values unchanged)]

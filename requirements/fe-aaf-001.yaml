@@ -9,6 +9,15 @@ schema_version: 1
 id: FE-AAF-001
 title: Anti-alias front end, 3.3 V SAR ADC, 50 Hz-1 kHz band
 status: draft-for-reference-design      # reference design is MANUALLY authored, not agent output
+revisions:
+  - {rev: 2, date: 2026-11-17, change: "REQ-STAB redefined (AC peaking vs ideal instead of step overshoot <= 10 %)",
+     reason: "3rd-order Butterworth has ~8 % inherent step overshoot, so the original criterion conflated filter shape with op-amp stability",
+     made_before_any_simulation_result: true}
+  - {rev: 3, date: 2026-11-17, change: "REQ-STAB comparison floor: ideal curve is floored at -90 dB before comparing",
+     reason: "rev-2 metric reported +46.5 dB 'peaking' at 10 MHz where simulated gain was -178.9 dB and ideal -225.5 dB: both are numerical-noise levels, so the metric was flagging an artefact, not peaking. Levels below -90 dB (0.03 mV per V) are irrelevant to a 0.8 mV LSB.",
+     made_after_result: true,
+     original_rev2_result: "failed, excess 46.54 dB at 10 MHz (kept in runs/ref/dev/sim_results_rev2.json)",
+     independence_caveat: "revised by the same party that authored the design; needs human review before the contract is frozen"}
 
 interfaces:
   J1: {pins: [AIN, GND, +5V], role: "signal in (AC), ground, supply"}
@@ -83,11 +92,11 @@ requirements:
     verify: sim
     model_coverage: "Generic switched-cap load; real ADC differs (see adc_model)."
   - id: REQ-STAB
-    text: "Both op-amp outputs are stable (no sustained oscillation) with the 100 ohm + 1 nF output network; transient step overshoot at AOUT <= 10 % of step."
+    text: "No unintended peaking: at every frequency from 10 Hz to 10 MHz the simulated AOUT gain does not exceed max(ideal-op-amp prediction of the same component values, -90 dB) by more than 3 dB (catches op-amp/cap-load instability that the ideal model cannot show). Transient step stability is NOT tested."
     kind: requirement
-    check: {metric: step_overshoot_pct_max, max: 10}
+    check: {metric: peaking_above_ideal_dB_max, max: 3.0, ideal_floor_dB: -90}
     verify: sim
-    model_coverage: "Depends on the vendor model's output stage; a model without realistic Rout/phase margin cannot support this claim -> mark not_tested"
+    model_coverage: "Depends on the vendor model's output impedance and phase behaviour with the 100 ohm + 1 nF load. Time-domain ringing/overshoot of the op-amp output stage is not separately tested (outcome not_tested for that aspect)."
   - id: REQ-IQ
     text: "Total quiescent supply current <= 1.0 mA at 5 V."
     kind: requirement

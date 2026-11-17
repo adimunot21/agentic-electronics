@@ -1,0 +1,10 @@
+REQ-SETTLE design-space sweep (RISO x CF), |acquisition error| in mV at 1 us; limit 0.403. Test-bench scaling only.
+Run 2026-11-17 with scripts/sweep_riso_cf.py on the unmodified schematic (RISO=100, CF=1n), nominal parts, Cs=10 pF, Ron=200.
+  RISO     330pF     470pF    1000pF    2200pF
+  100R     3.643     0.699     1.400     1.499
+  220R     0.386     0.658     0.472     0.855
+  330R     0.169     0.089     0.403     2.377
+  470R     0.006     0.015     2.209     3.732
+  680R     0.295     1.475     4.837     5.041
+ 1000R     2.603     5.164     7.903     6.217
+Diagnosis (runs/ref/dev/work_cf*/diag.csv): AOUT rings after the sampling kickback (underdamped op-amp output vs RISO+CF).
