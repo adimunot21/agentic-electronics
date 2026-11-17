@@ -1,0 +1,138 @@
+# Electrical acceptance contract: FE-AAF-001, single-supply anti-alias front end for a 3.3 V SAR ADC.
+#
+# Every item carries:
+#   kind:   requirement (what the board must do) | assumption (stated input we do NOT control) | derived (computed from others)
+#   verify: sim | analysis | inspection | physical     (physical = cannot be established without hardware)
+#   model_coverage: what the planned simulation can and cannot see for this item
+# The design agent / generator MUST NOT edit this file; it is owned by the evaluator (see docs/ownership.md).
+schema_version: 1
+id: FE-AAF-001
+title: Anti-alias front end, 3.3 V SAR ADC, 50 Hz-1 kHz band
+status: draft-for-reference-design      # reference design is MANUALLY authored, not agent output
+
+interfaces:
+  J1: {pins: [AIN, GND, +5V], role: "signal in (AC), ground, supply"}
+  J2: {pins: [AOUT, GND, VREF], role: "to ADC input, ground, ADC reference sense (3.3 V)"}
+
+conditions:
+  supply_5v:      {nominal: 5.0, min: 4.75, max: 5.25, unit: V, kind: assumption, verify: sim}
+  vref:           {nominal: 3.3, min: 3.267, max: 3.333, unit: V, kind: assumption, verify: sim, note: "supplied by the ADC board on J2.VREF, +/-1 %"}
+  temperature:    {nominal: 25, unit: degC, kind: assumption, verify: physical, model_coverage: "NOT covered: ngspice models run at nominal temperature; no temperature requirement is claimed as met"}
+
+signal_source:
+  band_hz:        {lo: 50, hi: 1000, kind: assumption, verify: analysis, note: "mains-hum-to-1 kHz sensor/line band"}
+  amplitude_peak_V: {max: 1.0, kind: assumption, verify: sim}
+  source_impedance_ohm: {min: 0, max: 100, kind: assumption, verify: sim, note: "buffered/line-driver source; adds in series with the 10 k input resistor"}
+  coupling: AC (input capacitor; DC blocked)
+  interferer:
+    description: out-of-band tone (e.g. switching noise) at or above fs - f_band_hi
+    amplitude_peak_V_at_input: 0.5
+    kind: assumption
+    verify: sim
+
+adc_model:     # GENERIC assumed SAR input, not a specific part. Real ADC kickback needs physical test.
+  resolution_bits: 12
+  range_V: [0.0, 3.3]
+  sample_rate_hz: 20000
+  c_sample_pF: 10
+  r_switch_ohm: 200
+  t_acquire_us: 1.0
+  previous_sample_worst_case: "opposite full-scale excursion (step = 2 x output peak)"
+  kind: assumption
+  verify: sim
+  model_coverage: "switched-capacitor charge kickback modelled as ideal switch + Cs; real ADC input leakage, kickback glitch energy and reference noise NOT modelled"
+
+requirements:
+  - id: REQ-GAIN
+    text: "Mid-band gain at 400 Hz, source impedance 100 ohm, is 1.30 V/V +/-5 %."
+    kind: requirement
+    check: {metric: gain_400hz_V_per_V, min: 1.235, max: 1.365}
+    verify: sim
+    rationale: "1.0 Vpk input -> 1.30 Vpk output about VREF/2 = 1.65 V: top 2.95 V, bottom 0.35 V, i.e. uses ~79 % of the ADC range yet leaves >=0.25 V to the 3.2 V / 0.1 V limits across tolerance."
+  - id: REQ-FLAT
+    text: "Gain at every frequency 50 Hz-1 kHz is within +/-0.5 dB of the 400 Hz gain."
+    kind: requirement
+    check: {metric: passband_flatness_dB_max_abs, max: 0.5}
+    verify: sim
+  - id: REQ-ALIAS
+    text: "For a 0.5 Vpk input tone at any frequency from 19 kHz to 1 MHz, the output amplitude is <= 1 LSB (0.806 mV peak), i.e. absolute gain <= -55.8 dB."
+    kind: requirement
+    check: {metric: stopband_abs_gain_dB_max_19k_to_1M, max: -55.8}
+    verify: sim
+    derivation: "alias band = [fs - f_hi, fs + f_hi] = [19, 21] kHz and above; 20*log10(0.8057e-3/0.5)"
+    model_coverage: "Includes op-amp finite GBW and output impedance IF the vendor macro-model captures them; above ~1 MHz not claimed. Layout coupling/ground bounce is physical-only."
+  - id: REQ-BIAS
+    text: "Quiescent output DC level equals VREF/2 within +/-10 mV (0.6 %) for any supply and VREF in range, with worst-case op-amp offset."
+    kind: requirement
+    check: {metric: output_dc_error_mV_max_abs, max: 10}
+    verify: sim
+  - id: REQ-HEADROOM
+    text: "At 1.0 Vpk input (50 Hz-1 kHz) the output stays within 0.10 V ... 3.20 V in all corners; no clipping."
+    kind: requirement
+    check: {metric: output_min_V_min, min: 0.10, extra: {metric: output_max_V_max, max: 3.20}}
+    verify: sim
+  - id: REQ-ZIN
+    text: "Input impedance magnitude from 50 Hz-1 kHz is >= 10 kohm."
+    kind: requirement
+    check: {metric: zin_min_ohm, min: 10000}
+    verify: sim
+  - id: REQ-SETTLE
+    text: "Charge-bucket load settling: with the ADC model sample cap pre-charged to the opposite full-scale level, the voltage on the sample cap at the end of the 1 us acquisition is within 1/2 LSB (0.403 mV) of the settled value."
+    kind: requirement
+    check: {metric: acquisition_error_mV_max_abs, max: 0.403}
+    verify: sim
+    model_coverage: "Generic switched-cap load; real ADC differs (see adc_model)."
+  - id: REQ-STAB
+    text: "Both op-amp outputs are stable (no sustained oscillation) with the 100 ohm + 1 nF output network; transient step overshoot at AOUT <= 10 % of step."
+    kind: requirement
+    check: {metric: step_overshoot_pct_max, max: 10}
+    verify: sim
+    model_coverage: "Depends on the vendor model's output stage; a model without realistic Rout/phase margin cannot support this claim -> mark not_tested"
+  - id: REQ-IQ
+    text: "Total quiescent supply current <= 1.0 mA at 5 V."
+    kind: requirement
+    check: {metric: iq_mA_max, max: 1.0}
+    verify: sim
+    model_coverage: "Only if the op-amp macro-model includes supply current; otherwise datasheet value is used (verify: analysis)."
+  - id: REQ-NOISE
+    text: "Integrated output noise 1 Hz-20 kHz <= 0.25 LSB rms (0.2 mV)."
+    kind: requirement
+    check: {metric: output_noise_mV_rms, max: 0.2}
+    verify: sim
+    model_coverage: "Only if the model carries noise sources (often it does not). Otherwise outcome = not_tested, never passed."
+  - id: REQ-ERC-DRC
+    text: "KiCad ERC: 0 errors, 0 warnings that are not individually waived in writing. KiCad DRC incl. schematic parity: 0 violations, 0 unconnected items, 0 parity issues."
+    kind: requirement
+    verify: inspection
+    note: "JSON parity entries are severity=warning, so ALL sections of the DRC report are counted."
+  - id: REQ-PINS
+    text: "Pin-function audit: every active/polarised part's manufacturer pin function = symbol pin function = footprint pad number, against the transcribed datasheet table (independent of the netlist)."
+    kind: requirement
+    verify: inspection
+  - id: REQ-BOM
+    text: "Every BOM line has a manufacturer part number; every active part has a recorded datasheet revision."
+    kind: requirement
+    verify: inspection
+  - id: REQ-MFG
+    text: "2-layer, <= 40 x 30 mm, min track/space 0.15 mm, min drill 0.3 mm, 0.6 mm via; Gerber/drill/position files generated and rendered."
+    kind: requirement
+    verify: inspection
+
+tolerance_model:
+  resistors: {series: E96, tolerance_pct: 1.0, distribution: uniform_within_tolerance, kind: assumption,
+              note: "uniform is deliberately conservative (no Gaussian guarantee from manufacturers)"}
+  bias_divider_resistors: {series: E96, tolerance_pct: 0.1}
+  filter_capacitors: {dielectric: C0G, tolerance_pct: 5.0, distribution: uniform_within_tolerance}
+  coupling_capacitor: {dielectric: X7R, tolerance_pct: 20.0, extra_dc_bias_loss_pct: 20, note: "worst-case effective value in [0.6, 1.2] x nominal"}
+  opamp: {offset_and_bias: "datasheet MAX values as corner values, not typical", note: "model must reproduce them or the corner is analysis-only"}
+  yield_criterion:
+    monte_carlo: {samples: 2000, seed: 20261117}
+    pass_if: ">= 99 % of samples meet every sim requirement AND all supply/VREF corner combinations meet them"
+    statistical_caveat: "a Monte Carlo pass shows the tolerance model passes, not that a lot of boards will"
+
+physical_only:   # nothing here is claimed by any simulation in this repository
+  - "assembled-board frequency response and noise"
+  - "real ADC kickback / reference behaviour"
+  - "ESD, input overvoltage beyond the +/-3.3 V analysis case, hot-plug"
+  - "temperature drift; X7R dc-bias and aging"
+  - "layout-induced coupling, ground bounce, EMC"

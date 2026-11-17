@@ -13,3 +13,8 @@ models/cache/
 evidence/datasheets/
 runs/*/work/
 vendor/kicad-libs-*/
+
+# vendor SPICE models: licence unknown, never commit copies
+runs/**/opa2314*.lib
+runs/**/*.lib
+*.libsig

@@ -1,0 +1,34 @@
+# Independent pin/package reference for OPA2314AID, HAND-TRANSCRIBED from the manufacturer datasheet.
+# This file is the reference the symbol, footprint and SPICE model are audited AGAINST. It must never be
+# generated from the schematic/netlist/symbol. Re-verify by a second person before any fabrication.
+mpn: OPA2314AID
+manufacturer: Texas Instruments
+document: {id: SBOS563G, title: "OPAx314 3-MHz, Low-Power, Low-Noise, RRIO, 1.8-V CMOS Operational Amplifier", revised: "2015-06",
+           file: evidence/datasheets/OPA2314/ds.pdf, sha256: 99a95ba5e40c02f92bc7fb7ca5bc339c7b9892f65a73c7998659a231800098e4}
+transcribed: {date: 2026-11-17, by: "claude (assistant)", independently_reviewed_by_human: false}
+package: {name: "SOIC-8 (D)", drawing: D0008A, drawing_pdf_page: 41, orderable_status: "Active (OPA2314AID, ti.com orderable table, ds pdf p.>=50)"}
+pin_table:           # source: "Pin Functions: OPA2314" (pdf page 5), D/DGK/DRB columns identical
+  1: {function: "OUT A", type: output}
+  2: {function: "-IN A", type: input}
+  3: {function: "+IN A", type: input}
+  4: {function: "V-",    type: power}
+  5: {function: "+IN B", type: input}
+  6: {function: "-IN B", type: input}
+  7: {function: "OUT B", type: output}
+  8: {function: "V+",    type: power}
+package_geometry:    # source: D0008A package outline (pdf page 41), top view, mm
+  pitch_mm: 1.27
+  pin_count: 8
+  numbering: "counter-clockwise from pin 1; pins 1-4 down the left side, 5-8 up the right side (top view)"
+  pin1_corner: top-left
+  lead_span_outer_mm: [5.80, 6.19]     # .228-.244 in
+  body_mm: {width: [3.81, 3.98], length: [4.81, 5.00]}
+spice_model:
+  file: models/cache/OPA2314/x/opa2314.lib     # NOT redistributed; see models/manifest.yaml
+  subckt: OPA2314
+  node_order: [IN+, IN-, VCC, VEE, OUT]        # from the .subckt line (single channel)
+  # model node -> datasheet function suffix; per-channel pin choice follows the pin_table
+  node_function: {"IN+": "+IN", "IN-": "-IN", "VCC": "V+", "VEE": "V-", "OUT": "OUT"}
+limits:              # source pages are in components.yaml
+  supply_v: {abs_max: 7.0, recommended: [1.8, 5.5]}
+  input_voltage_abs_max: "(V-) - 0.5 .. (V+) + 0.5 V; clamp diodes, limit current to 10 mA"

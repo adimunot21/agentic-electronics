@@ -1,0 +1,25 @@
+# SPICE model provenance. Model files are NOT committed (models/cache/ is gitignored) because redistribution terms are unknown.
+# Reproduce by downloading the URL and checking sha256 (a changed hash invalidates every simulation result that used the model).
+models:
+  - id: OPA2314-TI-RevC
+    part: OPA2314AID
+    manufacturer: Texas Instruments
+    source_url: "https://www.ti.com/lit/zip/sbombu1"          # resolves to .../lit/mo/sbombu1a/sbombu1a.zip (PSpice model, rev A package)
+    downloaded: 2026-11-17
+    archive_sha256: 3e0fc936312ab6de2d18fd33308bb71ed7d60b27f2f3bae7dbf7fc477ef0ca3b
+    file: models/cache/OPA2314/x/opa2314.lib
+    header: "OPA2314 - Rev. C; created Oct 15 2018, revised 2021-07-16; Green-Williams-Lis macro-model architecture"
+    format: "PSpice text netlist (single channel .subckt OPA2314 IN+ IN- VCC VEE OUT)"
+    licence: "NOT STATED in the file (only '* Copyright 2018 by Texas Instruments Corporation'). TI site terms for models were not retrieved. Treated as non-redistributable."
+    ngspice_44_2: {runs: true, requires: ".spiceinit with 'set ngbehavior=psa' (read before the netlist)", op_convergence: "needs gmin/source stepping fallback to 'transient op' (warnings in log)"}
+    claims_in_header: [Aol, GBW, CMRR, PSRR, Zid, Zic, Zo, Iq, en, in, Vo-swing, Isc, SR, overshoot-vs-CL, Ib, Ios, Vos, Vos-drift, ESD]
+    known_limitations:
+      - "Vos is the TYPICAL value (~0.47 mV measured); datasheet MAX 2.5 mV is applied as an external series source corner, not by the model."
+      - "Single-channel subckt: the dual part is two instances; channel separation / crosstalk is not modelled (datasheet: 10 uV/V DC)."
+      - "Temperature: only Vos drift is modelled via TEMP; other parameters are at nominal -> no temperature requirement is claimed."
+    validated_against_datasheet: "see runs/*/model-check (GBW, Iq, Vos, en) - status recorded there, not assumed"
+  - id: MCP6002-Microchip
+    part: MCP6002-I/SN
+    source: "Microchip MCP6001/2/4 SPICE macro model (per datasheet DS20001733L 'design aids' + AN1297)"
+    status: BLOCKED
+    reason: "microchip.com product/model pages return HTTP 403 to automated clients; no model file obtained or inspected"

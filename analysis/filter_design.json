@@ -1,0 +1,130 @@
+{
+  "fc_hz": 1601.5754026238465,
+  "order": 3,
+  "params": {
+    "R1": 64900.0,
+    "R2": 84500.0,
+    "R3": 6490.0,
+    "R4": 17800.0,
+    "R5": 17800.0,
+    "C1": 1.8e-08,
+    "C2": 1e-09,
+    "C3": 5.6e-09,
+    "Cin": 2.2e-06
+  },
+  "nominal": {
+    "gain_400": 1.300595454006601,
+    "flat_max_abs_db": 0.25812592760428293,
+    "stop_max_db": -62.189950706498756,
+    "zin_min": 64950.040288919095
+  },
+  "monte_carlo_ideal_opamp": {
+    "n": 2000,
+    "yield_all": 0.9945,
+    "yield_each": {
+      "REQ-GAIN": 1.0,
+      "REQ-FLAT": 0.9945,
+      "REQ-ALIAS": 1.0,
+      "REQ-ZIN": 1.0
+    },
+    "gain_min_max": [
+      1.256405637331805,
+      1.346049456292484
+    ],
+    "flat_worst_db": 0.5624893681271512,
+    "stop_worst_db": -60.82835732483787
+  },
+  "order_table": [
+    {
+      "family": "butterworth",
+      "order": 1,
+      "atten_db": 13.5,
+      "meets": false
+    },
+    {
+      "family": "butterworth",
+      "order": 2,
+      "atten_db": 38.88,
+      "meets": false
+    },
+    {
+      "family": "butterworth",
+      "order": 3,
+      "atten_db": 64.45,
+      "meets": true
+    },
+    {
+      "family": "butterworth",
+      "order": 4,
+      "atten_db": 90.03,
+      "meets": true
+    },
+    {
+      "family": "butterworth",
+      "order": 5,
+      "atten_db": 115.6,
+      "meets": true
+    },
+    {
+      "family": "chebyshev1",
+      "order": 1,
+      "atten_db": 13.5,
+      "meets": false
+    },
+    {
+      "family": "chebyshev1",
+      "order": 2,
+      "atten_db": 44.89,
+      "meets": false
+    },
+    {
+      "family": "chebyshev1",
+      "order": 3,
+      "atten_db": 76.48,
+      "meets": true
+    },
+    {
+      "family": "chebyshev1",
+      "order": 4,
+      "atten_db": 108.07,
+      "meets": true
+    },
+    {
+      "family": "chebyshev1",
+      "order": 5,
+      "atten_db": 139.65,
+      "meets": true
+    },
+    {
+      "family": "bessel",
+      "order": 1,
+      "atten_db": 13.5,
+      "meets": false
+    },
+    {
+      "family": "bessel",
+      "order": 2,
+      "atten_db": 26.35,
+      "meets": false
+    },
+    {
+      "family": "bessel",
+      "order": 3,
+      "atten_db": 37.11,
+      "meets": false
+    },
+    {
+      "family": "bessel",
+      "order": 4,
+      "atten_db": 46.3,
+      "meets": false
+    },
+    {
+      "family": "bessel",
+      "order": 5,
+      "atten_db": 54.37,
+      "meets": false
+    }
+  ],
+  "scope": "ideal op-amps; real op-amp GBW/Rout/offset effects are only seen in ngspice with a vendor model"
+}

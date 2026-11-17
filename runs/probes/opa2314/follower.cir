@@ -1,0 +1,19 @@
+* OPA2314 model compatibility probe: unity-gain follower on 5 V single supply (probe, not the design)
+.include opa2314_lf.lib
+Vcc vcc 0 DC 5
+Vin in 0 DC 2.5 AC 1
+X1 in out vcc 0 out OPA2314
+Rl out 0 100k
+.control
+op
+print v(out) i(Vcc)
+ac dec 20 10 100Meg
+meas ac gain_1k find vdb(out) at=1k
+meas ac f3db when vdb(out)=-3 fall=1
+meas ac gain_peak max vdb(out)
+noise v(out) Vin dec 10 1 100k
+setplot noise1
+meas noise onoise_1_20k integ onoise from=1 to=20k
+print onoise_total
+.endc
+.end
