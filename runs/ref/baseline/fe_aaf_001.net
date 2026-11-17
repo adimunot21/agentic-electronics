@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/work/fe_aaf_001.kicad_sch")
-		(date "2026-11-17T21:47:11")
+		(date "2026-11-17T22:07:54")
 		(tool "Eeschema 10.0.8")
 		(sheet
 			(number "1")
@@ -62,7 +62,7 @@
 				(field
 					(name "MPN") "C0805C183J5GACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
 				(field
 					(name "Manufacturer") "Kemet")
 				(field
@@ -85,7 +85,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
 			)
 			(property
 				(name "Manufacturer")
@@ -134,7 +134,7 @@
 				(field
 					(name "MPN") "C0805C102J5GACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
 				(field
 					(name "Manufacturer") "Kemet")
 				(field
@@ -157,7 +157,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
 			)
 			(property
 				(name "Manufacturer")
@@ -206,7 +206,7 @@
 				(field
 					(name "MPN") "C0805C562J5GACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
 				(field
 					(name "Manufacturer") "Kemet")
 				(field
@@ -229,7 +229,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
 			)
 			(property
 				(name "Manufacturer")
@@ -278,7 +278,7 @@
 				(field
 					(name "MPN") "C1206C225K4RACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
 				(field
 					(name "Manufacturer") "Kemet")
 				(field
@@ -301,7 +301,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
 			)
 			(property
 				(name "Manufacturer")
@@ -350,7 +350,7 @@
 				(field
 					(name "MPN") "C0805C331J5GACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
 				(field
 					(name "Manufacturer") "Kemet")
 				(field
@@ -373,7 +373,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
 			)
 			(property
 				(name "Manufacturer")
@@ -420,9 +420,11 @@
 			(footprint "Capacitor_SMD:C_1206_3216Metric")
 			(fields
 				(field
-					(name "MPN") "unselected")
+					(name "MPN") "C1206C106K8RACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
+				(field
+					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
 				(field
@@ -439,11 +441,15 @@
 			)
 			(property
 				(name "MPN")
-				(value "unselected")
+				(value "C1206C106K8RACTU")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
+			)
+			(property
+				(name "Manufacturer")
+				(value "Kemet")
 			)
 			(property
 				(name "Sheetname")
@@ -486,9 +492,11 @@
 			(footprint "Capacitor_SMD:C_1206_3216Metric")
 			(fields
 				(field
-					(name "MPN") "unselected")
+					(name "MPN") "C1206C106K8RACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
+				(field
+					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
 				(field
@@ -505,11 +513,15 @@
 			)
 			(property
 				(name "MPN")
-				(value "unselected")
+				(value "C1206C106K8RACTU")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
+			)
+			(property
+				(name "Manufacturer")
+				(value "Kemet")
 			)
 			(property
 				(name "Sheetname")
@@ -552,9 +564,11 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "unselected")
+					(name "MPN") "C0603C104K4RACTU")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "verified")
+				(field
+					(name "Manufacturer") "Kemet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -571,11 +585,15 @@
 			)
 			(property
 				(name "MPN")
-				(value "unselected")
+				(value "C0603C104K4RACTU")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "verified")
+			)
+			(property
+				(name "Manufacturer")
+				(value "Kemet")
 			)
 			(property
 				(name "Sheetname")
@@ -614,13 +632,13 @@
 		)
 		(comp
 			(ref "J1")
-			(value "generic 1x03 2.54 mm pin header")
+			(value "UNRESOLVED")
 			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
 			(fields
 				(field
-					(name "MPN") "generic 1x03 2.54 mm pin header")
+					(name "MPN") "UNRESOLVED")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "unresolved")
 				(field
 					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
 				(field
@@ -637,11 +655,11 @@
 			)
 			(property
 				(name "MPN")
-				(value "generic 1x03 2.54 mm pin header")
+				(value "UNRESOLVED")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "unresolved")
 			)
 			(property
 				(name "Sheetname")
@@ -683,13 +701,13 @@
 		)
 		(comp
 			(ref "J2")
-			(value "generic 1x03 2.54 mm pin header")
+			(value "UNRESOLVED")
 			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
 			(fields
 				(field
-					(name "MPN") "generic 1x03 2.54 mm pin header")
+					(name "MPN") "UNRESOLVED")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "unresolved")
 				(field
 					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
 				(field
@@ -706,11 +724,11 @@
 			)
 			(property
 				(name "MPN")
-				(value "generic 1x03 2.54 mm pin header")
+				(value "UNRESOLVED")
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "unresolved")
 			)
 			(property
 				(name "Sheetname")
@@ -758,7 +776,7 @@
 				(field
 					(name "MPN") "RC0603FR-0764K9L")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -781,7 +799,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
 			)
 			(property
 				(name "Manufacturer")
@@ -830,7 +848,7 @@
 				(field
 					(name "MPN") "RC0603FR-0784K5L")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -853,7 +871,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
 			)
 			(property
 				(name "Manufacturer")
@@ -902,7 +920,7 @@
 				(field
 					(name "MPN") "RC0603FR-076K49L")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -925,7 +943,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
 			)
 			(property
 				(name "Manufacturer")
@@ -974,7 +992,7 @@
 				(field
 					(name "MPN") "RC0603FR-0717K8L")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -997,7 +1015,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
 			)
 			(property
 				(name "Manufacturer")
@@ -1046,7 +1064,7 @@
 				(field
 					(name "MPN") "RC0603FR-0717K8L")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -1069,7 +1087,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
 			)
 			(property
 				(name "Manufacturer")
@@ -1118,7 +1136,7 @@
 				(field
 					(name "MPN") "RC0603FR-07475RL")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -1141,7 +1159,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
 			)
 			(property
 				(name "Manufacturer")
@@ -1190,7 +1208,7 @@
 				(field
 					(name "MPN") "RT0603BRD0710KL")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -1213,7 +1231,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
 			)
 			(property
 				(name "Manufacturer")
@@ -1262,7 +1280,7 @@
 				(field
 					(name "MPN") "RT0603BRD0710KL")
 				(field
-					(name "MPN_Status") "unverified_candidate")
+					(name "MPN_Status") "listing_verified")
 				(field
 					(name "Manufacturer") "Yageo")
 				(field
@@ -1285,7 +1303,7 @@
 			)
 			(property
 				(name "MPN_Status")
-				(value "unverified_candidate")
+				(value "listing_verified")
 			)
 			(property
 				(name "Manufacturer")

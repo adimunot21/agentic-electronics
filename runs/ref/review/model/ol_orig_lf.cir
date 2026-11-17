@@ -1,0 +1,18 @@
+* open loop gain/phase via DC-feedback inductor, RL=10k to mid CL=10p, orig_lf
+.include opa2314_orig_lf.lib
+Vcc vcc 0 5
+Vm mid 0 2.5
+Vb inp 0 2.5
+Vac drv 0 DC 0 AC 1
+X1 inp inn vcc 0 out OPA2314
+Lfb out inn 1G
+Cin drv inn 1G
+Rl out mid 10k
+Cl out 0 10p
+.control
+op
+print v(out)
+ac dec 100 1 100Meg
+wrdata ol_orig_lf.csv v(out)
+.endc
+.end

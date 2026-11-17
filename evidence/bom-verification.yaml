@@ -1,0 +1,300 @@
+# BOM verification ledger (2026-11-17). Honest levels:
+#   manufacturer_sheet : a manufacturer-generated or manufacturer-authored document for the EXACT ordering code, read here (file + sha256 recorded; files gitignored)
+#   family_spec+listing: ordering code decoded against the manufacturer's SERIES specification AND the exact code seen in distributor listings (via web-search summaries; the
+#                        listing pages themselves were blocked, 403). Series spec revision may be older than current. NOT a code-specific manufacturer document.
+#   unresolved         : no MPN selected / not verified
+# Stock and price are NOT recorded and nothing here says a part is orderable today.
+generated: 2026-11-17
+lines:
+  - refs:
+    - U1
+    design_value: OPA2314AID
+    mpn: OPA2314AID
+    manufacturer: Texas Instruments
+    level: manufacturer_sheet
+    sources:
+    - file: evidence/datasheets/OPA2314/ds.pdf
+      sha256: 99a95ba5e40c02f92bc7fb7ca5bc339c7b9892f65a73c7998659a231800098e4
+      what: TI SBOS563G (June 2015); pin table p.5, ratings p.6-8, package D0008A p.41, orderable table lists OPA2314AID Active SOIC(D)-8
+    checked_against_design:
+      package: SOIC-8 D0008A 1.27 mm pitch == KiCad SOIC-8_3.9x4.9mm_P1.27mm (pin audit)
+      rating: supply 5 V <= 5.5 V rec / 7 V abs max
+      Iq: 190 uA/amp max
+      Vos: 2.5 mV max
+    still_open:
+    - datasheet is a 2015 revision; TI may have a newer one (not checked)
+  - refs:
+    - C1
+    design_value: 18n
+    mpn: C0805C183J5GACTU
+    manufacturer: Kemet (now YAGEO group)
+    level: manufacturer_sheet
+    sources:
+    - file: evidence/datasheets/kemet_parts/C0805C183J5GACTU.pdf
+      sha256: 1f0ec616a76e15a6c78e6c494b80960be07cc06f703bbb4c237e5fed07dfd992
+      what: Kemet part spec sheet generated 2026-11-17 via search.kemet.com/download/specsheet/C0805C183J5GACTU
+    checked_against_design:
+      value: 0.018 uF matches
+      tolerance: 5% matches (J)
+      dielectric: C0G matches
+      voltage: 50 VDC (>> 5 V)
+      package: 0805 / 2012 matches footprint C_0805_2012Metric
+      temp: -55/+125 C
+    still_open:
+    - parasitics/ESR not read
+    - C0G capacitance vs bias is ~flat by class; plots not read
+  - refs:
+    - C2
+    design_value: 1n
+    mpn: C0805C102J5GACTU
+    manufacturer: Kemet (now YAGEO group)
+    level: manufacturer_sheet
+    sources:
+    - file: evidence/datasheets/kemet_parts/C0805C102J5GACTU.pdf
+      sha256: 7cf5a1d05bff9114cee72c3619eb8e3a55d455547bb50ae759ddbee3c667b2b1
+      what: Kemet part spec sheet generated 2026-11-17 via search.kemet.com/download/specsheet/C0805C102J5GACTU
+    checked_against_design:
+      value: 1,000 pF matches
+      tolerance: 5% matches (J)
+      dielectric: C0G matches
+      voltage: 50 VDC (>> 5 V)
+      package: 0805 / 2012 matches footprint C_0805_2012Metric
+      temp: -55/+125 C
+    still_open:
+    - parasitics/ESR not read
+    - C0G capacitance vs bias is ~flat by class; plots not read
+  - refs:
+    - C3
+    design_value: 5.6n
+    mpn: C0805C562J5GACTU
+    manufacturer: Kemet (now YAGEO group)
+    level: manufacturer_sheet
+    sources:
+    - file: evidence/datasheets/kemet_parts/C0805C562J5GACTU.pdf
+      sha256: e93d98ff1ed0a06b3ac7784b7a9af1c8df1a05b4b05ae69f931f28245706758c
+      what: Kemet part spec sheet generated 2026-11-17 via search.kemet.com/download/specsheet/C0805C562J5GACTU
+    checked_against_design:
+      value: 5,600 pF matches
+      tolerance: 5% matches (J)
+      dielectric: C0G matches
+      voltage: 50 VDC (>> 5 V)
+      package: 0805 / 2012 matches footprint C_0805_2012Metric
+      temp: -55/+125 C
+    still_open:
+    - parasitics/ESR not read
+    - C0G capacitance vs bias is ~flat by class; plots not read
+  - refs:
+    - C5
+    design_value: 330p
+    mpn: C0805C331J5GACTU
+    manufacturer: Kemet (now YAGEO group)
+    level: manufacturer_sheet
+    sources:
+    - file: evidence/datasheets/kemet_parts/C0805C331J5GACTU.pdf
+      sha256: 4a854f7ed3c5290823aee9cf7336f0ef90519e4d5c6b622e6af58d9c6a647347
+      what: Kemet part spec sheet generated 2026-11-17 via search.kemet.com/download/specsheet/C0805C331J5GACTU
+    checked_against_design:
+      value: 330 pF matches
+      tolerance: 5% matches (J)
+      dielectric: C0G matches
+      voltage: 50 VDC (>> 5 V)
+      package: 0805 / 2012 matches footprint C_0805_2012Metric
+      temp: -55/+125 C
+    still_open:
+    - parasitics/ESR not read
+    - C0G capacitance vs bias is ~flat by class; plots not read
+  - refs:
+    - C4
+    design_value: 2.2u
+    mpn: C1206C225K4RACTU
+    manufacturer: Kemet (now YAGEO group)
+    level: manufacturer_sheet
+    sources:
+    - file: evidence/datasheets/kemet_parts/C1206C225K4RACTU.pdf
+      sha256: b1a46a03307d9b90ed545102023fda2256cb29f202106a0a3dcff952186e28af
+      what: Kemet part spec sheet generated 2026-11-17 via search.kemet.com/download/specsheet/C1206C225K4RACTU
+    checked_against_design:
+      value: 2.2 uF matches
+      tolerance: '10% (K): inside the contract''s 20% allowance'
+      dielectric: X7R
+      voltage: 16 VDC (bias here ~1.65 V)
+      package: 1206 / 3216 matches footprint C_1206_3216Metric
+    still_open:
+    - 'effective capacitance at 1.65 V bias and with age: the sheet has a DC-bias plot that was not read; contract assumes 0.6-1.2 x nominal (MC covers it) - UNVERIFIED
+      against the plot'
+  - refs:
+    - C6
+    - C7
+    design_value: 10u
+    mpn: C1206C106K8RACTU
+    manufacturer: Kemet (now YAGEO group)
+    level: manufacturer_sheet
+    sources:
+    - file: evidence/datasheets/kemet_parts/C1206C106K8RACTU.pdf
+      sha256: 376b37a7359ffc2cdb4178a43f6f6b08ba643c89cb306b965ab208d2cd91450d
+      what: Kemet part spec sheet generated 2026-11-17 via search.kemet.com/download/specsheet/C1206C106K8RACTU
+    checked_against_design:
+      verified: 10 uF 10% 10 VDC X7R 1206
+      package: matches footprint
+    still_open:
+    - 'MPN newly assigned today (previously unselected); C6/C7 are 10 V parts on a 5 V rail (50% of rating): DC-bias capacitance loss is significant for X7R and was
+      not quantified (plot not read); they are decoupling only, no requirement depends on their value in simulation except C6 noise'
+  - refs:
+    - C8
+    design_value: 100n
+    mpn: C0603C104K4RACTU
+    manufacturer: Kemet (now YAGEO group)
+    level: manufacturer_sheet
+    sources:
+    - file: evidence/datasheets/kemet_parts/C0603C104K4RACTU.pdf
+      sha256: 3a5e232a9566340cea3d22b77a0c50cbf15c5082ac77eb69bd690951b837abb7
+      what: Kemet part spec sheet generated 2026-11-17 via search.kemet.com/download/specsheet/C0603C104K4RACTU
+    checked_against_design:
+      verified: 0.1 uF 10% 16 VDC X7R 0603
+      package: matches footprint
+    still_open:
+    - 'MPN newly assigned today (previously unselected); C6/C7 are 10 V parts on a 5 V rail (50% of rating): DC-bias capacitance loss is significant for X7R and was
+      not quantified (plot not read); they are decoupling only, no requirement depends on their value in simulation except C6 noise'
+  - refs:
+    - R1
+    design_value: 64.9k
+    mpn: RC0603FR-0764K9L
+    manufacturer: Yageo
+    level: family_spec+listing
+    sources:
+    - &id001
+      file: evidence/datasheets/yageo_rc/piekarz.pdf
+      sha256: 419181287881cb18079f42842112db021544be806f4e93497ffe376b000dee18
+      what: 'Yageo RC0603 product specification Apr 24 2009 V.4 (third-party hosted copy): ordering code F=+-1%, R=paper reel, 07=7 inch, L=lead free; 1/10 W; max working
+        voltage 50 V; range 1 ohm-10 Mohm'
+    - what: 'distributor listings seen via web-search summaries (Arrow/RS/Octopart/Findchips/DigiKey): thick film 0603, 0.1 W, +-1%, +-100 ppm/C; page fetches blocked'
+    checked_against_design:
+      value: 64.9k is an E96 value inside the RC range
+      tolerance: 1% (F) matches
+      package: 0603 / 1608 matches footprint
+      power: 1/10 W vs microwatts here
+    still_open:
+    - 'voltage rating conflict: RC V.4 (2009) says 50 V working, distributors say 75 V (newer spec); irrelevant at < 5 V'
+    - current RC_L specification (2018+) not obtained
+    - exact-code manufacturer document not obtained
+  - refs:
+    - R2
+    design_value: 84.5k
+    mpn: RC0603FR-0784K5L
+    manufacturer: Yageo
+    level: family_spec+listing
+    sources:
+    - *id001
+    - what: 'distributor listings seen via web-search summaries (Arrow/RS/Octopart/Findchips/DigiKey): thick film 0603, 0.1 W, +-1%, +-100 ppm/C; page fetches blocked'
+    checked_against_design:
+      value: 84.5k is an E96 value inside the RC range
+      tolerance: 1% (F) matches
+      package: 0603 / 1608 matches footprint
+      power: 1/10 W vs microwatts here
+    still_open:
+    - 'voltage rating conflict: RC V.4 (2009) says 50 V working, distributors say 75 V (newer spec); irrelevant at < 5 V'
+    - current RC_L specification (2018+) not obtained
+    - exact-code manufacturer document not obtained
+  - refs:
+    - R3
+    design_value: 6.49k
+    mpn: RC0603FR-076K49L
+    manufacturer: Yageo
+    level: family_spec+listing
+    sources:
+    - *id001
+    - what: 'distributor listings seen via web-search summaries (Arrow/RS/Octopart/Findchips/DigiKey): thick film 0603, 0.1 W, +-1%, +-100 ppm/C; page fetches blocked'
+    checked_against_design:
+      value: 6.49k is an E96 value inside the RC range
+      tolerance: 1% (F) matches
+      package: 0603 / 1608 matches footprint
+      power: 1/10 W vs microwatts here
+    still_open:
+    - 'voltage rating conflict: RC V.4 (2009) says 50 V working, distributors say 75 V (newer spec); irrelevant at < 5 V'
+    - current RC_L specification (2018+) not obtained
+    - exact-code manufacturer document not obtained
+  - refs:
+    - R4
+    - R5
+    design_value: 17.8k
+    mpn: RC0603FR-0717K8L
+    manufacturer: Yageo
+    level: family_spec+listing
+    sources:
+    - *id001
+    - what: 'distributor listings seen via web-search summaries (Arrow/RS/Octopart/Findchips/DigiKey): thick film 0603, 0.1 W, +-1%, +-100 ppm/C; page fetches blocked'
+    checked_against_design:
+      value: 17.8k is an E96 value inside the RC range
+      tolerance: 1% (F) matches
+      package: 0603 / 1608 matches footprint
+      power: 1/10 W vs microwatts here
+    still_open:
+    - 'voltage rating conflict: RC V.4 (2009) says 50 V working, distributors say 75 V (newer spec); irrelevant at < 5 V'
+    - current RC_L specification (2018+) not obtained
+    - exact-code manufacturer document not obtained
+  - refs:
+    - R6
+    design_value: '475'
+    mpn: RC0603FR-07475RL
+    manufacturer: Yageo
+    level: family_spec+listing
+    sources:
+    - *id001
+    - what: 'distributor listings seen via web-search summaries (Arrow/RS/Octopart/Findchips/DigiKey): thick film 0603, 0.1 W, +-1%, +-100 ppm/C; page fetches blocked'
+    checked_against_design:
+      value: 475 is an E96 value inside the RC range
+      tolerance: 1% (F) matches
+      package: 0603 / 1608 matches footprint
+      power: 1/10 W vs microwatts here
+    still_open:
+    - 'voltage rating conflict: RC V.4 (2009) says 50 V working, distributors say 75 V (newer spec); irrelevant at < 5 V'
+    - current RC_L specification (2018+) not obtained
+    - exact-code manufacturer document not obtained
+  - refs:
+    - R7
+    - R8
+    design_value: 10k 0.1%
+    mpn: RT0603BRD0710KL
+    manufacturer: Yageo
+    level: family_spec+listing
+    sources:
+    - file: evidence/datasheets/yageo_rt/chipdip_DOC012930005.pdf
+      sha256: 69d8b9252a60ab73e237addf5e14990ac3d7bcc9b54155e23bdeb3ae43ad4fa6
+      what: 'Yageo RT thin-film product specification Feb 07 2017 V.7 (third-party hosted copy): B=+-0.1%, D=25 ppm/C, R=paper reel; RT0603 1/10 W, 75 V working; -55..+155
+        C'
+    - what: 'distributor listings seen via web-search summaries (Octopart/LCSC/RS/Future): thin film 0603 10k +-0.1% 25 ppm/C 0.1 W 75 V; BRE variant is 50 ppm: suffix
+        matters'
+    checked_against_design:
+      value: 10k, E96
+      tolerance: 0.1% (B) matches contract divider assumption
+      tcr: 25 ppm/C (D)
+      package: 0603 matches
+    still_open:
+    - 10 kohm within the +-0.1% resistance range was read from a garbled table row, not confirmed cell-by-cell
+    - exact-code manufacturer document not obtained
+  - refs:
+    - J1
+    - J2
+    design_value: 1x03 2.54 mm pin header
+    mpn: UNRESOLVED
+    manufacturer: ''
+    level: unresolved
+    sources:
+    - what: manufacturer site blocked (Wurth 403); no part selected, none invented
+    checked_against_design:
+      required: 3 pos, 2.54 mm pitch, through-hole, ~0.64 mm square pin for the 1.0 mm drill in PinHeader_1x03_P2.54mm_Vertical, pin 1 first
+    still_open:
+    - MPN, pin dimensions, current rating, plating all unresolved
+  - refs:
+    - TP1
+    - TP2
+    - TP3
+    - TP4
+    design_value: bare pad
+    mpn: n/a (no component)
+    manufacturer: ''
+    level: n/a
+    sources: []
+    checked_against_design:
+      footprint: TestPoint_Pad_D1.5mm; not in BOM (in_bom no)
+    still_open: []

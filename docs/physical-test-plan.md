@@ -2,7 +2,7 @@
 
 ## Human review (required, not done)
 1. Re-verify `evidence/pins/OPA2314AID.yaml` against the datasheet (transcribed by the assistant; not yet checked by a person).
-2. Select and verify MPNs for all 17 BOM lines against live manufacturer + distributor data; confirm C0G 18 nF/5.6 nF/330 pF availability in 0805 and X7R 10 uF/2.2 uF voltage derating.
+2. Select an MPN for the J1/J2 headers; get code-specific manufacturer documents for the six resistor lines; read the Kemet DC-bias plots for C4, C6, C7 (10 V parts at 5 V); check live stock.
 3. Review the schematic (label-connected style) and the PCB: ground return paths, stitching vias, input/output connector pinout against the intended ADC board.
 4. Fab-house DFM check on the Gerbers; confirm 0.15 mm / 0.3 mm capability and stackup.
 5. Review contract revisions (esp. REQ-STAB rev 3) and decide whether to freeze.

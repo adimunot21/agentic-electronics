@@ -1,0 +1,18 @@
+* follower, RL=10k to mid, CL=10p (datasheet conditions), ngspice_shim
+.include opa2314_ngspice_shim.lib
+Vcc vcc 0 5
+Vm mid 0 2.5
+Vin in 0 DC 2.5 AC 1
+X1 in out vcc 0 out OPA2314
+Rl out mid 10k
+Cl out 0 10p
+.control
+op
+print v(out) i(vcc)
+ac dec 100 1k 100Meg
+meas ac f3db when vdb(out)=-3 fall=1
+meas ac peak max vdb(out)
+noise v(out) Vin dec 20 100 100k
+print onoise_total
+.endc
+.end

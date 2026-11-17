@@ -36,13 +36,16 @@ def check_bom(work: Path) -> tuple[str, str]:
     if not path.exists():
         return "blocked", "BOM not generated"
     rows = list(csv.DictReader(path.open()))
-    no_mpn = [r["Refs"] for r in rows if not r["MPN"].strip() or r["MPN"].strip() in ("unselected",) or r["MPN"].lower().startswith("generic")]
-    unverified = [r["Refs"] for r in rows if r["MPN_Status"] != "verified"]
-    detail = f"{len(rows)} BOM lines; {len(no_mpn)} without a selected MPN {no_mpn}; {len(unverified)} with unverified MPN evidence"
+    no_mpn = [r["Refs"] for r in rows if not r["MPN"].strip() or r["MPN"].strip().lower() in ("unselected", "unresolved") or r["MPN"].lower().startswith("generic")]
+    levels: dict[str, list[str]] = {}
+    for r in rows:
+        levels.setdefault(r["MPN_Status"], []).append(r["Refs"])
+    unverified = [x for st, refs in levels.items() if st != "verified" for x in refs]
+    detail = f"{len(rows)} BOM lines; {len(no_mpn)} without a selected MPN {no_mpn}; by evidence level: " + "; ".join(f"{k}: {v}" for k, v in sorted(levels.items()))
     if no_mpn:
         return "failed", detail
     if unverified:
-        return "blocked", detail + " (MPNs are decoded candidates, not confirmed against manufacturer/distributor data)"
+        return "blocked", detail + " (lines below manufacturer-sheet level; see evidence/bom-verification.yaml)"
     return "passed", detail
 
 

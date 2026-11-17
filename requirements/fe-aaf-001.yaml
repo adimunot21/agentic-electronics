@@ -10,14 +10,27 @@ id: FE-AAF-001
 title: Anti-alias front end, 3.3 V SAR ADC, 50 Hz-1 kHz band
 status: draft-for-reference-design      # reference design is MANUALLY authored, not agent output
 revisions:
-  - {rev: 2, date: 2026-11-17, change: "REQ-STAB redefined (AC peaking vs ideal instead of step overshoot <= 10 %)",
-     reason: "3rd-order Butterworth has ~8 % inherent step overshoot, so the original criterion conflated filter shape with op-amp stability",
-     made_before_any_simulation_result: true}
-  - {rev: 3, date: 2026-11-17, change: "REQ-STAB comparison floor: ideal curve is floored at -90 dB before comparing",
-     reason: "rev-2 metric reported +46.5 dB 'peaking' at 10 MHz where simulated gain was -178.9 dB and ideal -225.5 dB: both are numerical-noise levels, so the metric was flagging an artefact, not peaking. Levels below -90 dB (0.03 mV per V) are irrelevant to a 0.8 mV LSB.",
-     made_after_result: true,
-     original_rev2_result: "failed, excess 46.54 dB at 10 MHz (kept in runs/ref/dev/sim_results_rev2.json)",
-     independence_caveat: "revised by the same party that authored the design; needs human review before the contract is frozen"}
+  - rev: 2
+    date: 2026-11-17
+    change: "REQ-STAB redefined (AC peaking vs ideal instead of step overshoot <= 10 %)"
+    reason: "3rd-order Butterworth has ~8 % inherent step overshoot, so the original criterion conflated filter shape with op-amp stability"
+    made_before_any_simulation_result: true
+    status: "IN FORCE (author-made; rev-1 text preserved in git b7660b6)"
+  - rev: 3
+    date: 2026-11-17
+    change: "PROPOSED: REQ-STAB comparison floor - ideal curve floored at -90 dB before comparing"
+    status: "PROPOSED, NOT APPROVED. Rev 2 stays in force and its failure stands until a human approves rev 3."
+    reason: >-
+      The rev-2 metric reported 46.5 dB of 'peaking' at 10 MHz (pre-patch design) where simulated gain was -178.9 dB and ideal -225.5 dB.
+      CORRECTION made during review: an earlier wording called these levels numerical noise; that is NOT supported. Solver-option tests
+      (gmin 1e-15 / 1e-9, reltol 1e-6) leave the levels unchanged to 0.1 dB (runs/ref/review/stab/numerics.py), so they are deterministic
+      model behaviour (finite op-amp gain/output impedance vs an ideal curve that falls much deeper). The justification for a floor is
+      irrelevance, not noise: levels below -90 dB (0.03 mV per V) cannot matter to a 0.8 mV LSB.
+    made_after_result: true
+    original_rev2_result: >-
+      failed, excess 46.54 dB at 10 MHz on the pre-patch design (preserved: runs/ref/repair-0001/before/sim_results_rev2.json);
+      52.9 dB on the final design (runs/ref/baseline/record.json, check REQ-STAB)
+    independence_caveat: "revised by the same party that authored the design; needs human review before the contract is frozen"
 
 interfaces:
   J1: {pins: [AIN, GND, +5V], role: "signal in (AC), ground, supply"}
@@ -92,11 +105,19 @@ requirements:
     verify: sim
     model_coverage: "Generic switched-cap load; real ADC differs (see adc_model)."
   - id: REQ-STAB
-    text: "No unintended peaking: at every frequency from 10 Hz to 10 MHz the simulated AOUT gain does not exceed max(ideal-op-amp prediction of the same component values, -90 dB) by more than 3 dB (catches op-amp/cap-load instability that the ideal model cannot show). Transient step stability is NOT tested."
+    # IN FORCE: revision 2 (approved only in the sense of being the last committed-by-author version). Revision 3 below is PROPOSED, NOT APPROVED.
+    text: "No unintended peaking: at every frequency from 10 Hz to 10 MHz the simulated AOUT gain does not exceed the ideal-op-amp prediction of the same component values by more than 3 dB (catches op-amp/cap-load instability that the ideal model cannot show). Transient step stability is NOT tested."
     kind: requirement
-    check: {metric: peaking_above_ideal_dB_max, max: 3.0, ideal_floor_dB: -90}
+    check: {metric: peaking_above_ideal_dB_max_unfloored, max: 3.0}
     verify: sim
     model_coverage: "Depends on the vendor model's output impedance and phase behaviour with the 100 ohm + 1 nF load. Time-domain ringing/overshoot of the op-amp output stage is not separately tested (outcome not_tested for that aspect)."
+    superseded_rev1_text: "Both op-amp outputs are stable (no sustained oscillation) with the 100 ohm + 1 nF output network; transient step overshoot at AOUT <= 10 % of step.  [replaced before any simulation result: 3rd-order Butterworth inherently overshoots ~8 %; text preserved in git b7660b6]"
+    proposed_revision_3:
+      status: PROPOSED - NOT APPROVED (needs human review)
+      text: "As revision 2, but the ideal curve is floored at -90 dB before comparing: gain must not exceed max(ideal, -90 dB) + 3 dB."
+      check: {metric: peaking_above_ideal_dB_max, max: 3.0, ideal_floor_dB: -90}
+      reported_as: REQ-STAB-R3-PROPOSED
+
   - id: REQ-IQ
     text: "Total quiescent supply current <= 1.0 mA at 5 V."
     kind: requirement

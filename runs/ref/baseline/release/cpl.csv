@@ -7,8 +7,8 @@ Ref,Val,Package,PosX,PosY,Rot,Side
 "C6","10u","C_1206_3216Metric",25.000000,-22.500000,90.000000,top
 "C7","10u","C_1206_3216Metric",6.000000,-17.500000,90.000000,top
 "C8","100n","C_0603_1608Metric",24.500000,-11.500000,90.000000,top
-"J1","generic 1x03 2.54 mm pin header","PinHeader_1x03_P2.54mm_Vertical",3.500000,-6.000000,0.000000,top
-"J2","generic 1x03 2.54 mm pin header","PinHeader_1x03_P2.54mm_Vertical",37.000000,-6.000000,0.000000,top
+"J1","UNRESOLVED","PinHeader_1x03_P2.54mm_Vertical",3.500000,-6.000000,0.000000,top
+"J2","UNRESOLVED","PinHeader_1x03_P2.54mm_Vertical",37.000000,-6.000000,0.000000,top
 "R1","64.9k","R_0603_1608Metric",14.500000,-4.000000,0.000000,top
 "R2","84.5k","R_0603_1608Metric",20.000000,-4.000000,0.000000,top
 "R3","6.49k","R_0603_1608Metric",12.000000,-8.500000,0.000000,top

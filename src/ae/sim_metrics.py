@@ -40,7 +40,8 @@ def ac_metrics(freq, v_src, v_ain, v_aout, rs_ohm: float, ideal_mag: np.ndarray 
     }
     if ideal_mag is not None:
         excess = 20 * np.log10(gain) - np.maximum(20 * np.log10(ideal_mag), IDEAL_FLOOR_DB)   # contract rev 3: floor at -90 dB
-        out["peaking_above_ideal_dB_max"] = float(np.max(excess))
+        out["peaking_above_ideal_dB_max"] = float(np.max(excess))                                   # rev 3 (PROPOSED): ideal floored at -90 dB
+        out["peaking_above_ideal_dB_max_unfloored"] = float(np.max(20 * np.log10(gain) - 20 * np.log10(ideal_mag)))   # rev 2 (IN FORCE)
         out["peaking_at_hz"] = float(freq[int(np.argmax(excess))])
         out["gain_at_peak_dB"] = float(20 * np.log10(gain[int(np.argmax(excess))]))
         out["ideal_at_peak_dB"] = float(max(20 * np.log10(ideal_mag[int(np.argmax(excess))]), IDEAL_FLOOR_DB))

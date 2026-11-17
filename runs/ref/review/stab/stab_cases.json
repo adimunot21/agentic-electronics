@@ -1,0 +1,71 @@
+{
+ "S0_baseline": {
+  "run_outcome": "passed",
+  "ORIGINAL_max_excess_dB": 52.9,
+  "orig_at_Hz": 10000000,
+  "orig_sim_dB": -172.6,
+  "orig_ideal_dB": -225.5,
+  "REVISED_max_excess_dB": 0.09,
+  "rev_at_Hz": 53088,
+  "rev_sim_dB": -88.9,
+  "max_abs_gain_dB_1M_to_10M": -145.1,
+  "at_Hz": 1000000,
+  "freqs_where_ORIGINAL_exceeds_3dB": [
+   266073,
+   10000000
+  ],
+  "sim_dB_range_where_ORIGINAL_exceeds_3dB": [
+   -172.6,
+   -127.7
+  ],
+  "lowest_f_with_sim_below_-150dB": 2113489
+ },
+ "S1_R6=0.475ohm_C5=99nF": {
+  "run_outcome": "passed",
+  "ORIGINAL_max_excess_dB": 22.77,
+  "orig_at_Hz": 100000,
+  "orig_sim_dB": -82.7,
+  "orig_ideal_dB": -105.5,
+  "REVISED_max_excess_dB": 7.3,
+  "rev_at_Hz": 100000,
+  "rev_sim_dB": -82.7,
+  "max_abs_gain_dB_1M_to_10M": -182.8,
+  "at_Hz": 1000000
+ },
+ "S2_R6=0.0475ohm_C5=330nF": {
+  "run_outcome": "passed",
+  "ORIGINAL_max_excess_dB": 27.62,
+  "orig_at_Hz": 56234,
+  "orig_sim_dB": -62.8,
+  "orig_ideal_dB": -90.5,
+  "REVISED_max_excess_dB": 27.15,
+  "rev_at_Hz": 56234,
+  "rev_sim_dB": -62.8,
+  "max_abs_gain_dB_1M_to_10M": -193.3,
+  "at_Hz": 1000000
+ },
+ "S3_R6=0.475ohm_C5=3.3nF": {
+  "run_outcome": "passed",
+  "ORIGINAL_max_excess_dB": 37.3,
+  "orig_at_Hz": 10000000,
+  "orig_sim_dB": -188.2,
+  "orig_ideal_dB": -225.5,
+  "REVISED_max_excess_dB": 0.17,
+  "rev_at_Hz": 53088,
+  "rev_sim_dB": -88.8,
+  "max_abs_gain_dB_1M_to_10M": -150.1,
+  "at_Hz": 1000000
+ },
+ "S4_R6=4.75ohm_C5=10nF": {
+  "run_outcome": "passed",
+  "ORIGINAL_max_excess_dB": 27.72,
+  "orig_at_Hz": 10000000,
+  "orig_sim_dB": -197.8,
+  "orig_ideal_dB": -225.5,
+  "REVISED_max_excess_dB": 0.33,
+  "rev_at_Hz": 53088,
+  "rev_sim_dB": -88.6,
+  "max_abs_gain_dB_1M_to_10M": -162.0,
+  "at_Hz": 1000000
+ }
+}

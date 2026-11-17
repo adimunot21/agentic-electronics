@@ -16,7 +16,8 @@
 * Patch/base-hash conflict handling (`ae.patch`), ownership guard (`ae.ownership`): unit-tested, used once for the real repair.
 
 ## Blocked / failed (stated, not hidden)
-* **REQ-BOM: failed.** 3 BOM lines have no selected MPN; the other 14 are decoded candidates, `unverified_candidate` (vendor datasheet downloads were not reachable). No stock/price recorded.
+* **REQ-BOM: failed.** J1/J2 (headers) have no MPN. 8 lines verified against manufacturer documents for the exact MPN (U1, C1-C8); 6 resistor lines only to family-spec + distributor-listing level; see `evidence/bom-verification.yaml`. No stock/price recorded.
+* **REQ-STAB: failed under revision 2 (in force).** Revision 3 (proposed, not approved) passes; see `docs/review-extract.md` section 2.
 * **MCP6002** comparison part: SPICE model unobtainable (vendor 403) -> could not be simulated; not selected.
 * Native `freerouting-cli` 2.5.0 unusable (diagnosed); jar used. Jar not covered by the publisher checksum file (own hash recorded).
 * TI model licence not stated in the file: model never committed; reproduce by download + hash.
@@ -34,7 +35,7 @@
 * Placement is hand-made (`placement.yaml`); routing is Freerouting default behaviour; no placement/routing optimisation is claimed.
 
 ## Contract caveat
-REQ-STAB was redefined *after* seeing a failing number (artefact at -179 dB); logged as revision 3 with `made_after_result: true`. A human must review before the contract is frozen.
+Revision 3 of REQ-STAB is PROPOSED after seeing a failing number; rev 2 stays in force and fails until a human approves rev 3 (`made_after_result: true`). The earlier "numerical noise" wording was retracted: the levels are solver-independent model behaviour.
 
 ## Not built (future)
 Agent framework, specialist roles, evaluation harness execution, multi-part component database, patch locking across agents, cost/latency accounting of model calls. See `docs/agentic-roadmap.md`.
