@@ -1,0 +1,27 @@
+{
+ "run_dir": "/home/adimunot21/dev/agentic-electronics/runs/agent/dev-c1-live-1",
+ "task": "dev-c1-value",
+ "split": "dev",
+ "mode": "engineered_single_agent",
+ "provider": "claude-cli",
+ "fixture": false,
+ "final_state": "ACCEPTED",
+ "stop_reason": "accepted",
+ "iterations": 1,
+ "model_calls": 6,
+ "tool_calls": 5,
+ "evaluations": 1,
+ "elapsed_s": 224.6,
+ "usage": {
+  "input_tokens": 12,
+  "output_tokens": 1068,
+  "cost_usd_reported": 0.0818355,
+  "cost_unknown_calls": 0,
+  "model_seconds": 30.32642883004155,
+  "tool_seconds": 3.7043259241618216,
+  "eval_seconds": 91.58972513594199,
+  "cost_note": "cost is a provider-reported list-basis estimate; unknown calls make the total unknown (None), never 0"
+ },
+ "live_agent_success": true,
+ "accepted_by_independent_evaluator": true
+}

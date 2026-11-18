@@ -1,0 +1,19 @@
+[
+ {
+  "seq": 1,
+  "summary": "fixture: restore C1",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C1",
+    "field": "value",
+    "to": "18n",
+    "from": "1n"
+   }
+  ],
+  "fingerprint": "b335d5c48878fb40ebdd6e8e6f21945c76c2085eeac1ae5c2d187d81ab8ca398",
+  "forced_side_effects": [],
+  "before_sha256": "adc412c39aa3681b0ac2c5f087342d9b774eb3cabbc55a4c562b164c2a4d0263",
+  "after_sha256": "e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d"
+ }
+]

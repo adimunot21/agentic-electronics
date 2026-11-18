@@ -22,3 +22,8 @@ runs/ref/dev/work*/
 runs/**/work_mc/
 runs/**/work_*/
 runs/ref/dev/
+runs/agent/**/work*/
+runs/agent/**/scratch/
+runs/agent/**/baseline/
+runs/agent/**/evaluations/iter_*/
+runs/agent/**/defect_evaluation/

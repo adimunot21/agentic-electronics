@@ -1,0 +1,46 @@
+{
+ "verdict": "accepted",
+ "violations": [],
+ "unresolved_baseline_failures": [
+  "BOM_CONSISTENCY",
+  "MODEL_OVERLOAD_RECOVERY",
+  "MODEL_SATURATION",
+  "MODEL_STARTUP",
+  "REQ-BOM",
+  "REQ-STAB"
+ ],
+ "release_ready": false,
+ "release_note": "a scoped repair is not a release pass; unresolved baseline failures remain and are listed",
+ "record_path": "/home/adimunot21/dev/agentic-electronics/runs/agent/dev-c1-fixture-real/evaluations/iter_01/record.json",
+ "candidate_summary": {
+  "passed": 27,
+  "blocked": 1,
+  "failed": 2,
+  "not_tested": 3
+ },
+ "baseline_summary": {
+  "passed": 27,
+  "blocked": 1,
+  "failed": 2,
+  "not_tested": 3
+ },
+ "candidate_inputs_sha256": {
+  "board": "c7ae0c7d550ffd6e8f463926bce7191dcf729526b9753c71c07f11ed9da5db12",
+  "checks_metrics_code": "358c5e780920f06ecb4458ca18a71ae02efc7d46a707a853019d980897e04a09",
+  "checks_sim_code": "18824e13ddb934f71fdc9641b194cc36d8855fe0c089460651de22fd97b593ea",
+  "components": "e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d",
+  "dut_deck": "4ccccfb870739ad694af287febd8dbceb5bfeac34b2ca8db284e2a5ce5e4a7de",
+  "freerouting_jar": "f6f51bb02245e8e717f9359bd260cc9c5c0b1bc0acc8b7cb2cd5b8ffeb5de3c7",
+  "kicad_project": "c40367e8b5f76d9d0745211b439aa90969412ddb2297e6b18ccdb2606bc11fe5",
+  "kicad_symbol_libs_tree": "09d6cbe5fb43aa8b497e88cd766c11968ad1e91407d6d1c77e6752d87d8812b7",
+  "model_original": "36b70848dc6b35224529b58870803b26e5d33b0739786938c149835c03a031fe",
+  "model_shim": "8ad0db9d5272a7801707a209fd3212d0b1517dc40bba8428339a50c71e9b5cb9",
+  "netlist": "bd920f378f96b9998952eaeab220addcbfbb8125dac73ecd16b4d425529e56a0",
+  "pin_evidence": "517c67ca5b9706f45cbf7306d14db1de01bafc704504cd501e5463515584912a",
+  "placement": "8d25a0312460a891688d37e554655be1d26a55157f467abb69e89dcd7b296978",
+  "requirements": "4767130a0f72f059b0cc002354c8527ba7aedc4fc1ef512380e78d2751e64b25",
+  "schematic": "2ae19ae253852df0511f4402433f26541ba3e2e3d5da6a53edb87b9f504c0efe"
+ },
+ "trusted_digest": "8acc5b4454374be104318f807b258ca5243fa6cb1f24528a6d0ac356913bc19d",
+ "elapsed_s": 92.2
+}

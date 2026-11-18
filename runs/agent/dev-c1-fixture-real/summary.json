@@ -1,0 +1,27 @@
+{
+ "run_dir": "/home/adimunot21/dev/agentic-electronics/runs/agent/dev-c1-fixture-real",
+ "task": "dev-c1-value",
+ "split": "dev",
+ "mode": "engineered_single_agent",
+ "provider": "scripted-fixture",
+ "fixture": true,
+ "final_state": "ACCEPTED",
+ "stop_reason": "accepted",
+ "iterations": 1,
+ "model_calls": 4,
+ "tool_calls": 3,
+ "evaluations": 1,
+ "elapsed_s": 286.4,
+ "usage": {
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "cost_usd_reported": 0.0,
+  "cost_unknown_calls": 0,
+  "model_seconds": 0.0,
+  "tool_seconds": 1.5657423799857497,
+  "eval_seconds": 92.23403487389442,
+  "cost_note": "cost is a provider-reported list-basis estimate; unknown calls make the total unknown (None), never 0"
+ },
+ "live_agent_success": false,
+ "accepted_by_independent_evaluator": true
+}

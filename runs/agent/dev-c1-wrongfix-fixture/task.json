@@ -1,0 +1,24 @@
+{
+ "id": "dev-c1-value",
+ "split": "dev",
+ "description": "A part value in the design was corrupted. Find and repair it using the evidence.",
+ "defect": {
+  "part": "C1",
+  "field": "value",
+  "to": "1n"
+ },
+ "limits": {
+  "max_iterations": 3,
+  "max_model_calls": 40,
+  "max_tool_calls": 80,
+  "model_timeout_s": 240.0,
+  "wall_budget_s": 2400.0,
+  "max_cost_usd": null,
+  "identical_patch_limit": 2,
+  "no_progress_limit": 2,
+  "max_invalid_replies": 3
+ },
+ "mode_status": "implemented",
+ "trusted_digest": "8acc5b4454374be104318f807b258ca5243fa6cb1f24528a6d0ac356913bc19d",
+ "pristine_manifest_sha256": "e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d"
+}

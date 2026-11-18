@@ -1,0 +1,44 @@
+{
+ "design_manifest_sha256": "adc412c39aa3681b0ac2c5f087342d9b774eb3cabbc55a4c562b164c2a4d0263",
+ "fast_check_results": {
+  "bom_consistency": {
+   "outcome": "failed",
+   "detail": "15 lines: 13 consistent, 1 MISMATCH, 1 unresolved | C1: VALUE: schematic 1n but MPN C0805C183J5GACTU decodes to 1.8e-08 | unresolved: J1,J2 | C6,C7: rating margin note: 5.25 V applied = 52% of the 10 V rating; effective-capacitance coverage under bias MISSING (no manufacturer curve)",
+   "mismatched_lines": [
+    {
+     "refs": "C1",
+     "mpn": "C0805C183J5GACTU",
+     "problems": [
+      "VALUE: schematic 1n but MPN C0805C183J5GACTU decodes to 1.8e-08"
+     ]
+    }
+   ],
+   "unresolved_lines": [
+    "J1,J2"
+   ]
+  },
+  "ac_response": {
+   "outcome": "failed",
+   "per_requirement": {
+    "REQ-GAIN": "passed",
+    "REQ-FLAT": "failed",
+    "REQ-ALIAS": "failed"
+   },
+   "measurements": {
+    "gain_400Hz_V_per_V": 1.2374518171176603,
+    "flatness_dB": 1.9434577550123109,
+    "alias_at_19kHz_dB": -40.41780793619711
+   },
+   "limits": {
+    "gain_V_per_V": [
+     1.235,
+     1.365
+    ],
+    "flatness_dB_max": 0.5,
+    "alias_dB_max": -55.8
+   },
+   "conditions": "nominal parts, Rs = 100 ohm, real TI model (shim), ngspice 44.2"
+  }
+ },
+ "note": "measured on the design you were given by the real checks; some failures may pre-date your task"
+}

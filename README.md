@@ -34,6 +34,9 @@ make defects                  # controlled defects vs predictions
 ```
 Needs docker, curl, uv. No cloud account, API key or paid service. TI's model licence is not stated in the file, so it is downloaded locally and never committed.
 
+## Agent harness (first closed loop)
+A constrained-tool agent loop with an independent evaluator is in `src/ae/harness/` (documented, with verified commands and results, in [`docs/agent-harness.md`](docs/agent-harness.md)). One live model-driven repair of a controlled BOM-value defect has been accepted by the evaluator (n = 1); other modes, tasks and comparisons are not run.
+
 ## Layout
 `src/ae/` toolchain runner, S-expression/KiCad schematic emitter, netlist reader, SPICE deck + cross-check, sim suite, pin audit, board stages, release, evidence/ownership/patch, orchestrator, defects, CLI.
 `tools_kicad/` scripts that run **inside** the KiCad image (`import pcbnew`). `designs/`, `requirements/`, `evidence/`, `models/`, `analysis/`, `docs/`, `runs/`.
