@@ -91,11 +91,40 @@ def test_guard_contract_keeps_rev2_in_force_and_rev3_unapproved():
     assert "NOT APPROVED" in rev3["status"] and rev3["made_after_result"] is True
 
 
-def test_guard_baseline_record_reports_stab_failed_and_rev3_as_ac_peaking_only():
+def test_guard_record_reporting_is_consistent_with_its_own_measurement():
+    """Version/reporting check only: the outcome must follow the measured value. It does NOT force any design (or the current baseline) to fail."""
     rec = ROOT / "runs/ref/baseline/record.json"
     if not rec.exists():
         pytest.skip("no baseline record")
     checks = {c["id"]: c for c in json.loads(rec.read_text())["checks"]}
-    assert checks["REQ-STAB"]["outcome"] == "failed"
+    stab = checks["REQ-STAB"]
+    assert stab["outcome"] == ("passed" if stab["value"] <= 3.0 else "failed") and "rev 2 (in force)" in stab["detail"]
     r3 = checks["REQ-STAB-R3-AC-PEAKING-PROPOSED"]
     assert "AC-PEAKING ONLY" in r3["detail"] and "NOT APPROVED" in r3["detail"] and "does NOT establish stability" in r3["detail"]
+
+
+FIXTURE = ROOT / "tests/fixtures/stab_frozen_failure_adopted_baseline_rs100.csv"
+
+
+def _metrics_from(f, sim_db, ideal_db):
+    ones = np.ones_like(f)
+    return sm.ac_metrics(f, ones, 0 * ones, 10 ** (sim_db / 20), 100.0, ideal_mag=10 ** (ideal_db / 20))
+
+
+def test_frozen_failing_fixture_reports_rev2_failed_and_rev3_as_ac_peaking_only():
+    from ae.sim import stab_measurements
+    d = np.genfromtxt(FIXTURE, delimiter=",", names=True)
+    m = _metrics_from(d["f_Hz"], d["sim_dB"], d["ideal_dB"])
+    rev2, rev3 = stab_measurements(m, m)
+    assert rev2.req == "REQ-STAB" and rev2.outcome == "failed" and rev2.value == pytest.approx(52.8, abs=0.3)
+    assert rev3.req == "REQ-STAB-R3-AC-PEAKING-PROPOSED" and rev3.outcome == "passed" and "NOT APPROVED" in rev3.detail and "AC-PEAKING ONLY" in rev3.detail
+
+
+def test_a_well_behaved_response_reports_rev2_passed_no_forced_failure():
+    from ae.sim import stab_measurements
+    d = np.genfromtxt(FIXTURE, delimiter=",", names=True)
+    ideal = d["ideal_db"] if "ideal_db" in d.dtype.names else d["ideal_dB"]
+    m = _metrics_from(d["f_Hz"], ideal + 0.5, ideal)             # simulated response 0.5 dB above ideal everywhere: within the 3 dB rule
+    rev2, rev3 = stab_measurements(m, m)
+    assert rev2.outcome == "passed" and rev3.outcome == "passed"
+    assert stab_measurements(_metrics_from(d["f_Hz"], ideal + 6.0, ideal), m)[0].outcome == "failed"      # genuinely over the rule -> failed

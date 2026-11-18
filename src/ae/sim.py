@@ -216,6 +216,21 @@ def load_ideal(netlist: Path | None = None):
     return lambda f, rs: mod.ideal_total_response(f, params, rs=rs)
 
 
+def stab_measurements(ac_hi: dict, ac_lo: dict) -> list[Measurement]:
+    """REQ-STAB reporting. Revision 2 (unfloored ideal) is the IN-FORCE definition and is judged only by its own measured value (<= 3.0 dB passes);
+    revision 3 (ideal floored at -90 dB) is PROPOSED, NOT APPROVED, AC-peaking only, and is reported separately. Pure function: the outcome follows the
+    measurement, so a future design whose measured excess is <= 3.0 dB WILL report REQ-STAB passed (the current design's failure is data, not a constant)."""
+    pk2 = max(ac_hi["peaking_above_ideal_dB_max_unfloored"], ac_lo["peaking_above_ideal_dB_max_unfloored"])
+    pk3 = max(ac_hi["peaking_above_ideal_dB_max"], ac_lo["peaking_above_ideal_dB_max"])
+    return [
+        Measurement("REQ-STAB", "peaking_above_ideal_dB_max_unfloored", pk2, "<= 3.0", "passed" if pk2 <= 3.0 else "failed",
+                    "rev 2 (in force): 10 Hz-10 MHz vs ideal op-amp, no floor; the excess sits at levels far below -90 dB (see contract revisions); transient ringing not tested", 3.0 - pk2),
+        Measurement("REQ-STAB-R3-AC-PEAKING-PROPOSED", "peaking_above_ideal_dB_max", pk3, "<= 3.0", "passed" if pk3 <= 3.0 else "failed",
+                    f"AC-PEAKING ONLY. Rev 3 (PROPOSED, NOT APPROVED): ideal floored at -90 dB; does NOT establish stability (no oscillation, transient-ringing or phase-margin test); "
+                    f"max excess at {ac_hi['peaking_at_hz']:.0f} Hz (sim {ac_hi['gain_at_peak_dB']:.1f} dB vs ideal {ac_hi['ideal_at_peak_dB']:.1f} dB)", 3.0 - pk3),
+    ]
+
+
 def evaluate_all(run: SimRun) -> list[Measurement]:
     contract = {r["id"]: r for r in yaml.safe_load((REPO_ROOT / "requirements/fe-aaf-001.yaml").read_text())["requirements"]}
     run.prepare()
@@ -235,13 +250,8 @@ def evaluate_all(run: SimRun) -> list[Measurement]:
         st = max(ac_hi["stopband_abs_gain_dB_max_19k_to_1M"], ac_lo["stopband_abs_gain_dB_max_19k_to_1M"])
         run.add("REQ-ALIAS", "stopband_abs_gain_dB_max_19k_to_1M", st, "<= -55.8", "passed" if st <= -55.8 else "failed", "19 kHz..1 MHz, nominal parts, real op-amp model", -55.8 - st)
         run.add("REQ-ZIN", "zin_min_ohm", ac_hi["zin_min_ohm"], ">= 10000", "passed" if ac_hi["zin_min_ohm"] >= 1e4 else "failed", "50 Hz-1 kHz, Rs=100")
-        # REQ-STAB: revision 2 (unfloored ideal) is IN FORCE; revision 3 (floored at -90 dB) is PROPOSED and reported separately.
-        pk2 = max(ac_hi["peaking_above_ideal_dB_max_unfloored"], ac_lo["peaking_above_ideal_dB_max_unfloored"])
-        run.add("REQ-STAB", "peaking_above_ideal_dB_max_unfloored", pk2, "<= 3.0", "passed" if pk2 <= 3.0 else "failed",
-                "rev 2 (in force): 10 Hz-10 MHz vs ideal op-amp, no floor; the excess sits at levels far below -90 dB (see contract revisions); transient ringing not tested", 3.0 - pk2)
-        pk3 = max(ac_hi["peaking_above_ideal_dB_max"], ac_lo["peaking_above_ideal_dB_max"])
-        run.add("REQ-STAB-R3-AC-PEAKING-PROPOSED", "peaking_above_ideal_dB_max", pk3, "<= 3.0", "passed" if pk3 <= 3.0 else "failed",
-                f"AC-PEAKING ONLY. Rev 3 (PROPOSED, NOT APPROVED): ideal floored at -90 dB; does NOT establish stability (no oscillation, transient-ringing or phase-margin test); max excess at {ac_hi['peaking_at_hz']:.0f} Hz (sim {ac_hi['gain_at_peak_dB']:.1f} dB vs ideal {ac_hi['ideal_at_peak_dB']:.1f} dB)", 3.0 - pk3)
+        for m in stab_measurements(ac_hi, ac_lo):
+            run.measurements.append(m)
     hr = tran_headroom(run)
     if hr["blocked"] or hr["n"] == 0:
         run.add("REQ-HEADROOM", "output_range_V", None, "0.10..3.20", "blocked", f"{hr['blocked']} runs blocked")
