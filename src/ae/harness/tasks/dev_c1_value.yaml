@@ -1,0 +1,5 @@
+id: dev-c1-value
+split: dev                      # development task: used to build and debug the harness
+description: "A part value in the design was corrupted. Find and repair it using the evidence."
+defect: {part: C1, field: value, to: "1n"}      # exact change applied by the TEST SETUP (never shown to the agent as an instruction)
+target_check_hint: BOM_CONSISTENCY

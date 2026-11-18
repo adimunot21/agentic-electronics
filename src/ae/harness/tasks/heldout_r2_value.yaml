@@ -1,0 +1,4 @@
+id: heldout-r2-value
+split: heldout                  # held-out: NOT used during harness development; run only with an explicit evaluation flag
+description: "A part value in the design was corrupted. Find and repair it using the evidence."
+defect: {part: R2, field: value, to: "84.5k"}

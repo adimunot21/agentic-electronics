@@ -1,0 +1,4 @@
+id: heldout-c3-value
+split: heldout
+description: "A part value in the design was corrupted. Find and repair it using the evidence."
+defect: {part: C3, field: value, to: "5.6u"}

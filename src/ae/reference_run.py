@@ -74,7 +74,7 @@ def timed(rec: RunRecord, name: str):
 
 
 def run_reference(run_dir: Path, *, label: str = "reference", nets: dict | None = None,
-                  mutate_schematic: Callable[[str], str] | None = None, mutate_pcb_net: str | None = None, skip_sim: bool = False) -> RunRecord:
+                  mutate_schematic: Callable[[str], str] | None = None, mutate_pcb_net: str | None = None, skip_sim: bool = False, components_path: Path | None = None) -> RunRecord:
     if run_dir.exists():
         shutil.rmtree(run_dir)
     run_dir.mkdir(parents=True)
@@ -84,7 +84,7 @@ def run_reference(run_dir: Path, *, label: str = "reference", nets: dict | None 
     sch, net = f"{STEM}.kicad_sch", f"{STEM}.net"
 
     with timed(rec, "generate_schematic"):
-        text = design.build(nets=nets).to_text()
+        text = design.build(nets=nets, components_path=components_path).to_text()
         guarded_write(run_dir / sch, text, run_dir / ".generated.json")
         if mutate_schematic:                                   # manual-edit style defect on THIS copy only
             (run_dir / sch).write_text(mutate_schematic((run_dir / sch).read_text()))
@@ -97,7 +97,7 @@ def run_reference(run_dir: Path, *, label: str = "reference", nets: dict | None 
         rec.stages.append(n)
     if n.outcome != "passed":
         rec.add("NETLIST_INTENT", "blocked", "netlist export failed")
-        return finish(rec, run_dir, t_all)
+        return finish(rec, run_dir, t_all, components_path)
     outcome, detail = compare_netlist_to_intent(run_dir / net, design.intended_nets(nets))
     rec.add("NETLIST_INTENT", outcome, detail)
 
@@ -154,14 +154,14 @@ def run_reference(run_dir: Path, *, label: str = "reference", nets: dict | None 
         if b.outcome != "passed":
             for c in ("DRC_VIOLATIONS", "DRC_UNCONNECTED", "DRC_PARITY"):
                 rec.add(c, "blocked", "board build failed")
-            return finish(rec, run_dir, t_all)
+            return finish(rec, run_dir, t_all, components_path)
         shutil.copy(run_dir / f"{STEM}.kicad_pcb", run_dir / "snapshot_unrouted.kicad_pcb")
         steps = pcb.route(run_dir, f"{STEM}.kicad_pcb", f"{STEM}.kicad_pcb")
         rec.stages += steps
         if any(s.outcome != "passed" for s in steps):
             for c in ("DRC_VIOLATIONS", "DRC_UNCONNECTED", "DRC_PARITY"):
                 rec.add(c, "blocked", "routing failed: " + next(s for s in steps if s.outcome != "passed").name)
-            return finish(rec, run_dir, t_all)
+            return finish(rec, run_dir, t_all, components_path)
         if mutate_pcb_net:
             m = run_in_image("mutate_board", ["python3", "/opt/ae/mutate_board.py", f"{STEM}.kicad_pcb", mutate_pcb_net, f"{STEM}.kicad_pcb"], run_dir)
             m.outcome = "passed" if m.exit_code == 0 else "error"
@@ -187,14 +187,14 @@ def run_reference(run_dir: Path, *, label: str = "reference", nets: dict | None 
         rec.add("REQ-BOM", o, d)
         o, d = release.check_mfg(run_dir, STEM, counts if counts else None)
         rec.add("REQ-MFG", o, d)
-    return finish(rec, run_dir, t_all)
+    return finish(rec, run_dir, t_all, components_path)
 
 
-def finish(rec: RunRecord, run_dir: Path, t_start: float) -> RunRecord:
+def finish(rec: RunRecord, run_dir: Path, t_start: float, components_path: Path | None = None) -> RunRecord:
     rec.timings["total_wall_s"] = round(time.monotonic() - t_start, 1)
     inputs = collect_inputs({
         "schematic": run_dir / f"{STEM}.kicad_sch", "netlist": run_dir / f"{STEM}.net", "board": run_dir / f"{STEM}.kicad_pcb",
-        "components": REPO_ROOT / "designs/fe-aaf-001/components.yaml", "placement": REPO_ROOT / "designs/fe-aaf-001/placement.yaml",
+        "components": components_path or REPO_ROOT / "designs/fe-aaf-001/components.yaml", "placement": REPO_ROOT / "designs/fe-aaf-001/placement.yaml",
         "kicad_project": REPO_ROOT / "designs/fe-aaf-001/fe_aaf_001.kicad_pro", "requirements": REPO_ROOT / "requirements/fe-aaf-001.yaml",
         "pin_evidence": REPO_ROOT / "evidence/pins/OPA2314AID.yaml", "model_original": REPO_ROOT / "models/cache/OPA2314/x/opa2314.lib",
         "model_shim": REPO_ROOT / "models/cache/OPA2314/opa2314_ngspice_shim.lib", "freerouting_jar": FREEROUTING_JAR,

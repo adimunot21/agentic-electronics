@@ -54,8 +54,9 @@ OPAMP_PIN_STUB = 10.16     # keeps net labels clear of the pin-number text
 LIB_IDS = {"R": "Device:R", "C": "Device:C", "J": "Connector_Generic:Conn_01x03", "TP": "Connector:TestPoint", "U": "Amplifier_Operational:LM358"}
 
 
-def load_components() -> dict:
-    return yaml.safe_load((DESIGN_DIR / "components.yaml").read_text())["parts"]
+def load_components(path: Path | None = None) -> dict:
+    """Part manifest. `path` lets a harness workspace supply a CANDIDATE manifest; default is the adopted design."""
+    return yaml.safe_load((path or DESIGN_DIR / "components.yaml").read_text())["parts"]
 
 
 def footprint_for(ref: str, spec: dict) -> str:
@@ -65,8 +66,8 @@ def footprint_for(ref: str, spec: dict) -> str:
     return FOOTPRINTS[f"{pkg}_{kind}"]
 
 
-def build(name: str = "fe_aaf_001", nets: dict | None = None) -> SchematicBuilder:
-    comps = load_components()
+def build(name: str = "fe_aaf_001", nets: dict | None = None, components_path: Path | None = None) -> SchematicBuilder:
+    comps = load_components(components_path)
     builder = SchematicBuilder(name, SymbolLibrary(SYM_DIR), "FE-AAF-001 anti-alias front end (manual reference design)", paper="A3")
     pin_net = {pin: net for net, pins in (nets or INTENDED_NETS).items() for pin in pins}
     for ref, spec in comps.items():
