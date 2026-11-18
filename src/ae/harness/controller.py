@@ -275,7 +275,7 @@ class Controller:
             self._transition("ACCEPTED", iteration=self.state["iteration"])
             return self._summary()
         if decision["verdict"] == "blocked":
-            return self._stop("evaluation_blocked", reason=decision.get("reason"))
+            return self._stop("evaluation_blocked", detail=decision.get("reason"))
         n = len(decision["violations"])
         best = self.state["best_violation_count"]
         self.state["no_progress"] = self.state["no_progress"] + 1 if (best is not None and n >= best) else 0
