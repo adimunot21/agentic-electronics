@@ -1,0 +1,28 @@
+{
+ "run_dir": "/home/adimunot21/dev/agentic-electronics/runs/agent/improve-wide-retune-controls/X2_noop_c1_text",
+ "task": "improve-wide-retune-alias",
+ "split": "dev",
+ "mode": "engineered_single_agent",
+ "provider": "scripted-fixture",
+ "fixture": true,
+ "task_kind": "improvement",
+ "final_state": "STOPPED",
+ "stop_reason": "max_iterations",
+ "iterations": 1,
+ "model_calls": 4,
+ "tool_calls": 3,
+ "evaluations": 1,
+ "elapsed_s": 132.3,
+ "usage": {
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "cost_usd_reported": 0.0,
+  "cost_unknown_calls": 0,
+  "model_seconds": 0.0,
+  "tool_seconds": 3.163792225997895,
+  "eval_seconds": 126.45835697907023,
+  "cost_note": "cost is a provider-reported list-basis estimate; unknown calls make the total unknown (None), never 0"
+ },
+ "live_agent_success": false,
+ "accepted_by_independent_evaluator": false
+}

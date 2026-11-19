@@ -10,6 +10,7 @@ This is research code. Nothing here is a board ready to manufacture.
 
 Newest first. New entries are added on top; old entries are not rewritten.
 
+* **2026-11-19. Second task frozen, not yet run** (`improve-wide-retune-alias`, policy sha256 `7a02c547…`). Same objective and rules as the first task, but all eight filter parts of both stages may be edited and the target is a 0.5 dB gain in worst-case stopband rejection. No scripted solution exists for it. Plumbing controls only have been run; no model has touched it.
 * **2026-11-19. Second task not frozen.** I tried to design a second improvement task on different parts of the circuit. I could not argue from the equations that a meaningful improvement is reachable under the current rules, so no task was frozen. The reasoning is in [`docs/second-task-attainability.md`](docs/second-task-attainability.md). The two part numbers from the accepted change were looked up at distributors and look orderable; see [`evidence/candidate-verification-improve-live-1.yaml`](evidence/candidate-verification-improve-live-1.yaml). First public push of this repository.
 * **2026-11-19. First live improvement run accepted** (`runs/agent/improve-live-1`). One run, one task. Details below.
 * **2026-11-18. First live repair run accepted** (`runs/agent/dev-c1-live-1`). One run, one task. Details below.

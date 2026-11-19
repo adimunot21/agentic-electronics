@@ -1,0 +1,182 @@
+{
+ "task": "improve-wide-retune-alias",
+ "policy_sha256": "7a02c5479daeb2a36cb8496c3b5a2cff8dfa7e648e708ebfa272a62386d9d660",
+ "trusted_digest": "04acfb2534ec304b83a239bdab64b8e1559c1dae04bc2e3d3e4c7cafd0c68b7d",
+ "fixture": true,
+ "note": "plumbing controls, not solving candidates, not agent output",
+ "rows": [
+  {
+   "label": "X2_regression_stage2_pole_up",
+   "run_dir": "runs/agent/improve-wide-retune-controls/X2_regression_stage2_pole_up",
+   "stop_reason": "max_iterations",
+   "final_state": "STOPPED",
+   "wall_s": 131.3,
+   "verdict": "rejected",
+   "objective": {
+    "check": "REQ-ALIAS-CORNERS",
+    "unit": "dB",
+    "direction": "minimize",
+    "baseline": -58.73526536671747,
+    "candidate": -57.916102379068796,
+    "improvement": -0.8191629876486743,
+    "min_improvement": 0.5,
+    "met": false,
+    "jitter_tolerance_dB": 5.873626536671747e-05
+   },
+   "policy_violation_rules": [
+    "objective_improvement",
+    "H3_gain_max_corners",
+    "H6_alias_nominal_nonregression",
+    "H7_passed_stays_passed"
+   ],
+   "circuit_failures": [
+    "REQ-BOM(pre-existing)",
+    "REQ-GAIN-CORNERS(NEW)",
+    "REQ-STAB(pre-existing)"
+   ],
+   "candidate_manifest_sha256": "aece93c97165ab650521e6f742ece0c2a3caa41d0134b92c629b099b8e2ff8bf",
+   "decision": "runs/agent/improve-wide-retune-controls/X2_regression_stage2_pole_up/evaluations/decision_01.json",
+   "eval_s": 125.9,
+   "metrics": {
+    "REQ-ALIAS-CORNERS": -57.916102379068796,
+    "REQ-FLAT-CORNERS": 0.3309523504928866,
+    "REQ-GAIN-CORNERS": 1.3693154073887146,
+    "REQ-FLAT": 0.09324628631198006,
+    "REQ-GAIN": 1.3069556154634705,
+    "REQ-ALIAS": -59.51046975149859,
+    "REQ-STAB": 52.79768166581778,
+    "REQ-SETTLE": 0.002912263350030031,
+    "REQ-NOISE": 0.01014333
+   },
+   "corner_gain_min_max": {
+    "baseline": [
+     1.24338294379962,
+     1.3636736113526455
+    ],
+    "candidate": [
+     1.2493765757743174,
+     1.3693154073887146
+    ]
+   },
+   "blocked_claims": [
+    "BOM_VERIFICATION:R4,R5",
+    "MODEL_STARTUP/SATURATION/OVERLOAD_RECOVERY",
+    "REQ-STAB"
+   ],
+   "expected_verdict": "rejected",
+   "as_expected": true
+  },
+  {
+   "label": "X2_noop_c1_text",
+   "run_dir": "runs/agent/improve-wide-retune-controls/X2_noop_c1_text",
+   "stop_reason": "max_iterations",
+   "final_state": "STOPPED",
+   "wall_s": 132.3,
+   "verdict": "rejected",
+   "objective": {
+    "check": "REQ-ALIAS-CORNERS",
+    "unit": "dB",
+    "direction": "minimize",
+    "baseline": -58.73526536671747,
+    "candidate": -58.73526536671747,
+    "improvement": 0.0,
+    "min_improvement": 0.5,
+    "met": false,
+    "jitter_tolerance_dB": 5.873626536671747e-05
+   },
+   "policy_violation_rules": [
+    "objective_improvement"
+   ],
+   "circuit_failures": [
+    "REQ-BOM(pre-existing)",
+    "REQ-STAB(pre-existing)"
+   ],
+   "candidate_manifest_sha256": "44b1a1de5283137aa8318019ce7f3e928019ff884d1e0947c92e5f3ed03d8bf5",
+   "decision": "runs/agent/improve-wide-retune-controls/X2_noop_c1_text/evaluations/decision_01.json",
+   "eval_s": 126.5,
+   "metrics": {
+    "REQ-ALIAS-CORNERS": -58.73526536671747,
+    "REQ-FLAT-CORNERS": 0.4022427579821821,
+    "REQ-GAIN-CORNERS": 1.3636736113526455,
+    "REQ-FLAT": 0.0979711262197327,
+    "REQ-GAIN": 1.3011328035570473,
+    "REQ-ALIAS": -60.33030524960851,
+    "REQ-STAB": 52.844602146847194,
+    "REQ-SETTLE": 0.0014206194691723795,
+    "REQ-NOISE": 0.009745667999999999
+   },
+   "corner_gain_min_max": {
+    "baseline": [
+     1.24338294379962,
+     1.3636736113526455
+    ],
+    "candidate": [
+     1.24338294379962,
+     1.3636736113526455
+    ]
+   },
+   "blocked_claims": [
+    "MODEL_STARTUP/SATURATION/OVERLOAD_RECOVERY",
+    "REQ-STAB"
+   ],
+   "expected_verdict": "rejected",
+   "as_expected": true
+  },
+  {
+   "label": "X2_out_of_scope_r7",
+   "run_dir": "runs/agent/improve-wide-retune-controls/X2_out_of_scope_r7",
+   "stop_reason": "max_iterations",
+   "final_state": "STOPPED",
+   "wall_s": 128.9,
+   "verdict": "rejected",
+   "objective": {
+    "check": "REQ-ALIAS-CORNERS",
+    "unit": "dB",
+    "direction": "minimize",
+    "baseline": -58.73526536671747,
+    "candidate": -58.73526536671747,
+    "improvement": 0.0,
+    "min_improvement": 0.5,
+    "met": false,
+    "jitter_tolerance_dB": 5.873626536671747e-05
+   },
+   "policy_violation_rules": [
+    "objective_improvement"
+   ],
+   "circuit_failures": [
+    "REQ-BOM(pre-existing)",
+    "REQ-STAB(pre-existing)"
+   ],
+   "candidate_manifest_sha256": "e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d",
+   "decision": "runs/agent/improve-wide-retune-controls/X2_out_of_scope_r7/evaluations/decision_01.json",
+   "eval_s": 123.7,
+   "metrics": {
+    "REQ-ALIAS-CORNERS": -58.73526536671747,
+    "REQ-FLAT-CORNERS": 0.4022427579821821,
+    "REQ-GAIN-CORNERS": 1.3636736113526455,
+    "REQ-FLAT": 0.0979711262197327,
+    "REQ-GAIN": 1.3011328035570473,
+    "REQ-ALIAS": -60.33030524960851,
+    "REQ-STAB": 52.844602146847194,
+    "REQ-SETTLE": 0.0014388051470248797,
+    "REQ-NOISE": 0.009745667999999999
+   },
+   "corner_gain_min_max": {
+    "baseline": [
+     1.24338294379962,
+     1.3636736113526455
+    ],
+    "candidate": [
+     1.24338294379962,
+     1.3636736113526455
+    ]
+   },
+   "blocked_claims": [
+    "MODEL_STARTUP/SATURATION/OVERLOAD_RECOVERY",
+    "REQ-STAB"
+   ],
+   "expected_verdict": "no_evaluation",
+   "as_expected": false
+  }
+ ]
+}
