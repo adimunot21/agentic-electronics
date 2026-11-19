@@ -17,9 +17,9 @@ from ae.harness.patch import sha256_text
 from tests.unit.test_improvement import A, PRISTINE, patch_ops, synth_pipeline
 
 TASK_ID = "improve-wide-retune-alias-v3"
-NOOP = patch_ops([("C3", "value", "5.60n")])
-NOOP2 = patch_ops([("C3", "value", "5.600n")])
-NOOP3 = patch_ops([("C2", "value", "1.00n")])
+NOOP = patch_ops([("C2", "mpn_candidate", "C0805C102J5GACTA")])
+NOOP2 = patch_ops([("C2", "mpn_candidate", "C0805C102J5GACTB")])
+NOOP3 = patch_ops([("C2", "mpn_candidate", "C0805C102J5GACTC")])
 BREACH = patch_ops([("C1", "value", "20n")])
 
 

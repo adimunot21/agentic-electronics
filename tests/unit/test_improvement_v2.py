@@ -18,7 +18,7 @@ from ae.harness.workspace import REPO_ROOT, trusted_digest
 
 from tests.unit.test_improvement import A, PRISTINE, patch_ops, synth_pipeline
 
-NOOP = patch_ops([("C3", "value", "5.60n")])   # evaluated no-op; an UNCHANGED design is refused before evaluation (feedback-loop fix)
+NOOP = patch_ops([("C2", "mpn_candidate", "C0805C102J5GACTA")])   # evaluated no-op; an UNCHANGED design is refused before evaluation (feedback-loop fix)
 
 TASKS = REPO_ROOT / "src/ae/harness/tasks"
 V1, V2 = TASKS / "improve_stage2_alias.yaml", TASKS / "improve_wide_retune_alias.yaml"
@@ -98,12 +98,12 @@ def test_invalid_reply_cap_is_cumulative_and_hard(tmp_path):
     assert s["stop_reason"] == "invalid_replies" and prov.i == 5
 
 
-def test_noop_control_is_rejected_by_the_v2_policy_with_a_synthetic_pipeline(tmp_path):
+def test_noop_control_text_edit_is_refused_before_evaluation_under_the_state_based_gate(tmp_path):
     def patch(t):
         import re
         sha = re.findall(r'"manifest_sha256": "([0-9a-f]{64})"', t)[-1]
         return json.dumps(A("propose_patch", patch={"summary": "noop", "base_sha256": sha, "ops": [{"op": "set_field", "part": "C1", "field": "value", "to": "18.0n"}]}))
-    ctl, _ = make(tmp_path, [A("get_design"), patch, A("submit", summary="s")], Limits(max_iterations=1))
+    ctl, _ = make(tmp_path, [A("get_design"), patch, A("submit", summary="s"), A("get_design")], Limits(max_iterations=1, max_model_calls=4))
     ctl.run()
-    d = json.loads((tmp_path / "run/evaluations/decision_01.json").read_text())
-    assert d["verdict"] == "rejected" and d["objective"]["improvement"] == 0 and d["policy_sha256"] == load_policy(V2).sha256
+    # (the original frozen control label says `rejected`: that was true before the state-based gate; see docs section 10)
+    assert ctl.state["evaluations"] == 0 and ctl.state["refused_submits"] == 1 and not (tmp_path / "run/evaluations").exists()

@@ -24,6 +24,7 @@ class AgentContext:
     cache: dict = field(default_factory=dict)
     trusted_combined: str = ""
     patch_log: list = field(default_factory=list)
+    improvement: bool = False          # improvement tasks also get `declare_no_improvement`
 
 
 def _contract(repo: Path) -> dict:
@@ -92,4 +93,7 @@ def build_registry(ctx: AgentContext) -> ToolRegistry:
     reg.register(ToolSpec("propose_patch", "Propose AND apply (in the isolated workspace) a constrained patch: {summary, base_sha256, ops:[{op:'set_field', part, field:'value'|'mpn_candidate', to}]}. Rejected if stale or out of scope.",
                           {"patch": Arg("dict", "the patch object")}, writes_workspace=True), propose_patch)
     reg.register(ToolSpec("submit", "Finish: ask the independent evaluator to judge the current design. It runs the full trusted pipeline and may reject.", {"summary": Arg("str", "what you changed and why")}, timeout_s=5.0), lambda summary: {"submitted": True})
+    if ctx.improvement:
+        reg.register(ToolSpec("declare_no_improvement", "End the run WITHOUT submitting: you found no justified improvement. Spends no evaluation and is recorded as its own stop reason; use it instead of submitting an unchanged design (which is refused).",
+                              {"summary": Arg("str", "why no improvement is justified")}, timeout_s=5.0), lambda summary: {"declared": True})
     return reg

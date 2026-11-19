@@ -25,6 +25,7 @@ from typing import Callable
 from ae.harness.checks import run_fast
 from ae.harness.contracts import ToolRegistry
 from ae.harness.evaluator import TrustedEvaluator
+from ae.harness.designstate import canonical_state
 from ae.harness.improvement import ACCEPT, PolicyError, edited_refs, load_policy
 from ae.harness.providers import ModelProvider
 from ae.harness.tasks import Task, create_defect
@@ -53,6 +54,7 @@ class Limits:
     no_progress_limit: int = 2
     max_invalid_replies: int = 3
     max_refused_submits: int = 3         # improvement mode: zero-diff / duplicate submissions refused BEFORE evaluation; cumulative bound so a refuse-loop cannot run forever
+    max_state_revisits: int = 6          # improvement mode: re-entering an already visited design state while exploring is legitimate; this bounds endless explore-revert cycling WITHOUT a submission (reset at every submission)
     progress_eps_db: float = 0.05        # improvement mode: a new best objective must beat the previous best by this much (10 % of the 0.5 dB target) to count as progress
 
 
@@ -87,7 +89,9 @@ Rules: you cannot read or write files; requirements, thresholds, the frozen poli
 Patch format: {{"summary": str, "base_sha256": <manifest_sha256 from get_design>, "ops": [{{"op":"set_field","part":"R4","field":"value","to":"..."}}]}}.
 The task has ONE objective with a minimum improvement and hard constraints; the evaluator re-runs the full pipeline over all tolerance corners and judges against the frozen policy. Fast checks are nominal only,
 so corner behaviour is NOT visible to you before you submit. Pre-existing failures (e.g. REQ-STAB) are not yours to fix or hide and must not get worse. A rejection reports policy violations separately from failed circuit requirements.
-Do not guess hidden answers; do not try to weaken checks. If you cannot find a justified improvement, say so by submitting nothing changed rather than inventing one."""
+Do not guess hidden answers; do not try to weaken checks. If you cannot find a justified improvement, call `declare_no_improvement` with your reasons: it ends the run, spends no evaluation and is recorded as its own outcome.
+Submitting a design that is electrically identical to the baseline or to one already evaluated is refused before any evaluation (it costs you a turn, nothing else); exploring and reverting freely is fine.
+If two evaluated designs in a row set neither a better worst-case objective nor fewer broken checks than before, a further submission ends the run instead of being evaluated."""
 
 
 class _NonFinite(ValueError):
@@ -157,7 +161,7 @@ class Controller:
         self.policy = None                      # frozen ImprovementPolicy (improvement tasks only; loaded + verified in prepare)
         self.t0 = time.monotonic()
         self.seq = 0
-        self.state = {"state": "INIT", "iteration": 0, "model_calls": 0, "tool_calls": 0, "evaluations": 0, "invalid_replies": 0, "identical_patch_hits": 0, "no_progress": 0, "refused_submits": 0, "pending_feedback": False, "best_objective": 0.0, "best_infeasible_checks": None,
+        self.state = {"state": "INIT", "iteration": 0, "model_calls": 0, "tool_calls": 0, "evaluations": 0, "invalid_replies": 0, "identical_patch_hits": 0, "no_progress": 0, "refused_submits": 0, "pending_feedback": False, "best_objective": 0.0, "best_infeasible_checks": None, "evaluated_states": [], "visited_states": [], "state_revisits": 0, "baseline_state": None,
                       "stop_reason": None, "evaluated_manifest_sha256": [], "patch_fingerprints": [], "best_violation_count": None,
                       "usage": {"input_tokens": 0, "output_tokens": 0, "cost_usd_reported": 0.0, "cost_unknown_calls": 0, "model_seconds": 0.0, "tool_seconds": 0.0, "eval_seconds": 0.0},
                       "provider": provider.name, "fixture": provider.fixture, "mode": mode.value}
@@ -249,7 +253,9 @@ class Controller:
             return self._stop("policy_blocked", detail="pristine manifest differs from the frozen baseline")
         self.ws = Workspace(self.run_dir / "workspace", scope=pol.scope())
         self.ws.init(self.pristine)                                        # improvement starts FROM the adopted reference: there is no seeded defect
-        self.ctx = AgentContext(self.ws, self.run_dir / "scratch", failure_report={}, checks_fn=self.checks_fn, repo=self.repo, trusted_combined=self.evaluator.digest_at_start["combined"])
+        self.ctx = AgentContext(self.ws, self.run_dir / "scratch", failure_report={}, checks_fn=self.checks_fn, repo=self.repo, trusted_combined=self.evaluator.digest_at_start["combined"], improvement=True)
+        self.state["baseline_state"] = canonical_state(self.ws.text())
+        self.state["visited_states"] = [self.state["baseline_state"]]
         by = {c["id"]: c for c in self.baseline_record["checks"]}
         keys = [pol.objective_check, "REQ-FLAT-CORNERS", "REQ-GAIN-CORNERS", "REQ-FLAT", "REQ-GAIN", "REQ-ALIAS", "REQ-STAB"]
         brief = {"design_manifest_sha256": self.ws.sha256(), "policy_id": pol.task_id, "policy_version": pol.version, "policy_sha256": pol.sha256,
@@ -327,19 +333,32 @@ class Controller:
                 if result is not None:
                     return result
                 continue
+            if action["tool"] == "declare_no_improvement" and self.policy is not None:
+                summary = str(action["args"].get("summary", ""))[:1000]
+                self._event("no_improvement_declared", summary=summary, evaluations_spent=self.state["evaluations"])
+                return self._stop("no_improvement_declared", summary=summary)
             self.state["tool_calls"] += 1
             res = self.registry.call(action["tool"], action["args"])
             self.state["usage"]["tool_seconds"] += res.elapsed_s
             self._event("tool_call", tool=action["tool"], args=action["args"], result=res.to_json())
             if action["tool"] == "propose_patch" and res.ok:
                 fp = res.result["patch"]["fingerprint"]
-                if fp in self.state["patch_fingerprints"]:
+                if self.policy is None and fp in self.state["patch_fingerprints"]:         # restoration mode: operation-based rule, unchanged
                     self.state["identical_patch_hits"] += 1
                 self.state["patch_fingerprints"].append(fp)
                 self._transition("PATCH_APPLIED", patch_seq=res.result["patch"]["seq"], after_sha256=res.result["patch"]["after_sha256"][:12])
                 self._transition("AGENT_TURN")
-                if self.state["identical_patch_hits"] >= self.limits.identical_patch_limit:
+                if self.policy is None and self.state["identical_patch_hits"] >= self.limits.identical_patch_limit:
                     return self._stop("repeated_identical_patch")
+                if self.policy is not None:                                                  # improvement mode: protection is by STATE, not by operations
+                    cs = canonical_state(self.ws.text())
+                    if cs in self.state["visited_states"]:
+                        self.state["state_revisits"] += 1
+                        self._event("state_revisit", revisits=self.state["state_revisits"], is_baseline=cs == self.state["baseline_state"])
+                        if self.state["state_revisits"] >= self.limits.max_state_revisits:           # only a revisit can trip the cap (a novel design after a resume does not)
+                            return self._stop("exploration_cycling", detail=f"{self.state['state_revisits']} returns to already visited design states without a submission")
+                    else:
+                        self.state["visited_states"].append(cs)
             elif action["tool"] == "propose_patch" and not res.ok:
                 pass
             self._feedback(res.to_json())
@@ -386,10 +405,12 @@ class Controller:
     def _submit(self, args: dict):
         sha = self.ws.sha256()
         if self.policy is not None:
-            if sha == hashlib.sha256(self.pristine.read_bytes()).hexdigest():
-                return self._refuse_submit("no_change_from_baseline", "the design is identical to the adopted baseline; change it before submitting", sha)
-            if sha in self.state["evaluated_manifest_sha256"]:
-                return self._refuse_submit("already_evaluated", "this exact design was already evaluated and rejected; change the design before submitting again", sha)
+            self.state["state_revisits"] = 0                                          # a submission attempt (even a refused one) ends an exploration streak
+            cs = canonical_state(self.ws.text())
+            if cs == self.state["baseline_state"]:
+                return self._refuse_submit("no_change_from_baseline", "the design is electrically identical to the adopted baseline (same values and part numbers; verification-status bookkeeping is ignored); change it, or call declare_no_improvement", sha)
+            if cs in self.state["evaluated_states"]:
+                return self._refuse_submit("already_evaluated", "an electrically identical design (same values and part numbers) was already evaluated and rejected; change the design before submitting again", sha)
             if self.state["no_progress"] >= self.limits.no_progress_limit:           # checked HERE, after the agent has had the chance to read the last feedback
                 return self._stop("no_progress", detail=f"{self.state['no_progress']} consecutive evaluated designs set no new best objective and no new best feasibility")
         if sha in self.state["evaluated_manifest_sha256"]:
@@ -411,6 +432,8 @@ class Controller:
         self.state["evaluations"] += 1
         if decision["verdict"] != "blocked":                              # a blocked evaluation never judged the design: it must stay resubmittable after a resume
             self.state["evaluated_manifest_sha256"].append(sha)
+            if self.policy is not None:
+                self.state["evaluated_states"].append(canonical_state(self.ws.text()))
         ev_dir.parent.mkdir(parents=True, exist_ok=True)
         (ev_dir.parent / f"decision_{self.state['iteration']:02d}.json").write_text(json.dumps(decision, indent=1, default=str))
         self._event("evaluation", iteration=self.state["iteration"], verdict=decision["verdict"], violations=decision.get("violations"), reason=decision.get("reason"))
@@ -478,7 +501,7 @@ class Controller:
         if c.state["state"] == "ACCEPTED":
             raise RuntimeError(f"run {run_dir} already ended in state ACCEPTED (stop_reason={c.state['stop_reason']!r}); a finished run cannot be resumed")
         c.state["stop_reason"] = None
-        for key, default in (("refused_submits", 0), ("pending_feedback", False), ("best_objective", 0.0), ("best_infeasible_checks", None)):
+        for key, default in (("refused_submits", 0), ("pending_feedback", False), ("best_objective", 0.0), ("best_infeasible_checks", None), ("evaluated_states", []), ("visited_states", []), ("state_revisits", 0), ("baseline_state", None)):
             c.state.setdefault(key, default)                                    # state files written before the feedback-loop fix lack these keys
         c.baseline_record = json.loads((run_dir / "baseline_record.json").read_text())
         improvement = c.task.kind == "improvement"
@@ -487,7 +510,10 @@ class Controller:
         c.ws = Workspace(run_dir / "workspace", scope=c.policy.scope() if improvement else None)
         c.ws.history = [json.loads(p.read_text()) for p in sorted((run_dir / "workspace" / "patches").glob("*.json"))]
         report = json.loads((run_dir / ("task_brief.json" if improvement else "defect_failure_report.json")).read_text())
-        c.ctx = AgentContext(c.ws, run_dir / "scratch", failure_report=report, checks_fn=c.checks_fn, repo=c.repo, trusted_combined=c.evaluator.digest_at_start["combined"])
+        c.ctx = AgentContext(c.ws, run_dir / "scratch", failure_report=report, checks_fn=c.checks_fn, repo=c.repo, trusted_combined=c.evaluator.digest_at_start["combined"], improvement=improvement)
+        if improvement and c.state["baseline_state"] is None:                       # state files written before the state-based protection
+            c.state["baseline_state"] = canonical_state(c.pristine.read_text())
+            c.state["visited_states"] = c.state["visited_states"] or [c.state["baseline_state"]]
         c.registry = build_registry(c.ctx)
         c.system = (IMPROVEMENT_PROMPT if improvement else SYSTEM_PROMPT).replace("{tools}", "\n".join(json.dumps(sp.schema()) for sp in c.registry.specs()))
         c.messages, last = [], 0
@@ -496,6 +522,8 @@ class Controller:
             last = e["seq"]
             if e["type"] == "message":
                 c.messages.append({"role": e["role"], "content": e["content"]})
+            elif e["type"] == "feedback_undelivered":                      # built after the evaluation budget ended; a resumed run (with raised limits) delivers it now
+                c.messages.append({"role": "user", "content": "TOOL RESULT:\n" + e["payload"]})
             elif e["type"] == "model_reply" and not e.get("error"):
                 c.messages.append({"role": "assistant", "content": e["text"]})
         c.seq = last

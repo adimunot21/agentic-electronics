@@ -297,10 +297,10 @@ def test_controller_rejects_regression_noop_and_out_of_scope_without_side_effect
     # numerically identical value written differently: the validator accepts the text change, the policy refuses to count it
     tmp3 = tmp_path / "t3"
     tmp3.mkdir()
-    ctl = imp_controller(tmp3, [A("get_design"), patch_ops([("C3", "value", "5.60n")]), A("submit", summary="s")], limits=Limits(max_iterations=1))
+    ctl = imp_controller(tmp3, [A("get_design"), patch_ops([("C3", "value", "5.60n")]), A("submit", summary="s"), A("get_design")], limits=Limits(max_iterations=1, max_model_calls=4))
     ctl.run()
-    d = json.loads((tmp3 / "run/evaluations/decision_01.json").read_text())
-    assert d["verdict"] == "rejected" and d["objective"]["improvement"] == 0 and d["objective"]["met"] is False
+    # since the state-based submit gate a numerically identical text edit is refused BEFORE evaluation (it used to be evaluated and rejected as a no-op)
+    assert ctl.state["evaluations"] == 0 and ctl.state["refused_submits"] == 1 and not (tmp3 / "run/evaluations").exists()
 
 
 def test_tampered_policy_blocks_the_evaluation(tmp_path):

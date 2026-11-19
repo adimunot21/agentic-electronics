@@ -26,9 +26,9 @@ from ae.harness.workspace import REPO_ROOT
 
 from tests.unit.test_improvement import A, PRISTINE, patch_ops, synth_pipeline
 
-# An EVALUATED design that changes nothing electrically (numerically identical value, different text). Since the feedback-loop fix an UNCHANGED design is refused before evaluation, so tests that
-# need a cheap evaluated rejection submit this instead.
-NOOP = patch_ops([("C3", "value", "5.60n")])
+# A cheap EVALUATED rejection with no objective improvement: a different part number at the same value (a genuine design-state change, so it is evaluated; the stub pipeline ignores it).
+# An unchanged design, or a numerically identical text edit, is refused before evaluation.
+NOOP = patch_ops([("C3", "mpn_candidate", "C0805C562J5GACTA")])
 GOOD = [("R4", "value", "17.4k"), ("R4", "mpn_candidate", "RC0603FR-0717K4L"), ("R5", "value", "17.4k"), ("R5", "mpn_candidate", "RC0603FR-0717K4L")]
 REGRESSION = [("C3", "value", "5.1n"), ("C3", "mpn_candidate", "C0805C512J5GACTU")]
 
@@ -184,7 +184,7 @@ def test_feedback_after_rejected_regression_has_verdict_reasons_and_summary_metr
 
 def test_feedback_after_noop_says_no_change_with_zero_improvement(tmp_path):
     h = Harness(tmp_path)
-    ctl, seen = run_to_next_call(h, [("C3", "value", "5.60n")])
+    ctl, seen = run_to_next_call(h, [("C3", "mpn_candidate", "C0805C562J5GACTA")])
     fb = last_tool_result(seen["transcript"])
     assert fb["evaluator_verdict"] == "rejected" and fb["objective"]["improvement"] == 0 and fb["objective"]["met"] is False
     assert [f["kind"] for f in fb["findings"] if f["rule"] == "objective_improvement"] == ["no_change_within_jitter"]
@@ -200,7 +200,7 @@ def test_feedback_after_unchanged_design_then_duplicate_submit(tmp_path):
     ctl = h.new([A("get_design"), NOOP, A("submit", summary="a"), A("submit", summary="b"), capture], Limits(max_iterations=3, no_progress_limit=3))
     ctl.run()
     fb = last_tool_result(seen["t"])
-    assert fb["ok"] is False and fb["error"] == {"code": "already_evaluated", "message": "this exact design was already evaluated and rejected; change the design before submitting again"}
+    assert fb["ok"] is False and fb["error"]["code"] == "already_evaluated" and "electrically identical" in fb["error"]["message"]
     assert fb["evaluations_spent"] == 1 and fb["refused_submits"].startswith("1 of 3") and "nothing was evaluated" in fb["note"]
 
 
