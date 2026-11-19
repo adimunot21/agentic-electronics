@@ -1,0 +1,24 @@
+{
+ "id": "improve-wide-retune-alias-v3",
+ "split": "dev",
+ "description": "Improve the worst-case (all 1024 tolerance corners) stopband rejection at 19 kHz-1 MHz of the adopted FE-AAF-001 reference by retuning the passive parts of the stage-1 and stage-2 filters, without consuming more passband flatness or gain margin than the explicit hard constraints allow. Contract requirements, checks and thresholds are not changed.",
+ "defect": {},
+ "kind": "improvement",
+ "policy_path": "/home/adimunot21/dev/agentic-electronics/src/ae/harness/tasks/improve_wide_retune_alias_v3.yaml",
+ "limits": {
+  "max_iterations": 3,
+  "max_model_calls": 20,
+  "max_tool_calls": 80,
+  "model_timeout_s": 240.0,
+  "wall_budget_s": 2400.0,
+  "max_cost_usd": null,
+  "identical_patch_limit": 2,
+  "no_progress_limit": 2,
+  "max_invalid_replies": 3,
+  "max_refused_submits": 3,
+  "progress_eps_db": 0.05
+ },
+ "mode_status": "implemented",
+ "trusted_digest": "25a17e293e17faf54c48c8fdc01164b383dd6dab7102a1d0a45b09dc4bb1b6bf",
+ "pristine_manifest_sha256": "e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d"
+}

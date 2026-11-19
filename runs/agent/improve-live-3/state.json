@@ -1,0 +1,42 @@
+{
+ "state": "STOPPED",
+ "iteration": 1,
+ "model_calls": 17,
+ "tool_calls": 16,
+ "evaluations": 1,
+ "invalid_replies": 0,
+ "identical_patch_hits": 2,
+ "no_progress": 1,
+ "refused_submits": 0,
+ "pending_feedback": false,
+ "best_objective": 0.0,
+ "best_infeasible_checks": 0,
+ "stop_reason": "repeated_identical_patch",
+ "evaluated_manifest_sha256": [
+  "fb8db3803b36d0328c3d8480e6c2a5fda980b6cc21ba6e5eb8875e7d65cf490e"
+ ],
+ "patch_fingerprints": [
+  "c243a3bbd45f5d719470049f0911ec7fa0db07e53c5afee0abd047b0cc0f477f",
+  "ef5fe09d25ab008efe98589f8440e795643d546da9dee0c53784be8b19d04d9f",
+  "459f9a3ebf07e30204c8dace80051452aab7f585161183aed49ffb8ab77b64b4",
+  "fe54f4cbf8ca33bf50eb757d1a63e7f5da588eaa26088e5b9eaa3b026e61ecac",
+  "387b65f226f9466fb5983c2be7fc814038370dc284a9b93a4f05435e03a545f1",
+  "ef5fe09d25ab008efe98589f8440e795643d546da9dee0c53784be8b19d04d9f",
+  "fe54f4cbf8ca33bf50eb757d1a63e7f5da588eaa26088e5b9eaa3b026e61ecac"
+ ],
+ "best_violation_count": null,
+ "usage": {
+  "input_tokens": 34,
+  "output_tokens": 20104,
+  "cost_usd_reported": 1.2056224000000002,
+  "cost_unknown_calls": 0,
+  "model_seconds": 204.68446396512445,
+  "tool_seconds": 7.433568342006765,
+  "eval_seconds": 98.8238179590553
+ },
+ "provider": "claude-cli",
+ "fixture": false,
+ "mode": "engineered_single_agent",
+ "had_feedback": true,
+ "final_feedback_delivered": true
+}
