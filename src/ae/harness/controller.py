@@ -341,8 +341,9 @@ class Controller:
 
     def _feedback(self, payload: dict) -> None:
         text = json.dumps(payload, default=str)
-        self.messages.append({"role": "user", "content": f"TOOL RESULT:\n{text[:6000]}"})
-        self._event("message", role="user", content=text[:6000])
+        content = f"TOOL RESULT:\n{text[:6000]}"
+        self.messages.append({"role": "user", "content": content})
+        self._event("message", role="user", content=content)                 # the EXACT text the agent saw, so resume rebuilds an identical transcript
         self._save()
 
     def _submit(self, args: dict):
@@ -364,7 +365,8 @@ class Controller:
             decision = self.evaluator.evaluate(self.ws.manifest, ev_dir, self.baseline_record)
         self.state["usage"]["eval_seconds"] += time.monotonic() - t
         self.state["evaluations"] += 1
-        self.state["evaluated_manifest_sha256"].append(sha)
+        if decision["verdict"] != "blocked":                              # a blocked evaluation never judged the design: it must stay resubmittable after a resume
+            self.state["evaluated_manifest_sha256"].append(sha)
         ev_dir.parent.mkdir(parents=True, exist_ok=True)
         (ev_dir.parent / f"decision_{self.state['iteration']:02d}.json").write_text(json.dumps(decision, indent=1, default=str))
         self._event("evaluation", iteration=self.state["iteration"], verdict=decision["verdict"], violations=decision.get("violations"), reason=decision.get("reason"))
@@ -440,6 +442,9 @@ class Controller:
                 c.messages.append({"role": "assistant", "content": e["text"]})
         c.seq = last
         c.messages.append({"role": "user", "content": "(run resumed by the controller with the limits shown in task.json; continue from where you stopped)"})
+        if c.state["state"] == "EVALUATING" and not (run_dir / "evaluations" / f"decision_{c.state['iteration']:02d}.json").exists():
+            c.state["interrupted_evaluations"] = c.state.get("interrupted_evaluations", 0) + 1       # process died mid-evaluation: the iteration stays charged, no verdict exists
+            c._event("evaluation_interrupted", iteration=c.state["iteration"], note="no decision file; partial evidence directory is never reused")
         c._event("resumed", from_state=c.state["state"])
         return c
 
