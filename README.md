@@ -1,57 +1,64 @@
 # agentic-electronics
 
-Research/engineering project toward **agentic electronics design**: requirement -> component choice -> schematic -> simulation -> PCB placement/routing -> checks -> release outputs,
-eventually with coordinated specialist agents. **This repository currently contains the tool-backed substrate and one manually authored reference slice. It contains no agents, and no
-model has been called.** It is a test vehicle for the whole chain, not a claim that electronics design is automated.
+An experiment in letting an AI agent change an electronic circuit design, while an independent checker decides whether each change is accepted.
 
-## What exists and was executed
-One analog board, **FE-AAF-001** (3.3 V SAR-ADC anti-alias front end, 50 Hz-1 kHz, 40 x 30 mm, 2 layers), taken through every stage with real tools in digest-pinned containers
-(KiCad 10.0.8, ngspice 44.2, Freerouting 2.5.0). The reference design is **manual** (human-directed, assistant-authored), not an agent result.
-Evidence: `runs/ref/baseline/record.json` (outcomes, commands, versions, input hashes, timings). Status/limits ledger: [`docs/limitations.md`](docs/limitations.md).
+The agent proposes small edits to a parts list. It never judges its own work. A separate evaluator re-runs the real simulations (ngspice, KiCad) on the edited design and accepts or rejects the change against a policy written beforehand. The test circuit is an analog anti-aliasing filter in front of a 12-bit ADC.
 
-| Stage | Artifact | Where |
-|---|---|---|
-| Requirements/acceptance contract | 14 requirements, assumptions/derived/verify-method tagged | `requirements/fe-aaf-001.yaml` |
-| Filter derivation | order 3 Butterworth (order 2 misses the alias spec by ~15 dB); E96/E12 values | `analysis/derive_filter.py`, `analysis/filter_design.json` |
-| Component evidence | OPA2314AID selected over MCP6002 (model unobtainable) and TLV9062 (Iq too high) | `docs/component-selection.md`, `evidence/pins/`, `models/manifest.yaml` |
-| Schematic (editable) | generated KiCad 10 schematic, ERC clean (figures: `docs/figures/`) | `runs/ref/baseline/fe_aaf_001.kicad_sch` |
-| Simulation | ngspice, TI op-amp model, 32 DC corners + AC + transient + noise + ADC acquisition | `runs/ref/baseline/work/`, `record.json` |
-| PCB | placed, autorouted, GND pour, DRC 0 / unconnected 0 / parity 0 | `runs/ref/baseline/fe_aaf_001.kicad_pcb` |
-| Release | BOM, Gerbers, drill, CPL (generated, **not** fab-checked) | `runs/ref/baseline/release/` |
-| Failure + repair | REQ-SETTLE failed (1.40 mV vs 0.403), diagnosed, repaired by patch 0001, rerun | `runs/ref/repair-0001/` |
-| Controlled defects | 4 defects vs predictions committed beforehand | `designs/fe-aaf-001/defects.yaml`, `runs/ref/defects/` |
+This is research code. Nothing here is a board ready to manufacture.
 
-**Current local development baseline = pre-patch + patch 0002** (resistors R1-R5 rescaled after a worst-case corner failure of REQ-FLAT; see [`docs/before-after-0002.md`](docs/before-after-0002.md); the old baseline with its failures is archived in `runs/ref/archive/`). Baseline: 27 passed, 1 blocked, 2 failed, 3 not_tested. Failing: **REQ-STAB** under the in-force revision 2 (rev 3, AC-peaking only, passes and is NOT approved) and **REQ-BOM** (J1/J2 have no MPN). Model startup/saturation/overload behaviour is explicitly `not_tested`. See [`docs/review-extract.md`](docs/review-extract.md) and limitations.
+## Status
 
-## Run it
+Newest first. New entries are added on top; old entries are not rewritten.
+
+* **2026-11-19. Second task not frozen.** I tried to design a second improvement task on different parts of the circuit. I could not argue from the equations that a meaningful improvement is reachable under the current rules, so no task was frozen. The reasoning is in [`docs/second-task-attainability.md`](docs/second-task-attainability.md). The two part numbers from the accepted change were looked up at distributors and look orderable; see [`evidence/candidate-verification-improve-live-1.yaml`](evidence/candidate-verification-improve-live-1.yaml). First public push of this repository.
+* **2026-11-19. First live improvement run accepted** (`runs/agent/improve-live-1`). One run, one task. Details below.
+* **2026-11-18. First live repair run accepted** (`runs/agent/dev-c1-live-1`). One run, one task. Details below.
+* **Earlier.** Tool chain, reference design, evaluator and harness built. See the git history.
+
+## What works today
+
+1. **The harness and the evaluator.** A controller gives the model a small set of typed tools (read the design, run quick checks, propose a patch, submit). Patches may only edit allowed fields of allowed parts. On submit, the evaluator runs the full pipeline itself and compares against the policy. There are two modes: *restoration* (the repaired design must match the original measurements) and *improvement* (a changed design is accepted only if it beats a target fixed in advance and breaks no hard limit). The unit tests (172) and the real-tool integration tests pass at the current tree. A wrong repair, written as a scripted test case, is rejected by the evaluator on real simulation evidence.
+2. **A live repair.** A component value in the design was deliberately corrupted (C1 written as 1 nF against a part number for 18 nF). The model found the mismatch with the tools, patched it, and the evaluator accepted the result: one evaluation, 6 model calls (`runs/agent/dev-c1-live-1/summary.json`).
+3. **A live improvement.** The target was fixed in a policy file before any candidate was evaluated: lower the worst-case stopband gain from 19 kHz to 1 MHz by at least 0.25 dB, over all 1024 corners of the tolerance box the evaluator uses, without breaking the passband, gain or other limits. The model changed R4, R5 and C3. The evaluator measured an improvement of 0.27 dB (-58.74 dB to -59.01 dB) and accepted it for that objective: 10 model calls, one evaluation (`runs/agent/improve-live-1/`, decision in `evaluations/decision_01.json`).
+
+The intended action boundary: the model has no file or shell access (the CLI is started with its tools off, with no settings sources or MCP servers, from an empty directory), it can only emit one JSON action per reply, and the controller rejects anything malformed or out of scope before it does anything. This is how it is meant to work and how the tests exercise it. I have not shown that it is isolated or secure.
+
+## Known limits
+
+* One accepted change on one task, once. This is not evidence of a general design ability.
+* The final design in the improvement run is the same as one candidate I had written in a scripted search earlier in the repo, which the model could not see. I cannot tell whether that is independent derivation or coincidence.
+* The stability check (REQ-STAB) fails on the baseline design. A revised version of it is proposed but not approved. The policy lets a candidate leave it failing but never worse.
+* The parts list has unresolved items: the two connectors have no part number, and the model for startup, saturation and overload behaviour is not tested.
+* The new part numbers (`RC0603FR-0718K7L`, `C0805C512J5GACTU`) are unverified candidates. A distributor lookup found matching listings but I read no datasheet and placed no order.
+* Costs are the CLI's list-price estimates, not billing. The harness has no cumulative dollar cap.
+* The Python harness and its evaluator are trusted code. Any change to them changes the "trusted-code digest" recorded in each decision.
+
+## Run the tests
+
+Needs Python 3.12 and [uv](https://docs.astral.sh/uv/).
+
 ```bash
-./scripts/bootstrap.sh        # docker images (pinned digests), Freerouting jar + TI model (sha256-checked), KiCad libs, uv env
-make check                    # what is actually installed and capable
-make test                     # offline unit tests
-make integration              # real kicad-cli / ngspice / freerouting
-make run                      # full reference run -> runs/ref/baseline (about 1-2 min)
-make defects                  # controlled defects vs predictions
+uv sync
+uv run pytest tests/unit -q                       # offline unit tests
+./scripts/bootstrap.sh                            # pulls pinned docker images, downloads the TI op-amp model (hash-checked)
+uv run pytest tests/integration -q -m integration # needs docker; runs real KiCad, ngspice and Freerouting
 ```
-Needs docker, curl, uv. No cloud account, API key or paid service. TI's model licence is not stated in the file, so it is downloaded locally and never committed.
 
-## Agent harness (first closed loop)
-A constrained-tool agent loop with an independent evaluator is in `src/ae/harness/` (documented, with verified commands and results, in [`docs/agent-harness.md`](docs/agent-harness.md)). One live model-driven repair of a controlled BOM-value defect has been accepted by the evaluator (n = 1); other modes, tasks and comparisons are not run.
-
-## Improvement mode
-A separate frozen-policy mode for design changes (not just restoration) is documented in [`docs/agent-improvement-mode.md`](docs/agent-improvement-mode.md): scripted fixture candidates against the real pipeline; no agent-designed improvement exists yet.
+The integration tests need docker and the bootstrap step. The TI op-amp model is not in this repository (its licence is not stated), so a fresh clone cannot run the full pipeline until it has been downloaded. Running a model against the harness (`python -m ae.harness.run --provider claude-cli`) spends model usage: read [`docs/agent-improvement-mode.md`](docs/agent-improvement-mode.md) first.
 
 ## Layout
-`src/ae/` toolchain runner, S-expression/KiCad schematic emitter, netlist reader, SPICE deck + cross-check, sim suite, pin audit, board stages, release, evidence/ownership/patch, orchestrator, defects, CLI.
-`tools_kicad/` scripts that run **inside** the KiCad image (`import pcbnew`). `designs/`, `requirements/`, `evidence/`, `models/`, `analysis/`, `docs/`, `runs/`.
 
-## Docs
-[Architecture](docs/architecture.md) - [Decisions](docs/decisions/) - [Data contract (observed tool formats)](docs/data-contract.md) - [Ownership](docs/ownership.md) -
-[Toolchain capabilities](docs/toolchain-capabilities.md) - [Prior art + licences](docs/prior-art.md) - [Limitations](docs/limitations.md) -
-[Physical test plan](docs/physical-test-plan.md) - [Agentic roadmap + evaluation protocol (not implemented)](docs/agentic-roadmap.md) - [Walkthrough](docs/walkthrough.md)
+* `src/ae/` toolchain runner, KiCad schematic and netlist handling, SPICE suite, checks, release outputs.
+* `src/ae/harness/` the agent harness: controller, tools, patch validation, evaluator, frozen task policies (`tasks/`).
+* `designs/`, `requirements/`, `evidence/`, `models/`, `analysis/` the circuit, its contract, part evidence and model provenance.
+* `tests/` unit and integration tests. `scripts/` helper scripts (including fixture runs; they are scripted, not model output).
+* `runs/` saved evidence: reference runs and agent runs. Only small files are kept (trace, summary, decisions, patches, diffs). Bulk simulation output is ignored.
+* `docs/` architecture, harness and improvement-mode notes, limitations ledger, decisions.
 
-## Prior art, honestly
-KiCad scripting, SKiDL, atopile, circuitron, etch and mcp-kicad already solve parts of this (see `docs/prior-art.md`). What this repository adds so far is narrow:
-an evidence-bound run record, a datasheet-independent pin audit, a diagnosed ngspice/model shim, a bounded failure->repair loop, and mechanically checked defect predictions for one board.
-No novelty beyond that is claimed, and no multi-agent benefit has been measured.
+## More reading
 
-Licence: undecided (proposal: Apache-2.0, owner to confirm). KiCad libraries are CC-BY-SA-4.0 with design exception; Freerouting is GPL-3.0 and runs as a separate process.
+[Harness](docs/agent-harness.md) - [Improvement mode, accounting and launch notes](docs/agent-improvement-mode.md) - [Limitations ledger](docs/limitations.md) - [Architecture](docs/architecture.md) - [Prior art](docs/prior-art.md) - [Roadmap](docs/agentic-roadmap.md)
+
+## Licence and third-party material
+
+No licence has been chosen yet, so by default all rights are reserved. KiCad libraries are CC-BY-SA-4.0 with a design exception, and Freerouting (GPL-3.0) is run as a separate process. The TI op-amp model is downloaded locally and never committed.
