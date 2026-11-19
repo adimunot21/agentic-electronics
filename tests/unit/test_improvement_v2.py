@@ -16,7 +16,9 @@ from ae.harness.providers import ScriptedProvider
 from ae.harness.tasks import list_tasks, load_task
 from ae.harness.workspace import REPO_ROOT, trusted_digest
 
-from tests.unit.test_improvement import A, PRISTINE, synth_pipeline
+from tests.unit.test_improvement import A, PRISTINE, patch_ops, synth_pipeline
+
+NOOP = patch_ops([("C3", "value", "5.60n")])   # evaluated no-op; an UNCHANGED design is refused before evaluation (feedback-loop fix)
 
 TASKS = REPO_ROOT / "src/ae/harness/tasks"
 V1, V2 = TASKS / "improve_stage2_alias.yaml", TASKS / "improve_wide_retune_alias.yaml"
@@ -85,9 +87,9 @@ def test_tool_call_cap_is_a_hard_stop_before_dispatch(tmp_path):
 
 
 def test_iteration_cap_stops_after_the_evaluated_rejection_and_allows_no_further_evaluation(tmp_path):
-    ctl, prov = make(tmp_path, [A("get_design"), A("submit", summary="s"), A("get_design"), A("submit", summary="s")], Limits(max_iterations=1))
+    ctl, prov = make(tmp_path, [A("get_design"), NOOP, A("submit", summary="s"), A("get_design"), NOOP, A("submit", summary="s")], Limits(max_iterations=1))
     s = ctl.run()
-    assert s["stop_reason"] == "max_iterations" and s["evaluations"] == 1 and prov.i == 2
+    assert s["stop_reason"] == "max_iterations" and s["evaluations"] == 1 and prov.i == 3
 
 
 def test_invalid_reply_cap_is_cumulative_and_hard(tmp_path):

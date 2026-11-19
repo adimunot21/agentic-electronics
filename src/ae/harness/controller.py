@@ -52,6 +52,8 @@ class Limits:
     identical_patch_limit: int = 2
     no_progress_limit: int = 2
     max_invalid_replies: int = 3
+    max_refused_submits: int = 3         # improvement mode: zero-diff / duplicate submissions refused BEFORE evaluation; cumulative bound so a refuse-loop cannot run forever
+    progress_eps_db: float = 0.05        # improvement mode: a new best objective must beat the previous best by this much (10 % of the 0.5 dB target) to count as progress
 
 
 _SECRET = re.compile(r"(sk-ant-[A-Za-z0-9_\-]{8,}|Bearer\s+[A-Za-z0-9._\-]{12,}|(?i:api[_-]?key|token|secret)[\"'=: ]+[A-Za-z0-9._\-]{16,})")
@@ -155,7 +157,7 @@ class Controller:
         self.policy = None                      # frozen ImprovementPolicy (improvement tasks only; loaded + verified in prepare)
         self.t0 = time.monotonic()
         self.seq = 0
-        self.state = {"state": "INIT", "iteration": 0, "model_calls": 0, "tool_calls": 0, "evaluations": 0, "invalid_replies": 0, "identical_patch_hits": 0, "no_progress": 0,
+        self.state = {"state": "INIT", "iteration": 0, "model_calls": 0, "tool_calls": 0, "evaluations": 0, "invalid_replies": 0, "identical_patch_hits": 0, "no_progress": 0, "refused_submits": 0, "pending_feedback": False, "best_objective": 0.0, "best_infeasible_checks": None,
                       "stop_reason": None, "evaluated_manifest_sha256": [], "patch_fingerprints": [], "best_violation_count": None,
                       "usage": {"input_tokens": 0, "output_tokens": 0, "cost_usd_reported": 0.0, "cost_unknown_calls": 0, "model_seconds": 0.0, "tool_seconds": 0.0, "eval_seconds": 0.0},
                       "provider": provider.name, "fixture": provider.fixture, "mode": mode.value}
@@ -176,14 +178,16 @@ class Controller:
         (self.run_dir / "state.json").write_text(json.dumps(self.state, indent=1, default=str))
 
     def _stop(self, reason: str, **extra) -> dict:
+        """Every stop states whether the newest rejection feedback reached the agent. `pending_feedback` is True from the moment feedback is built until a model call is made with it in the transcript."""
         self.state["stop_reason"] = reason
-        self._transition("STOPPED", reason=reason, **extra)
+        self.state["final_feedback_delivered"] = (not self.state.get("pending_feedback")) if self.state.get("had_feedback") else None
+        self._transition("STOPPED", reason=reason, feedback_delivered=self.state["final_feedback_delivered"], **extra)
         return self._summary()
 
     def _summary(self) -> dict:
         u = self.state["usage"]
         s = {"run_dir": str(self.run_dir), "task": self.task.id, "split": self.task.split, "mode": self.mode.value, "provider": self.provider.name, "fixture": self.provider.fixture,
-             "task_kind": self.task.kind, "final_state": self.state["state"], "stop_reason": self.state["stop_reason"], "iterations": self.state["iteration"], "model_calls": self.state["model_calls"],
+             "task_kind": self.task.kind, "final_feedback_delivered": self.state.get("final_feedback_delivered"), "refused_submits": self.state.get("refused_submits", 0), "final_state": self.state["state"], "stop_reason": self.state["stop_reason"], "iterations": self.state["iteration"], "model_calls": self.state["model_calls"],
              "tool_calls": self.state["tool_calls"], "evaluations": self.state["evaluations"], "elapsed_s": round(time.monotonic() - self.t0, 1),
              "usage": {**u, "cost_usd_reported": (u["cost_usd_reported"] if u["cost_unknown_calls"] == 0 else None),
                        "cost_note": "cost is a provider-reported list-basis estimate; unknown calls make the total unknown (None), never 0"},
@@ -294,6 +298,7 @@ class Controller:
             stop = self._budget_stop()
             if stop:
                 return stop
+            self.state["pending_feedback"] = False                                 # this call carries every message built so far, including the newest feedback
             reply = self.provider.complete(self.system, self._transcript(), self.limits.model_timeout_s)
             u = self.state["usage"]
             self.state["model_calls"] += 1
@@ -341,13 +346,52 @@ class Controller:
 
     def _feedback(self, payload: dict) -> None:
         text = json.dumps(payload, default=str)
+        self.state["pending_feedback"], self.state["had_feedback"] = True, True
         content = f"TOOL RESULT:\n{text[:6000]}"
         self.messages.append({"role": "user", "content": content})
         self._event("message", role="user", content=content)                 # the EXACT text the agent saw, so resume rebuilds an identical transcript
         self._save()
 
+    def _refuse_submit(self, code: str, message: str, sha: str):
+        """Improvement mode: a submission that would evaluate nothing new is refused BEFORE any evaluation. It costs the model call that produced it (already counted) and nothing else:
+        no iteration, no evaluation, no effect on the evaluated-design progress counters. A separate cumulative counter bounds repeated refusals."""
+        self.state["refused_submits"] += 1
+        self._event("submit_refused", code=code, manifest_sha256=sha, refused_submits=self.state["refused_submits"])
+        if self.state["refused_submits"] >= self.limits.max_refused_submits:
+            return self._stop("repeated_refusals", detail=f"{self.state['refused_submits']} submissions refused before evaluation ({code})")
+        self._feedback({"ok": False, "error": {"code": code, "message": message}, "refused_submits": f"{self.state['refused_submits']} of {self.limits.max_refused_submits} allowed before the run stops",
+                        "evaluations_spent": self.state["evaluations"], "note": "nothing was evaluated and no evaluation was spent"})
+        return None
+
+    def _improvement_progress(self, decision: dict) -> bool:
+        """Improvement-mode progress for one EVALUATED rejection (final semantics, see docs/agent-improvement-mode.md section 8).
+        Two axes, tracked separately; a design is progress if it sets a new best on EITHER:
+          objective movement: objective.improvement (dB, larger is better) beats the best so far by more than `progress_eps_db`;
+          feasibility: the number of DISTINCT checks that break a non-objective rule is smaller than the fewest seen so far
+                       (one gain-corner breach that surfaces as both H3 and H7 is ONE check, not two violations).
+        The objective best starts at the unchanged baseline (improvement 0.0), so an evaluated no-op is never progress. The feasibility best starts empty: the first evaluated design only sets it.
+        Raw violation counts are never compared, and refused submissions never reach this function."""
+        obj = (decision.get("objective") or {}).get("improvement")
+        broken = {v.get("check") for v in decision.get("policy_violations", []) if v.get("rule") != "objective_improvement"}
+        better_objective = obj is not None and obj > self.state["best_objective"] + self.limits.progress_eps_db
+        best_broken = self.state.get("best_infeasible_checks")
+        better_feasibility = best_broken is not None and len(broken) < best_broken
+        if obj is not None:
+            self.state["best_objective"] = max(self.state["best_objective"], obj)
+        self.state["best_infeasible_checks"] = len(broken) if best_broken is None else min(best_broken, len(broken))
+        self._event("progress_assessment", objective_improvement=obj, broken_checks=sorted(c for c in broken if c), better_objective=better_objective, better_feasibility=better_feasibility,
+                    best_objective=self.state["best_objective"], best_infeasible_checks=self.state["best_infeasible_checks"])
+        return better_objective or better_feasibility
+
     def _submit(self, args: dict):
         sha = self.ws.sha256()
+        if self.policy is not None:
+            if sha == hashlib.sha256(self.pristine.read_bytes()).hexdigest():
+                return self._refuse_submit("no_change_from_baseline", "the design is identical to the adopted baseline; change it before submitting", sha)
+            if sha in self.state["evaluated_manifest_sha256"]:
+                return self._refuse_submit("already_evaluated", "this exact design was already evaluated and rejected; change the design before submitting again", sha)
+            if self.state["no_progress"] >= self.limits.no_progress_limit:           # checked HERE, after the agent has had the chance to read the last feedback
+                return self._stop("no_progress", detail=f"{self.state['no_progress']} consecutive evaluated designs set no new best objective and no new best feasibility")
         if sha in self.state["evaluated_manifest_sha256"]:
             self.state["no_progress"] += 1
             self._event("submit_rejected_duplicate", manifest_sha256=sha)
@@ -377,19 +421,29 @@ class Controller:
             return self._summary()
         if decision["verdict"] == "blocked":
             return self._stop("evaluation_blocked", detail=decision.get("reason"))
-        n = len(decision["violations"])
-        best = self.state["best_violation_count"]
-        self.state["no_progress"] = self.state["no_progress"] + 1 if (best is not None and n >= best) else 0
-        self.state["best_violation_count"] = n if best is None else min(best, n)
+        if self.policy is not None:
+            progressed = self._improvement_progress(decision)
+            self.state["no_progress"] = 0 if progressed else self.state["no_progress"] + 1
+            n = len(decision["violations"])
+        else:                                                                       # restoration mode: unchanged semantics (violation-count comparison)
+            n = len(decision["violations"])
+            best = self.state["best_violation_count"]
+            self.state["no_progress"] = self.state["no_progress"] + 1 if (best is not None and n >= best) else 0
+            self.state["best_violation_count"] = n if best is None else min(best, n)
         self._transition("REJECTED_CONTINUE", violations=n, no_progress=self.state["no_progress"])
-        if self.state["iteration"] >= self.limits.max_iterations:
-            return self._stop("max_iterations")
-        if self.state["no_progress"] >= self.limits.no_progress_limit:
-            return self._stop("no_progress", detail="violation count did not improve")
         findings = [{k: v for k, v in x.items() if k not in ("candidate_detail",)} | ({"detail": x["candidate_detail"][:200]} if "candidate_detail" in x else {}) for x in decision["violations"]][:12]
         extra = {"objective": decision.get("objective"), "circuit_requirement_failures": decision.get("circuit_requirement_failures")} if self.policy is not None else {}
-        self._feedback({"ok": False, "evaluator_verdict": "rejected", "findings": findings, **extra, "unresolved_baseline_failures_not_yours": decision["unresolved_baseline_failures"],
-                        "note": "fresh evidence was produced by the protected pipeline; fix the cause of the findings, do not guess"})
+        payload = {"ok": False, "evaluator_verdict": "rejected", "findings": findings, **extra, "unresolved_baseline_failures_not_yours": decision["unresolved_baseline_failures"],
+                   "note": "fresh evidence was produced by the protected pipeline; fix the cause of the findings, do not guess"}
+        # FEEDBACK BEFORE STOP: the rejection's feedback is built and delivered first; stop conditions are checked afterwards. If the evaluation budget is spent there is no further
+        # agent turn to deliver it to: it is recorded as built-but-undelivered (and the stop says so) instead of being silently dropped. No extra model call is ever made to deliver it.
+        if self.state["iteration"] >= self.limits.max_iterations:
+            self._event("feedback_undelivered", reason="max_iterations reached: no further agent turn", payload=json.dumps(payload, default=str)[:6000])
+            self.state["had_feedback"], self.state["pending_feedback"] = True, True
+            return self._stop("max_iterations")
+        self._feedback(payload)
+        if self.policy is None and self.state["no_progress"] >= self.limits.no_progress_limit:
+            return self._stop("no_progress", detail="violation count did not improve")
         self._transition("AGENT_TURN")
         return None
 
@@ -424,6 +478,8 @@ class Controller:
         if c.state["state"] == "ACCEPTED":
             raise RuntimeError(f"run {run_dir} already ended in state ACCEPTED (stop_reason={c.state['stop_reason']!r}); a finished run cannot be resumed")
         c.state["stop_reason"] = None
+        for key, default in (("refused_submits", 0), ("pending_feedback", False), ("best_objective", 0.0), ("best_infeasible_checks", None)):
+            c.state.setdefault(key, default)                                    # state files written before the feedback-loop fix lack these keys
         c.baseline_record = json.loads((run_dir / "baseline_record.json").read_text())
         improvement = c.task.kind == "improvement"
         if improvement:

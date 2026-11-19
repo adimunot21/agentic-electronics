@@ -26,6 +26,9 @@ from ae.harness.workspace import REPO_ROOT
 
 from tests.unit.test_improvement import A, PRISTINE, patch_ops, synth_pipeline
 
+# An EVALUATED design that changes nothing electrically (numerically identical value, different text). Since the feedback-loop fix an UNCHANGED design is refused before evaluation, so tests that
+# need a cheap evaluated rejection submit this instead.
+NOOP = patch_ops([("C3", "value", "5.60n")])
 GOOD = [("R4", "value", "17.4k"), ("R4", "mpn_candidate", "RC0603FR-0717K4L"), ("R5", "value", "17.4k"), ("R5", "mpn_candidate", "RC0603FR-0717K4L")]
 REGRESSION = [("C3", "value", "5.1n"), ("C3", "mpn_candidate", "C0805C512J5GACTU")]
 
@@ -98,13 +101,13 @@ def last_tool_result(transcript: str) -> dict:
 # =================================================================== TASK 1: resume after an interrupted improvement run
 def test_resume_after_crash_between_iterations_restores_everything_and_does_not_respend(tmp_path):
     h = Harness(tmp_path)
-    # iteration 1: submit the unchanged design (a no-op => genuinely evaluated, rejected); the process then dies while waiting for the next model reply
-    ctl = h.new(None, provider=CrashingProvider([A("get_design"), A("submit", summary="no change"), A("get_design")], crash_at=3))
+    # iteration 1: submit a numerically identical text edit (a no-op => genuinely evaluated, rejected); the process then dies while waiting for the next model reply
+    ctl = h.new(None, provider=CrashingProvider([A("get_design"), NOOP, A("submit", summary="no change"), A("get_design")], crash_at=4))
     with pytest.raises(Crash):
         ctl.run()
     before = h.state()
-    assert counters(before) == {"iteration": 1, "evaluations": 1, "model_calls": 2, "tool_calls": 1, "invalid_replies": 0, "no_progress": 0}
-    assert before["evaluated_manifest_sha256"] == [sha256_text(PRISTINE.read_text())] and len(h.calls) == 1
+    assert counters(before) == {"iteration": 1, "evaluations": 1, "model_calls": 3, "tool_calls": 2, "invalid_replies": 0, "no_progress": 1}
+    assert before["evaluated_manifest_sha256"] == [ctl.ws.sha256()] and len(h.calls) == 1
     messages_before = list(ctl.messages)
     spent_before = dict(before["usage"])
 
@@ -113,31 +116,31 @@ def test_resume_after_crash_between_iterations_restores_everything_and_does_not_
     assert counters(r.state) == counters(before) and r.state["usage"] == spent_before and len(h.calls) == 1
     assert r.policy is not None and r.policy.sha256 == "d278109a50e8a9f161a41f07bbdd9d5157f0d757ab5f37aea62e7599f88aabdc"
     assert r.messages[:len(messages_before)] == messages_before                                  # transcript rebuilt from the trace == what the agent had seen
-    assert r.ws.sha256() == sha256_text(PRISTINE.read_text()) and r.ws.history == []
+    assert r.ws.sha256() == ctl.ws.sha256() and len(r.ws.history) == 1
     summary = r.continue_run()
     assert summary["stop_reason"] == "accepted" and summary["final_state"] == "ACCEPTED"
     after = h.state()
-    # counters CONTINUE (not restart, not double): 1 old evaluation + 1 new; model calls 2 old + 3 new; tool calls 1 old + 2 new (get_design, propose_patch)
-    assert counters(after) == {"iteration": 2, "evaluations": 2, "model_calls": 5, "tool_calls": 3, "invalid_replies": 0, "no_progress": r.state["no_progress"]}
+    # counters CONTINUE (not restart, not double): 1 old evaluation + 1 new; model calls 3 old + 3 new; tool calls 2 old + 2 new (get_design, propose_patch)
+    assert counters(after) == {"iteration": 2, "evaluations": 2, "model_calls": 6, "tool_calls": 4, "invalid_replies": 0, "no_progress": r.state["no_progress"]}
     assert h.calls == ["iter_01", "iter_02"]                                                      # the finished evaluation was NOT run again
     assert len(after["evaluated_manifest_sha256"]) == 2 and len(set(after["evaluated_manifest_sha256"])) == 2
     assert sorted(p.name for p in (h.run / "evaluations").glob("decision_*.json")) == ["decision_01.json", "decision_02.json"]
-    assert [p["seq"] for p in r.ws.history] == [1] and (h.run / "workspace/patches/001.json").exists()
+    assert [p["seq"] for p in r.ws.history] == [1, 2] and (h.run / "workspace/patches/002.json").exists()
     assert (h.run / "output/evaluator_decision.json").exists() and json.loads((h.run / "summary.json").read_text())["fixture"] is True
     assert any(e["type"] == "resumed" for e in h.events())
 
 
 def test_resumed_run_does_not_reevaluate_an_already_evaluated_design(tmp_path):
     h = Harness(tmp_path)
-    ctl = h.new(None, provider=CrashingProvider([A("get_design"), A("submit", summary="no change"), A("get_design")], crash_at=3))
+    ctl = h.new(None, provider=CrashingProvider([A("get_design"), NOOP, A("submit", summary="no change"), A("get_design")], crash_at=4))
     with pytest.raises(Crash):
         ctl.run()
-    r = h.resume([A("submit", summary="same design again"), A("get_design")], Limits(max_iterations=3, max_model_calls=4))
+    r = h.resume([A("submit", summary="same design again"), A("get_design")], Limits(max_iterations=3, max_model_calls=5))
     r.continue_run()
     s = h.state()
     assert len(h.calls) == 1 and s["iteration"] == 1 and s["evaluations"] == 1           # de-duplication survived the restart: no 2nd pipeline run, no iteration charged
-    assert s["no_progress"] == 1 and s["model_calls"] == 4                                # the model call that produced the duplicate IS charged
-    assert any(e["type"] == "submit_rejected_duplicate" for e in h.events())
+    assert s["no_progress"] == 1 and s["refused_submits"] == 1 and s["model_calls"] == 5   # refused before evaluation: the call that produced it IS charged, the progress counter is NOT touched
+    assert any(e["type"] == "submit_refused" and e["code"] == "already_evaluated" for e in h.events())
 
 
 def test_resume_keeps_policy_scope_so_out_of_scope_edits_still_fail(tmp_path):
@@ -194,10 +197,11 @@ def test_feedback_after_unchanged_design_then_duplicate_submit(tmp_path):
     def capture(transcript):
         seen["t"] = transcript
         return json.dumps(A("get_design"))
-    ctl = h.new([A("get_design"), A("submit", summary="a"), A("submit", summary="b"), capture], Limits(max_iterations=3, no_progress_limit=3))
+    ctl = h.new([A("get_design"), NOOP, A("submit", summary="a"), A("submit", summary="b"), capture], Limits(max_iterations=3, no_progress_limit=3))
     ctl.run()
     fb = last_tool_result(seen["t"])
-    assert fb == {"ok": False, "error": {"code": "already_evaluated", "message": "this exact design was already evaluated and rejected; change the design before submitting again"}}
+    assert fb["ok"] is False and fb["error"] == {"code": "already_evaluated", "message": "this exact design was already evaluated and rejected; change the design before submitting again"}
+    assert fb["evaluations_spent"] == 1 and fb["refused_submits"].startswith("1 of 3") and "nothing was evaluated" in fb["note"]
 
 
 def test_accepted_submission_sends_nothing_back_to_the_agent_run_just_ends(tmp_path):
@@ -290,8 +294,7 @@ def test_class1b_parsed_but_rejected_by_the_tool_layer_is_charged_as_a_tool_call
 def test_class2_evaluated_submissions_charge_iteration_evaluation_and_one_model_call_but_no_tool_call(tmp_path):
     rows = {}
     for label, script in {"full_evaluation_rejected_regression": [A("get_design"), patch_ops(REGRESSION), A("submit", summary="s")],
-                          "noop_unchanged_design": [A("get_design"), A("submit", summary="s")],
-                          "noop_textual_change": [A("get_design"), patch_ops([("C3", "value", "5.60n")]), A("submit", summary="s")]}.items():
+                          "noop_textual_change": [A("get_design"), NOOP, A("submit", summary="s")]}.items():
         sub = tmp_path / label
         sub.mkdir()
         h = Harness(sub)
@@ -300,23 +303,24 @@ def test_class2_evaluated_submissions_charge_iteration_evaluation_and_one_model_
         rows[label] = (counters(h.state()), len(h.calls), h.state()["stop_reason"])
     for label, (c, pipeline_runs, stop) in rows.items():
         assert c["iteration"] == 1 and c["evaluations"] == 1 and pipeline_runs == 1 and stop == "max_iterations", label
-    assert rows["full_evaluation_rejected_regression"][0]["tool_calls"] == 2 and rows["noop_unchanged_design"][0]["tool_calls"] == 1     # get_design (+ propose_patch); submit is not a tool call
-    assert rows["full_evaluation_rejected_regression"][0]["model_calls"] == 3 and rows["noop_unchanged_design"][0]["model_calls"] == 2
+    assert rows["full_evaluation_rejected_regression"][0]["tool_calls"] == 2 and rows["noop_textual_change"][0]["tool_calls"] == 2     # get_design + propose_patch; submit is not a tool call
+    assert rows["full_evaluation_rejected_regression"][0]["model_calls"] == 3 and rows["noop_textual_change"][0]["model_calls"] == 3
 
 
 def test_class2_duplicate_submit_costs_a_model_call_but_no_iteration_and_no_evaluation(tmp_path):
     h = Harness(tmp_path)
-    ctl = h.new([A("get_design"), A("submit", summary="a"), A("submit", summary="b"), A("get_design")], Limits(max_iterations=5, no_progress_limit=5, max_model_calls=4))
+    ctl = h.new([A("get_design"), NOOP, A("submit", summary="a"), A("submit", summary="b"), A("get_design")], Limits(max_iterations=5, no_progress_limit=5, max_model_calls=5))
     ctl.run()
     s = h.state()
-    assert (s["iteration"], s["evaluations"], len(h.calls), s["model_calls"], s["tool_calls"], s["no_progress"]) == (1, 1, 1, 4, 2, 1)
+    # refused before evaluation: costs the model call, no iteration, no evaluation; the progress counter (1) comes ONLY from the evaluated no-op, never from the refusal
+    assert (s["iteration"], s["evaluations"], len(h.calls), s["model_calls"], s["tool_calls"], s["no_progress"], s["refused_submits"]) == (1, 1, 1, 5, 3, 1, 1)
 
 
 def test_class2_blocked_evaluation_still_consumes_an_iteration_and_an_evaluation_and_stops_the_run(tmp_path):
     def broken(components_path, out_dir):
         raise RuntimeError("docker exited 125")
     h = Harness(tmp_path)
-    ctl = h.new([A("get_design"), A("submit", summary="s")], Limits(max_iterations=3))
+    ctl = h.new([A("get_design"), NOOP, A("submit", summary="s")], Limits(max_iterations=3))
     ctl.evaluator.run_pipeline = broken
     s = ctl.run()
     d = json.loads((h.run / "evaluations/decision_01.json").read_text())
@@ -331,12 +335,12 @@ def test_process_death_mid_evaluation_leaves_iteration_charged_no_evaluation_rec
         (out_dir / "ngspice_partial.raw").write_text("half written")
         raise Crash("SIGKILL")
     h = Harness(tmp_path, pipeline=dies_midway)
-    ctl = h.new([A("get_design"), A("submit", summary="s")], Limits(max_iterations=2))
+    ctl = h.new([A("get_design"), NOOP, A("submit", summary="s")], Limits(max_iterations=2))
     with pytest.raises(Crash):
         ctl.run()
     s = h.state()
     assert s["state"] == "EVALUATING"                                                                    # last durable state
-    assert (s["iteration"], s["evaluations"], s["model_calls"], s["tool_calls"]) == (1, 0, 2, 1)       # iteration + model calls are charged; no evaluation recorded
+    assert (s["iteration"], s["evaluations"], s["model_calls"], s["tool_calls"]) == (1, 0, 3, 2)       # iteration + model calls are charged; no evaluation recorded
     assert s["evaluated_manifest_sha256"] == [] and s["usage"]["eval_seconds"] == 0
     assert not list((h.run / "evaluations").glob("decision_*.json")) and (h.run / "evaluations/iter_01/ngspice_partial.raw").exists()
     assert not (h.run / "summary.json").exists()                                                         # no summary: an unfinished run is distinguishable
@@ -352,7 +356,7 @@ def test_resume_after_mid_evaluation_death_records_the_interruption_and_reevalua
             raise Crash("SIGKILL")
         return synth_pipeline(components_path, out_dir)
     h = Harness(tmp_path, pipeline=maybe_die)
-    ctl = h.new([A("get_design"), A("submit", summary="s")], Limits(max_iterations=3))
+    ctl = h.new([A("get_design"), NOOP, A("submit", summary="s")], Limits(max_iterations=3))
     with pytest.raises(Crash):
         ctl.run()
     state["die"] = False
@@ -379,7 +383,7 @@ def test_killed_pipeline_subprocess_is_blocked_not_judged_and_the_design_may_be_
             subprocess.run([sys.executable, "-c", "import os, signal; os.kill(os.getpid(), signal.SIGKILL)"], check=True)
         return synth_pipeline(components_path, out_dir)
     h = Harness(tmp_path, pipeline=pipeline)
-    ctl = h.new([A("get_design"), A("submit", summary="s")], Limits(max_iterations=3))
+    ctl = h.new([A("get_design"), NOOP, A("submit", summary="s")], Limits(max_iterations=3))
     s = ctl.run()
     d = json.loads((h.run / "evaluations/decision_01.json").read_text())
     assert s["stop_reason"] == "evaluation_blocked" and d["verdict"] == "blocked" and "CalledProcessError" in d["reason"] and "SIGKILL" in d["reason"]
@@ -407,7 +411,7 @@ def test_feedback_payload_for_real_recorded_decisions_fits_and_has_the_documente
     def capture(transcript):
         seen["t"] = transcript
         return json.dumps(A("get_design"))
-    ctl = h.new([A("get_design"), A("submit", summary="s"), capture], Limits(max_iterations=2))
+    ctl = h.new([A("get_design"), NOOP, A("submit", summary="s"), capture], Limits(max_iterations=2))
     ctl.evaluator.evaluate_improvement = lambda *a, **k: decision
     ctl.run()
     fb = last_tool_result(seen["t"])
@@ -430,6 +434,6 @@ def test_resume_of_an_accepted_run_is_refused_with_a_clear_error_and_changes_not
 
 def test_resume_of_a_run_stopped_by_limits_or_crash_is_still_allowed(tmp_path):
     h = Harness(tmp_path)
-    h.new([A("get_design"), A("submit", summary="s")], Limits(max_iterations=1)).run()                   # stopped: max_iterations (non-terminal: limits may be raised)
+    h.new([A("get_design"), NOOP, A("submit", summary="s")], Limits(max_iterations=1)).run()                   # stopped: max_iterations (non-terminal: limits may be raised)
     r = h.resume([A("get_design")], Limits(max_iterations=3, max_model_calls=4))
     assert r.state["stop_reason"] is None
