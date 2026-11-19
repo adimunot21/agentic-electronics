@@ -46,13 +46,46 @@ jitter:
 
 # ---------------------------------------------------------------- hard constraints (candidate must satisfy ALL; contract limits are never changed, reserves only tighten)
 hard_constraints:
-  - {id: H1, check: REQ-FLAT-CORNERS,  quantity: worst-case passband flatness over all corners, unit: dB,  max: 0.48,   contract_limit: 0.5,   reserve: 0.02, reserve_why: frequency-grid discretisation of the 50 Hz-1 kHz sweep (peak could fall between grid points); ~4 orders above jitter}
-  - {id: H2, check: REQ-GAIN-CORNERS,  quantity: gain at 400 Hz, MIN over all corners, unit: V/V, min: 1.2355, contract_limit: 1.235, reserve: 0.0005, source: corners_summary.json gain_min}
-  - {id: H3, check: REQ-GAIN-CORNERS,  quantity: gain at 400 Hz, MAX over all corners, unit: V/V, max: 1.3645, contract_limit: 1.365, reserve: 0.0005, source: corners_summary.json gain_max}
-  - {id: H4, check: REQ-FLAT,          quantity: nominal passband flatness (Rs 0 and 100), unit: dB, max: 0.48, contract_limit: 0.5, reserve: 0.02}
-  - {id: H5, check: REQ-GAIN,          quantity: nominal gain at 400 Hz (Rs=100), unit: V/V, min: 1.2355, max: 1.3645, contract_limit: [1.235, 1.365], reserve: 0.0005}
-  - {id: H6, check: REQ-ALIAS,         quantity: nominal stopband gain, unit: dB, max: -55.8, contract_limit: -55.8, reserve: 0.0, nonregression: not worse than baseline + jitter}
-  - {id: H7, rule: every check that is `passed` in the baseline is `passed` in the candidate (no new failed/blocked/not_tested/error)}
+  - id: H1
+    check: REQ-FLAT-CORNERS
+    quantity: "worst-case passband flatness over all corners (dB)"
+    max: 0.48
+    contract_limit: 0.5
+    reserve: 0.02
+    reserve_why: "frequency-grid discretisation of the 50 Hz-1 kHz sweep (a peak could fall between grid points); about 4 orders above jitter"
+  - id: H2
+    check: REQ-GAIN-CORNERS
+    quantity: "gain at 400 Hz, MIN over all corners (V/V), read from the pipeline's corners_summary.json gain_min"
+    min: 1.2355
+    contract_limit: 1.235
+    reserve: 0.0005
+  - id: H3
+    check: REQ-GAIN-CORNERS
+    quantity: "gain at 400 Hz, MAX over all corners (V/V), read from corners_summary.json gain_max"
+    max: 1.3645
+    contract_limit: 1.365
+    reserve: 0.0005
+  - id: H4
+    check: REQ-FLAT
+    quantity: "nominal passband flatness, Rs 0 and 100 (dB)"
+    max: 0.48
+    contract_limit: 0.5
+    reserve: 0.02
+  - id: H5
+    check: REQ-GAIN
+    quantity: "nominal gain at 400 Hz, Rs=100 (V/V)"
+    min: 1.2355
+    max: 1.3645
+    contract_limit: [1.235, 1.365]
+    reserve: 0.0005
+  - id: H6
+    check: REQ-ALIAS
+    quantity: "nominal stopband gain 19 kHz-1 MHz (dB); must not be worse than baseline + jitter"
+    max: -55.8
+    contract_limit: -55.8
+    reserve: 0.0
+  - id: H7
+    rule: "every check that is passed in the baseline is passed in the candidate (no new failed/blocked/not_tested/error)"
 traded_metrics: [REQ-FLAT, REQ-FLAT-CORNERS, REQ-GAIN, REQ-GAIN-CORNERS]   # governed by H1-H5 only; exempt from the generic 10 % rule below (they are what the tradeoff spends)
 
 # ---------------------------------------------------------------- non-regression of everything else
@@ -61,11 +94,11 @@ nonregression:
   margin_source: record `margin`, else parsed from record `limit` ("<= a" / ">= a"); metrics with no margin and no parsable limit must keep their status
   failed_in_baseline:
     REQ-STAB:                       # rev 2, IN FORCE, FAILED (52.84 dB vs 3.0). The measurement is a deterministic model comparison (contract revision log), so it is treated as trustworthy.
-      rule: value must not exceed baseline + jitter (no degradation); a failed->passed change is `needs_review` (rejected as a claim: the contract owner, not this task, decides REQ-STAB)
+      rule: "value must not exceed baseline + jitter (no degradation); a failed->passed change is needs_review (rejected as a claim; the contract owner, not this task, decides REQ-STAB)"
     REQ-BOM:
-      rule: stays `failed`; release/bom.csv rows may differ from baseline ONLY in the edited refs, and ONLY by MPN / MPN_Status becoming unverified_candidate
+      rule: "stays failed; release/bom.csv rows may differ from baseline ONLY in the edited refs, and ONLY by MPN / MPN_Status becoming unverified_candidate"
   blocked_in_baseline:
-    BOM_CONSISTENCY: {rule: stays `blocked` with 0 MISMATCH lines; `failed` is a regression}
+    BOM_CONSISTENCY: {rule: "stays blocked with 0 MISMATCH lines; failed is a regression"}
   not_tested_in_baseline: [MODEL_STARTUP, MODEL_SATURATION, MODEL_OVERLOAD_RECOVERY]   # must stay not_tested; any other status is an error
   unchanged_status_required: [ERC, NETLIST_INTENT, PIN_SYMBOL, PIN_FOOTPRINT, PIN_SPICE_HEADER, PIN_WIRING, DECK_VS_NETLIST, DRC_VIOLATIONS, DRC_UNCONNECTED, DRC_PARITY, REQ-MFG]
 
@@ -79,9 +112,9 @@ claims_never_made:
 
 # ---------------------------------------------------------------- verdicts
 verdicts:
-  accepted_for_objective: all hard constraints and non-regression rules hold AND objective improved by >= min_improvement. Scope: this objective only; blocked_claims are listed.
-  rejected: any policy violation OR objective improvement < min_improvement (including no-ops and regressions)
-  blocked: trusted code/policy/baseline digest changed, pipeline error, a required check missing/blocked/error, or stale/foreign evidence
+  accepted_for_objective: "all hard constraints and non-regression rules hold AND the objective improved by >= min_improvement. Scope: this objective only; blocked_claims are listed."
+  rejected: "any policy violation OR objective improvement < min_improvement (including no-ops and regressions)"
+  blocked: "trusted code/policy/baseline digest changed, pipeline error, a required check missing/blocked/error, or stale/foreign evidence"
 policy_violation_vs_circuit_failure: >
   decisions report `policy_violations` (rules of this policy that were broken) separately from `circuit_requirement_failures` (candidate checks whose own outcome is failed, flagged
   `pre_existing` when also failed in the baseline).
@@ -96,9 +129,9 @@ search:
     - stop at max_full_evaluations
     - a candidate rejected before evaluation by the patch validator is recorded and not evaluated
   controls:                      # labelled controls required by the milestone; evaluated in addition to the search, not counted as search candidates
-    - {id: X_regression_c3_5n1, purpose: pole UP (less attenuation): must be rejected}
-    - {id: X_noop_c3_5n60, purpose: textually different but numerically identical value: must NOT count as improvement}
-    - {id: X_out_of_scope_r1, purpose: edit outside allowed_edits: rejected by the validator without evaluation}
+    - {id: X_regression_c3_5n1, purpose: "pole UP (less attenuation); must be rejected"}
+    - {id: X_noop_c3_5n60, purpose: "textually different but numerically identical value; must NOT count as improvement"}
+    - {id: X_out_of_scope_r1, purpose: "edit outside allowed_edits; rejected by the validator without evaluation"}
   candidates:
     A_r45_16k9:         {pole_shift_pct_expected: -2.4, ops: [[R4, value, 16.9k], [R4, mpn_candidate, RC0603FR-0716K9L], [R5, value, 16.9k], [R5, mpn_candidate, RC0603FR-0716K9L]]}
     B_r45_17k4:         {pole_shift_pct_expected: -5.2, ops: [[R4, value, 17.4k], [R4, mpn_candidate, RC0603FR-0717K4L], [R5, value, 17.4k], [R5, mpn_candidate, RC0603FR-0717K4L]]}
