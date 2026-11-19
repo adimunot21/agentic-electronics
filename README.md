@@ -37,6 +37,9 @@ Needs docker, curl, uv. No cloud account, API key or paid service. TI's model li
 ## Agent harness (first closed loop)
 A constrained-tool agent loop with an independent evaluator is in `src/ae/harness/` (documented, with verified commands and results, in [`docs/agent-harness.md`](docs/agent-harness.md)). One live model-driven repair of a controlled BOM-value defect has been accepted by the evaluator (n = 1); other modes, tasks and comparisons are not run.
 
+## Improvement mode
+A separate frozen-policy mode for design changes (not just restoration) is documented in [`docs/agent-improvement-mode.md`](docs/agent-improvement-mode.md): scripted fixture candidates against the real pipeline; no agent-designed improvement exists yet.
+
 ## Layout
 `src/ae/` toolchain runner, S-expression/KiCad schematic emitter, netlist reader, SPICE deck + cross-check, sim suite, pin audit, board stages, release, evidence/ownership/patch, orchestrator, defects, CLI.
 `tools_kicad/` scripts that run **inside** the KiCad image (`import pcbnew`). `designs/`, `requirements/`, `evidence/`, `models/`, `analysis/`, `docs/`, `runs/`.

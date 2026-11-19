@@ -1,0 +1,29 @@
+{
+ "n": 1024,
+ "completed": 1024,
+ "wall_s": 28.5,
+ "worst_flat": {
+  "corner": {
+   "R1": "lo",
+   "R2": "hi",
+   "R3": "lo",
+   "R4": "lo",
+   "R5": "hi",
+   "C1": "lo",
+   "C2": "hi",
+   "C3": "hi",
+   "C4": "lo",
+   "Rs": "lo"
+  },
+  "gain_400hz_V_per_V": 1.3388898929754278,
+  "passband_flatness_dB_max_abs": 0.6079837839107125,
+  "stopband_abs_gain_dB_max_19k_to_1M": -61.3432670599845,
+  "zin_min_ohm": 58436.31841600992
+ },
+ "flat_fail": 128,
+ "gain_min": 1.2357159942501723,
+ "gain_max": 1.3564405316927646,
+ "gain_fail": 0,
+ "stop_worst": -59.610149126898364,
+ "stop_fail": 0
+}

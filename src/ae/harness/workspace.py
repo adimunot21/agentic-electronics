@@ -8,14 +8,15 @@ import shutil
 import stat
 from pathlib import Path
 
-from ae.harness.patch import ValidatedPatch, apply_validated, sha256_text, validate_patch
+from ae.harness.patch import DEFAULT_SCOPE, ValidatedPatch, apply_validated, sha256_text, validate_patch
 from ae.harness.contracts import ToolError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 # Everything the evaluator and checks trust. Hashed at run start and again before/after every evaluation: any change => evaluation BLOCKED.
 TRUSTED_GLOBS = ["requirements/fe-aaf-001.yaml", "src/ae/**/*.py", "tools_kicad/*.py", "analysis/derive_filter.py", "evidence/pins/*.yaml",
-                 "designs/fe-aaf-001/placement.yaml", "designs/fe-aaf-001/fe_aaf_001.kicad_pro", "models/shim-record.json", "models/cache/OPA2314/opa2314_ngspice_shim.lib"]
+                 "designs/fe-aaf-001/placement.yaml", "designs/fe-aaf-001/fe_aaf_001.kicad_pro", "models/shim-record.json", "models/cache/OPA2314/opa2314_ngspice_shim.lib",
+                 "src/ae/harness/tasks/*.yaml", "evidence/bom-verification.yaml"]
 
 
 def trusted_digest(repo: Path = REPO_ROOT) -> dict:
@@ -29,8 +30,9 @@ def trusted_digest(repo: Path = REPO_ROOT) -> dict:
 
 
 class Workspace:
-    def __init__(self, root: Path):
+    def __init__(self, root: Path, scope=None):
         self.root = root
+        self.scope = scope or DEFAULT_SCOPE
         self.manifest = root / "components.yaml"
         self.history: list[dict] = []
 
@@ -54,7 +56,7 @@ class Workspace:
     def propose(self, patch: object) -> dict:
         """Validate (scope, shape, stale base) then apply. Rejection leaves the workspace untouched."""
         before = self.text()
-        vp: ValidatedPatch = validate_patch(patch, before)
+        vp: ValidatedPatch = validate_patch(patch, before, self.scope)
         after = apply_validated(vp, before)
         record = {"seq": len(self.history) + 1, "summary": vp.summary, "ops": vp.ops, "fingerprint": vp.fingerprint, "forced_side_effects": vp.forced,
                   "before_sha256": sha256_text(before), "after_sha256": sha256_text(after)}

@@ -50,9 +50,13 @@ def main(argv: list[str] | None = None) -> int:
         r = ClaudeCliProvider(a.model, a.max_budget_usd).probe()
         print(json.dumps({"ok": r.error is None and r.text.strip() == "OK", "error": r.error, "text": r.text[:40], "model": r.model, "cost_usd_reported": r.cost_usd, "cost_basis": r.cost_basis, "elapsed_s": round(r.elapsed_s, 2)}))
         return 0 if r.error is None else 2
+    task = load_task(a.task, a.allow_heldout)
+    if task.kind == "improvement" and a.provider == "scripted-fixture":
+        print("improvement tasks have no built-in scripted agent; deterministic candidates run via scripts/improvement_search_fixture.py", file=sys.stderr)
+        return 2
     provider = ClaudeCliProvider(a.model, a.max_budget_usd) if a.provider == "claude-cli" else scripted_reference_agent()
     run_id = a.run_id or f"{a.task}-{a.provider}-{time.strftime('%Y%m%d-%H%M%S')}"
-    ctl = Controller(REPO_ROOT / "runs/agent" / run_id, load_task(a.task, a.allow_heldout), provider, TrustedEvaluator(), Limits(max_iterations=a.max_iterations, max_model_calls=a.max_model_calls),
+    ctl = Controller(REPO_ROOT / "runs/agent" / run_id, task, provider, TrustedEvaluator(), Limits(max_iterations=a.max_iterations, max_model_calls=a.max_model_calls),
                      Mode.ENGINEERED_SINGLE, evaluate_defect=a.evaluate_defect)
     summary = ctl.run()
     print(json.dumps(summary, indent=1, default=str))

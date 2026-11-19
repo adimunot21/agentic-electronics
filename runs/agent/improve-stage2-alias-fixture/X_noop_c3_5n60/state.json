@@ -1,0 +1,30 @@
+{
+ "state": "STOPPED",
+ "iteration": 1,
+ "model_calls": 4,
+ "tool_calls": 3,
+ "evaluations": 1,
+ "invalid_replies": 0,
+ "identical_patch_hits": 0,
+ "no_progress": 0,
+ "stop_reason": "max_iterations",
+ "evaluated_manifest_sha256": [
+  "2595275ec30844e6c69f19c0f7b343ec82b565e01b77afc240d45e574cfae01d"
+ ],
+ "patch_fingerprints": [
+  "0b43b81bc74304f74752dfbc5eb159efe2eaaa5e6cd98c340e01cc109412c1b3"
+ ],
+ "best_violation_count": 1,
+ "usage": {
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "cost_usd_reported": 0.0,
+  "cost_unknown_calls": 0,
+  "model_seconds": 0.0,
+  "tool_seconds": 2.1984495650976896,
+  "eval_seconds": 94.4141322550131
+ },
+ "provider": "scripted-fixture",
+ "fixture": true,
+ "mode": "engineered_single_agent"
+}

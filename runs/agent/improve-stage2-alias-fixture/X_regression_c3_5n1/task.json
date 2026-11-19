@@ -1,0 +1,22 @@
+{
+ "id": "improve-stage2-alias",
+ "split": "dev",
+ "description": "Improve the worst-case (all 1024 tolerance corners) stopband rejection at 19 kHz-1 MHz of the adopted FE-AAF-001 reference by retuning the stage-2 (1st-order) pole, without consuming more passband flatness or gain margin than the explicit hard constraints allow. This is a passband-flatness vs alias-rejection tradeoff on the CURRENT circuit.",
+ "defect": {},
+ "kind": "improvement",
+ "policy_path": "/home/adimunot21/dev/agentic-electronics/src/ae/harness/tasks/improve_stage2_alias.yaml",
+ "limits": {
+  "max_iterations": 1,
+  "max_model_calls": 8,
+  "max_tool_calls": 80,
+  "model_timeout_s": 240.0,
+  "wall_budget_s": 2400.0,
+  "max_cost_usd": null,
+  "identical_patch_limit": 2,
+  "no_progress_limit": 2,
+  "max_invalid_replies": 3
+ },
+ "mode_status": "implemented",
+ "trusted_digest": "5b9f609ef134f5e9a34936861a9245c4b12cff5398d6e1f9b729f2793604142a",
+ "pristine_manifest_sha256": "e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d"
+}

@@ -10,7 +10,9 @@ The controller owns state; the model only returns one JSON action per turn. The 
 from __future__ import annotations
 
 import difflib
+import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -23,6 +25,7 @@ from typing import Callable
 from ae.harness.checks import run_fast
 from ae.harness.contracts import ToolRegistry
 from ae.harness.evaluator import TrustedEvaluator
+from ae.harness.improvement import ACCEPT, PolicyError, edited_refs, load_policy
 from ae.harness.providers import ModelProvider
 from ae.harness.tasks import Task, create_defect
 from ae.harness.tools import AgentContext, build_registry
@@ -73,14 +76,83 @@ An independent evaluator runs the full pipeline against the protected requiremen
 Do not guess hidden answers; do not try to weaken checks. If unsure, gather evidence first."""
 
 
+IMPROVEMENT_PROMPT = """You are the DESIGN AGENT in an electronics design harness. You can act ONLY by returning ONE JSON object per turn:
+{"reasoning": "<short>", "action": {"tool": "<tool name>", "args": {...}}}
+Return nothing but that single JSON object (two actions in one reply are rejected). Tools (typed; invalid arguments are rejected):
+{tools}
+Rules: you cannot read or write files; requirements, thresholds, the frozen policy and the evaluator are protected. Your only design edit is `propose_patch`
+(scope: value and mpn_candidate of the parts named in the task's allowed_edits; changing an MPN resets its verification status; a value edit without a matching MPN edit fails the BOM check).
+Patch format: {{"summary": str, "base_sha256": <manifest_sha256 from get_design>, "ops": [{{"op":"set_field","part":"R4","field":"value","to":"..."}}]}}.
+The task has ONE objective with a minimum improvement and hard constraints; the evaluator re-runs the full pipeline over all tolerance corners and judges against the frozen policy. Fast checks are nominal only,
+so corner behaviour is NOT visible to you before you submit. Pre-existing failures (e.g. REQ-STAB) are not yours to fix or hide and must not get worse. A rejection reports policy violations separately from failed circuit requirements.
+Do not guess hidden answers; do not try to weaken checks. If you cannot find a justified improvement, say so by submitting nothing changed rather than inventing one."""
+
+
+class _NonFinite(ValueError):
+    pass
+
+
+def _reject_constant(name: str):
+    raise _NonFinite(name)
+
+
+def _all_finite(obj) -> bool:
+    if isinstance(obj, float):
+        return math.isfinite(obj)
+    if isinstance(obj, dict):
+        return all(_all_finite(v) for v in obj.values())
+    if isinstance(obj, list):
+        return all(_all_finite(v) for v in obj)
+    return True
+
+
+def parse_action(text: str) -> tuple[dict | None, str | None]:
+    """STRICT action parser. Exactly ONE JSON object with an `action` key may appear in a reply (prose around it is ignored, as seen in a live reply).
+    Rejected with no side effects: no object, an object without `action`, two or more action objects (also inside an array), unknown keys, non-string tool, non-object args,
+    NaN / Infinity / out-of-range floats. Nothing is dispatched on rejection."""
+    decoder = json.JSONDecoder(parse_constant=_reject_constant)
+    found, other, i = [], 0, 0
+    while True:
+        i = text.find("{", i)
+        if i < 0:
+            break
+        try:
+            obj, end = decoder.raw_decode(text, i)
+        except _NonFinite as exc:
+            return None, f"non-finite number ({exc}) is not allowed"
+        except (ValueError, RecursionError):
+            i += 1
+            continue
+        if isinstance(obj, dict) and "action" in obj:
+            found.append(obj)
+        else:
+            other += 1
+        i = end
+    if len(found) > 1:
+        return None, f"ambiguous: {len(found)} action objects in one reply (exactly one action per reply)"
+    if not found:
+        return None, "no JSON action object found" if not other else "JSON object has no 'action' key"
+    obj = found[0]
+    if not _all_finite(obj):
+        return None, "non-finite number (inf/nan) is not allowed"
+    act = obj["action"]
+    if set(obj) - {"reasoning", "action"}:
+        return None, f"unknown top-level key(s) {sorted(set(obj) - {'reasoning', 'action'})}"
+    if not isinstance(act, dict) or set(act) - {"tool", "args"} or not isinstance(act.get("tool"), str) or not act["tool"] or not isinstance(act.get("args", {}), dict):
+        return None, "action must be {tool: non-empty str, args: object}"
+    return {"tool": act["tool"], "args": act.get("args", {}), "reasoning": str(obj.get("reasoning", ""))[:500]}, None
+
+
 class Controller:
     def __init__(self, run_dir: Path, task: Task, provider: ModelProvider, evaluator: TrustedEvaluator, limits: Limits = Limits(), mode: Mode = Mode.ENGINEERED_SINGLE,
-                 pristine_manifest: Path | None = None, baseline_record: dict | None = None, checks_fn: Callable = run_fast, evaluate_defect: bool = False, repo: Path = REPO_ROOT):
+                 pristine_manifest: Path | None = None, baseline_record: dict | None = None, checks_fn: Callable = run_fast, evaluate_defect: bool = False, repo: Path = REPO_ROOT, baseline_dir: Path | None = None):
         if MODE_STATUS[mode] != "implemented":
             raise NotImplementedError(f"mode {mode.value} is {MODE_STATUS[mode]}; only {Mode.ENGINEERED_SINGLE.value} exists")
         self.run_dir, self.task, self.provider, self.evaluator, self.limits, self.mode = run_dir, task, provider, evaluator, limits, mode
         self.repo, self.pristine = repo, pristine_manifest or repo / "designs/fe-aaf-001/components.yaml"
         self.baseline_record, self.checks_fn, self.evaluate_defect = baseline_record, checks_fn, evaluate_defect
+        self.baseline_dir = baseline_dir or run_dir / "baseline"
+        self.policy = None                      # frozen ImprovementPolicy (improvement tasks only; loaded + verified in prepare)
         self.t0 = time.monotonic()
         self.seq = 0
         self.state = {"state": "INIT", "iteration": 0, "model_calls": 0, "tool_calls": 0, "evaluations": 0, "invalid_replies": 0, "identical_patch_hits": 0, "no_progress": 0,
@@ -111,7 +183,7 @@ class Controller:
     def _summary(self) -> dict:
         u = self.state["usage"]
         s = {"run_dir": str(self.run_dir), "task": self.task.id, "split": self.task.split, "mode": self.mode.value, "provider": self.provider.name, "fixture": self.provider.fixture,
-             "final_state": self.state["state"], "stop_reason": self.state["stop_reason"], "iterations": self.state["iteration"], "model_calls": self.state["model_calls"],
+             "task_kind": self.task.kind, "final_state": self.state["state"], "stop_reason": self.state["stop_reason"], "iterations": self.state["iteration"], "model_calls": self.state["model_calls"],
              "tool_calls": self.state["tool_calls"], "evaluations": self.state["evaluations"], "elapsed_s": round(time.monotonic() - self.t0, 1),
              "usage": {**u, "cost_usd_reported": (u["cost_usd_reported"] if u["cost_unknown_calls"] == 0 else None),
                        "cost_note": "cost is a provider-reported list-basis estimate; unknown calls make the total unknown (None), never 0"},
@@ -125,13 +197,21 @@ class Controller:
         self.run_dir.mkdir(parents=True, exist_ok=True)
         (self.run_dir / "task.json").write_text(json.dumps({**asdict(self.task), "limits": asdict(self.limits), "mode_status": MODE_STATUS[self.mode], "trusted_digest": self.evaluator.digest_at_start["combined"],
                                                             "pristine_manifest_sha256": __import__("hashlib").sha256(self.pristine.read_bytes()).hexdigest()}, indent=1))
+        if self.task.kind == "improvement":
+            try:
+                self.policy = load_policy(Path(self.task.policy_path), self.repo)
+            except PolicyError as exc:
+                return self._stop("policy_blocked", detail=str(exc))
+            (self.run_dir / "policy_frozen.yaml").write_text(Path(self.task.policy_path).read_text())
         if self.baseline_record is None:
             try:
-                self.baseline_record = self.evaluator.run_pipeline(self.pristine, self.run_dir / "baseline")
+                self.baseline_record = self.evaluator.run_pipeline(self.pristine, self.baseline_dir)
             except Exception as exc:
                 return self._stop("baseline_unavailable", error=f"{type(exc).__name__}: {exc}")
         (self.run_dir / "baseline_record.json").write_text(json.dumps(self.baseline_record, indent=1))
         self._transition("BASELINE_CAPTURED", baseline_summary=self.baseline_record["summary"])
+        if self.policy is not None:
+            return self._prepare_improvement()
         self.ws = Workspace(self.run_dir / "workspace")
         defect_manifest = self.run_dir / "defect_manifest.yaml"
         defect = create_defect(self.task, self.pristine, defect_manifest)
@@ -159,20 +239,36 @@ class Controller:
         self._event("message", role="user", content=self.messages[0]["content"])
         return None
 
+    def _prepare_improvement(self) -> dict | None:
+        pol = self.policy
+        if hashlib.sha256(self.pristine.read_bytes()).hexdigest() != pol.raw["baseline"]["components_sha256"]:
+            return self._stop("policy_blocked", detail="pristine manifest differs from the frozen baseline")
+        self.ws = Workspace(self.run_dir / "workspace", scope=pol.scope())
+        self.ws.init(self.pristine)                                        # improvement starts FROM the adopted reference: there is no seeded defect
+        self.ctx = AgentContext(self.ws, self.run_dir / "scratch", failure_report={}, checks_fn=self.checks_fn, repo=self.repo, trusted_combined=self.evaluator.digest_at_start["combined"])
+        by = {c["id"]: c for c in self.baseline_record["checks"]}
+        keys = [pol.objective_check, "REQ-FLAT-CORNERS", "REQ-GAIN-CORNERS", "REQ-FLAT", "REQ-GAIN", "REQ-ALIAS", "REQ-STAB"]
+        brief = {"design_manifest_sha256": self.ws.sha256(), "policy_id": pol.task_id, "policy_version": pol.version, "policy_sha256": pol.sha256,
+                 "objective": pol.raw["objective"], "hard_constraints": pol.raw["hard_constraints"], "allowed_edits": pol.raw["allowed_edits"], "non_regression": pol.raw["nonregression"],
+                 "claims_never_made": pol.raw["claims_never_made"],
+                 "baseline_measurements": {k: {"outcome": by[k]["outcome"], "value": by[k].get("value"), "limit": by[k].get("limit"), "margin": by[k].get("margin")} for k in keys},
+                 "fast_check_results": self.checks_fn(["bom_consistency", "ac_response"], self.ws.manifest, self.ctx.scratch / "baseline_fast"),
+                 "note": "baseline measured by the trusted pipeline; the evaluator re-runs the FULL pipeline (all corners) on your design; fast checks are nominal only"}
+        self.ctx.failure_report = brief
+        (self.run_dir / "task_brief.json").write_text(json.dumps(brief, indent=1, default=str))
+        self._transition("TASK_READY", task=pol.task_id, policy_sha256=pol.sha256[:12])
+        self.registry = build_registry(self.ctx)
+        specs = "\n".join(json.dumps(sp.schema()) for sp in self.registry.specs())
+        self.system = IMPROVEMENT_PROMPT.replace("{tools}", specs)
+        self.messages = [{"role": "user", "content": f"TASK ({self.task.id}): {self.task.description}\nFrozen objective, constraints and baseline:\n{json.dumps(brief, indent=1, default=str)[:7000]}\nBegin. Reply with one JSON action."}]
+        self._event("message", role="user", content=self.messages[0]["content"])
+        return None
+
     def _transcript(self) -> str:
         return "\n\n".join(f"[{m['role'].upper()}]\n{m['content']}" for m in self.messages)
 
     def _parse(self, text: str):
-        m = re.search(r"\{.*\}", text, re.S)
-        if not m:
-            return None, "no JSON object found"
-        try:
-            obj = json.loads(m.group(0))
-            act = obj["action"]
-            assert isinstance(act["tool"], str) and isinstance(act.get("args", {}), dict)
-            return {"tool": act["tool"], "args": act.get("args", {}), "reasoning": str(obj.get("reasoning", ""))[:500]}, None
-        except Exception as exc:
-            return None, f"{type(exc).__name__}: {exc}"
+        return parse_action(text)
 
     def _budget_stop(self) -> dict | None:
         u, L = self.state["usage"], self.limits
@@ -262,14 +358,17 @@ class Controller:
         self._transition("EVALUATING", iteration=self.state["iteration"], manifest_sha256=sha[:12])
         ev_dir = self.run_dir / "evaluations" / f"iter_{self.state['iteration']:02d}"
         t = time.monotonic()
-        decision = self.evaluator.evaluate(self.ws.manifest, ev_dir, self.baseline_record)
+        if self.policy is not None:
+            decision = self.evaluator.evaluate_improvement(self.ws.manifest, ev_dir, self.baseline_record, self.baseline_dir, self.policy, self.pristine.read_text())
+        else:
+            decision = self.evaluator.evaluate(self.ws.manifest, ev_dir, self.baseline_record)
         self.state["usage"]["eval_seconds"] += time.monotonic() - t
         self.state["evaluations"] += 1
         self.state["evaluated_manifest_sha256"].append(sha)
         ev_dir.parent.mkdir(parents=True, exist_ok=True)
         (ev_dir.parent / f"decision_{self.state['iteration']:02d}.json").write_text(json.dumps(decision, indent=1, default=str))
         self._event("evaluation", iteration=self.state["iteration"], verdict=decision["verdict"], violations=decision.get("violations"), reason=decision.get("reason"))
-        if decision["verdict"] == "accepted":
+        if decision["verdict"] in ("accepted", ACCEPT):
             self._finalize(decision)
             self.state["stop_reason"] = "accepted"
             self._transition("ACCEPTED", iteration=self.state["iteration"])
@@ -285,8 +384,9 @@ class Controller:
             return self._stop("max_iterations")
         if self.state["no_progress"] >= self.limits.no_progress_limit:
             return self._stop("no_progress", detail="violation count did not improve")
-        findings = [{k: v for k, v in x.items() if k != "candidate_detail"} | ({"detail": x["candidate_detail"][:200]} if "candidate_detail" in x else {}) for x in decision["violations"]][:12]
-        self._feedback({"ok": False, "evaluator_verdict": "rejected", "findings": findings, "unresolved_baseline_failures_not_yours": decision["unresolved_baseline_failures"],
+        findings = [{k: v for k, v in x.items() if k not in ("candidate_detail",)} | ({"detail": x["candidate_detail"][:200]} if "candidate_detail" in x else {}) for x in decision["violations"]][:12]
+        extra = {"objective": decision.get("objective"), "circuit_requirement_failures": decision.get("circuit_requirement_failures")} if self.policy is not None else {}
+        self._feedback({"ok": False, "evaluator_verdict": "rejected", "findings": findings, **extra, "unresolved_baseline_failures_not_yours": decision["unresolved_baseline_failures"],
                         "note": "fresh evidence was produced by the protected pipeline; fix the cause of the findings, do not guess"})
         self._transition("AGENT_TURN")
         return None
@@ -294,6 +394,16 @@ class Controller:
     def _finalize(self, decision: dict) -> None:
         out = self.run_dir / "output"
         out.mkdir(exist_ok=True)
+        if self.policy is not None:
+            shutil.copy(self.ws.manifest, out / "components.yaml")
+            (out / "candidate_vs_adopted_reference.diff").write_text("".join(difflib.unified_diff(self.pristine.read_text().splitlines(True), self.ws.text().splitlines(True),
+                                                                                                 "designs/fe-aaf-001/components.yaml", "candidate/components.yaml")))
+            (out / "patches.json").write_text(json.dumps(self.ws.history, indent=1))
+            (out / "evaluator_decision.json").write_text(json.dumps(decision, indent=1, default=str))
+            (out / "README.txt").write_text("ACCEPTED FOR THE FROZEN OBJECTIVE ONLY (improve-stage2-alias, policy sha256 " + self.policy.sha256[:12] + "). Isolated output; the adopted reference was NOT modified; merging is a human decision. "
+                                            "NOT a released or validated board: release_ready is false; REQ-STAB stays failed; new MPNs are unverified_candidate; MODEL_* stay not_tested. Blocked claims: "
+                                            + "; ".join(c["claim"] for c in decision.get("blocked_claims", [])) + "\n")
+            return
         shutil.copy(self.ws.manifest, out / "components.yaml")
         pristine, defective, final = self.pristine.read_text().splitlines(True), (self.run_dir / "defect_manifest.yaml").read_text().splitlines(True), self.ws.text().splitlines(True)
         (out / "agent_patch_vs_defect.diff").write_text("".join(difflib.unified_diff(defective, final, "defect/components.yaml", "candidate/components.yaml")))
@@ -311,12 +421,15 @@ class Controller:
         c.state = json.loads((run_dir / "state.json").read_text())
         c.state["stop_reason"] = None
         c.baseline_record = json.loads((run_dir / "baseline_record.json").read_text())
-        c.ws = Workspace(run_dir / "workspace")
+        improvement = c.task.kind == "improvement"
+        if improvement:
+            c.policy = load_policy(Path(c.task.policy_path), c.repo)
+        c.ws = Workspace(run_dir / "workspace", scope=c.policy.scope() if improvement else None)
         c.ws.history = [json.loads(p.read_text()) for p in sorted((run_dir / "workspace" / "patches").glob("*.json"))]
-        c.ctx = AgentContext(c.ws, run_dir / "scratch", failure_report=json.loads((run_dir / "defect_failure_report.json").read_text()), checks_fn=c.checks_fn, repo=c.repo,
-                             trusted_combined=c.evaluator.digest_at_start["combined"])
+        report = json.loads((run_dir / ("task_brief.json" if improvement else "defect_failure_report.json")).read_text())
+        c.ctx = AgentContext(c.ws, run_dir / "scratch", failure_report=report, checks_fn=c.checks_fn, repo=c.repo, trusted_combined=c.evaluator.digest_at_start["combined"])
         c.registry = build_registry(c.ctx)
-        c.system = SYSTEM_PROMPT.replace("{tools}", "\n".join(json.dumps(s.schema()) for s in c.registry.specs()))
+        c.system = (IMPROVEMENT_PROMPT if improvement else SYSTEM_PROMPT).replace("{tools}", "\n".join(json.dumps(sp.schema()) for sp in c.registry.specs()))
         c.messages, last = [], 0
         for line in (run_dir / "trace.jsonl").read_text().splitlines():
             e = json.loads(line)

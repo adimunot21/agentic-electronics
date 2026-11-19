@@ -19,10 +19,12 @@ class Task:
     split: str
     description: str
     defect: dict
+    kind: str = "restoration"            # restoration (default, defect repair) | improvement (frozen objective policy, see ae.harness.improvement)
+    policy_path: str | None = None
 
 
 def list_tasks() -> list[dict]:
-    return [{"id": y["id"], "split": y["split"]} for y in (yaml.safe_load(p.read_text()) for p in sorted(TASK_DIR.glob("*.yaml")))]
+    return [{"id": y["id"], "split": y["split"], "kind": y.get("kind", "restoration")} for y in (yaml.safe_load(p.read_text()) for p in sorted(TASK_DIR.glob("*.yaml")))]
 
 
 def load_task(task_id: str, allow_heldout: bool = False) -> Task:
@@ -31,6 +33,8 @@ def load_task(task_id: str, allow_heldout: bool = False) -> Task:
         if y["id"] == task_id:
             if y["split"] == "heldout" and not allow_heldout:
                 raise PermissionError(f"task {task_id!r} is HELD OUT: refuse to run during development (pass allow_heldout=True for an evaluation run)")
+            if y.get("kind") == "improvement":
+                return Task(y["id"], y["split"], " ".join(str(y["description"]).split()), {}, "improvement", str(p))
             return Task(y["id"], y["split"], y["description"], y["defect"])
     raise KeyError(task_id)
 

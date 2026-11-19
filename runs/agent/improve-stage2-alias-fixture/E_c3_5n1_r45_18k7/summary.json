@@ -1,0 +1,28 @@
+{
+ "run_dir": "/home/adimunot21/dev/agentic-electronics/runs/agent/improve-stage2-alias-fixture/E_c3_5n1_r45_18k7",
+ "task": "improve-stage2-alias",
+ "split": "dev",
+ "mode": "engineered_single_agent",
+ "provider": "scripted-fixture",
+ "fixture": true,
+ "task_kind": "improvement",
+ "final_state": "ACCEPTED",
+ "stop_reason": "accepted",
+ "iterations": 1,
+ "model_calls": 4,
+ "tool_calls": 3,
+ "evaluations": 1,
+ "elapsed_s": 103.9,
+ "usage": {
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "cost_usd_reported": 0.0,
+  "cost_unknown_calls": 0,
+  "model_seconds": 0.0,
+  "tool_seconds": 2.2103074189508334,
+  "eval_seconds": 94.40182910801377,
+  "cost_note": "cost is a provider-reported list-basis estimate; unknown calls make the total unknown (None), never 0"
+ },
+ "live_agent_success": false,
+ "accepted_by_independent_evaluator": true
+}

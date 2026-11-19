@@ -1,0 +1,58 @@
+[
+ {
+  "seq": 1,
+  "summary": "fixture: pre-registered candidate",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "value",
+    "to": "5.1n",
+    "from": "5.6n"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "mpn_candidate",
+    "to": "C0805C512J5GACTU",
+    "from": "C0805C562J5GACTU"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "value",
+    "to": "18.7k",
+    "from": "16.5k"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0718K7L",
+    "from": "RC0603FR-0716K5L"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "value",
+    "to": "18.7k",
+    "from": "16.5k"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0718K7L",
+    "from": "RC0603FR-0716K5L"
+   }
+  ],
+  "fingerprint": "1da89f5d2157acea962f1c089fbb8edde9ad4d80643b61e72b56371a70d149c2",
+  "forced_side_effects": [
+   "C3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R4.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R5.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d",
+  "after_sha256": "eb824be5cd3625b1573bf6ebbd8183099b9fe1a2167715585c082365c3260109"
+ }
+]
