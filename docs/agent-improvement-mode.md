@@ -123,3 +123,10 @@ Note: the user-visible assumption that unknown tools and out-of-scope patches le
 * The wall budget (`wall_budget_s`) is measured from process start (`t0`) and **resets on every resume**; it is per process, not cumulative. [code inspection]
 * `--max-budget-usd` is passed to the CLI as a **per-call** cap (`--max-budget-usd`, documented as "only works with --print"); `ae.harness.run` does not set the harness's cumulative `Limits.max_cost_usd` (it stays `None`), and unknown cost can never be enforced anyway. The worst case is therefore bounded only by `--max-model-calls x per-call cap`, and the harness cost total is **not a hard cumulative billing guarantee**. [code inspection]
 * The cost the CLI reports is a list-basis estimate, not billing. **After any live run the run report must state the harness-accounted cost (`summary.json` usage, with `cost_unknown_calls`) next to this note: actual billing is only known from the provider.**
+
+### 6. Re-verification under the final tree (trusted-code digest `9e86499f119dae3a35e29187cfba922e06e9081bc8c7585f4683c6e8fec57370`, 53 files, tree at `8022097`+docs)
+Real docker tools, no model. [verified by test / executed fixture]
+* `uv run pytest tests/unit -q`: 172 passed. `uv run pytest tests/integration -q -m integration`: 12 passed (incl. restoration `test_real_checks_fail_on_the_defect_and_clear_after_a_valid_repair`, improvement fast checks, no-op identical).
+* Wrong-fix fixture (restoration path, `dev-c1-value`): first patch **rejected** (15 violations), restore patch **accepted**, both decisions under `9e86499f119d`.
+* Candidate E (policy `d278109a…` unchanged): **accepted_for_objective**, 98.4 s, policy violations none; REQ-BOM and REQ-STAB reported as pre-existing failures.
+Records: `runs/agent/final-digest-improve/`, `runs/agent/final-digest-wrongfix/` (fixtures, not agent results). The launch-path static inspection is in the hand-back, not repeated here.
