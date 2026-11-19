@@ -1,0 +1,211 @@
+{
+ "design_manifest_sha256": "e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d",
+ "policy_id": "improve-wide-retune-alias-v3",
+ "policy_version": 3,
+ "policy_sha256": "da5c05f37060cdc5f40c7ef6426553b5af42e5acd8e5dbf2998a83ba917d071e",
+ "objective": {
+  "check": "REQ-ALIAS-CORNERS",
+  "metric": "worst-case stopband gain, 19 kHz-1 MHz, over all 1024 vertices of the contract tolerance box, real op-amp model (shim)",
+  "unit": "dB",
+  "direction": "minimize",
+  "baseline_value_expected_dB": -58.73526536671747,
+  "min_improvement": 0.5,
+  "scoring_statement": "The scored objective is the WORST CASE over the task's complete tolerance-corner set (all 1024 vertices of the contract tolerance box), not the nominal value that the fast ac_response check shows. A rejection reports each failing rule with its measured value and its limit, plus the objective's baseline, candidate and required improvement."
+ },
+ "hard_constraints": [
+  {
+   "id": "H1",
+   "check": "REQ-FLAT-CORNERS",
+   "quantity": "worst-case passband flatness over all corners (dB)",
+   "max": 0.48,
+   "contract_limit": 0.5,
+   "reserve": 0.02,
+   "reserve_why": "frequency-grid discretisation of the 50 Hz-1 kHz sweep (a peak could fall between grid points); about 4 orders above jitter"
+  },
+  {
+   "id": "H2",
+   "check": "REQ-GAIN-CORNERS",
+   "quantity": "gain at 400 Hz, MIN over all corners (V/V), read from the pipeline's corners_summary.json gain_min",
+   "min": 1.2355,
+   "contract_limit": 1.235,
+   "reserve": 0.0005
+  },
+  {
+   "id": "H3",
+   "check": "REQ-GAIN-CORNERS",
+   "quantity": "gain at 400 Hz, MAX over all corners (V/V), read from corners_summary.json gain_max",
+   "max": 1.3645,
+   "contract_limit": 1.365,
+   "reserve": 0.0005
+  },
+  {
+   "id": "H4",
+   "check": "REQ-FLAT",
+   "quantity": "nominal passband flatness, Rs 0 and 100 (dB)",
+   "max": 0.48,
+   "contract_limit": 0.5,
+   "reserve": 0.02
+  },
+  {
+   "id": "H5",
+   "check": "REQ-GAIN",
+   "quantity": "nominal gain at 400 Hz, Rs=100 (V/V)",
+   "min": 1.2355,
+   "max": 1.3645,
+   "contract_limit": [
+    1.235,
+    1.365
+   ],
+   "reserve": 0.0005
+  },
+  {
+   "id": "H6",
+   "check": "REQ-ALIAS",
+   "quantity": "nominal stopband gain 19 kHz-1 MHz (dB); must not be worse than baseline + jitter",
+   "max": -55.8,
+   "contract_limit": -55.8,
+   "reserve": 0.0
+  },
+  {
+   "id": "H7",
+   "rule": "every check that is passed in the baseline is passed in the candidate (no new failed/blocked/not_tested/error)"
+  }
+ ],
+ "allowed_edits": {
+  "parts": [
+   "R1",
+   "R2",
+   "R3",
+   "C1",
+   "C2",
+   "R4",
+   "R5",
+   "C3"
+  ],
+  "fields": [
+   "value",
+   "mpn_candidate"
+  ],
+  "max_ops": 16,
+  "note": "A value edit without a matching MPN edit fails BOM_CONSISTENCY (blocked -> failed) and is rejected as a regression. An MPN edit forces mpn_status -> unverified_candidate: the new orderable part is NOT manufacturer-sheet verified (see claims_never_made).\n"
+ },
+ "non_regression": {
+  "generic_margin_fraction": 0.1,
+  "margin_source": "record `margin`, else parsed from record `limit` (\"<= a\" / \">= a\"); metrics with no margin and no parsable limit must keep their status",
+  "failed_in_baseline": {
+   "REQ-STAB": {
+    "rule": "value must not exceed baseline + jitter (no degradation); a failed->passed change is needs_review (rejected as a claim; the contract owner, not this task, decides REQ-STAB)"
+   },
+   "REQ-BOM": {
+    "rule": "stays failed; release/bom.csv rows may differ from baseline ONLY in the edited refs, and ONLY by MPN / MPN_Status becoming unverified_candidate"
+   }
+  },
+  "blocked_in_baseline": {
+   "BOM_CONSISTENCY": {
+    "rule": "stays blocked with 0 MISMATCH lines; failed is a regression"
+   }
+  },
+  "not_tested_in_baseline": [
+   "MODEL_STARTUP",
+   "MODEL_SATURATION",
+   "MODEL_OVERLOAD_RECOVERY"
+  ],
+  "unchanged_status_required": [
+   "ERC",
+   "NETLIST_INTENT",
+   "PIN_SYMBOL",
+   "PIN_FOOTPRINT",
+   "PIN_SPICE_HEADER",
+   "PIN_WIRING",
+   "DECK_VS_NETLIST",
+   "DRC_VIOLATIONS",
+   "DRC_UNCONNECTED",
+   "DRC_PARITY",
+   "REQ-MFG"
+  ]
+ },
+ "claims_never_made": [
+  "release_ready (always false)",
+  "REQ-STAB resolved / rev 3 approved",
+  "BOM_VERIFICATION of any edited part: new MPNs are unverified_candidate (decoded-consistent only; existence/orderability and datasheet not checked)",
+  "MODEL_STARTUP / MODEL_SATURATION / MODEL_OVERLOAD_RECOVERY behaviour of the modified stage-2 time constant (checks stay not_tested)",
+  "hardware validation, temperature, supply/ripple behaviour (no source/ripple requirement exists in the contract)"
+ ],
+ "baseline_measurements": {
+  "REQ-ALIAS-CORNERS": {
+   "outcome": "passed",
+   "value": -58.73526536671747,
+   "limit": "<= -55.8",
+   "margin": 2.9352653667174735
+  },
+  "REQ-FLAT-CORNERS": {
+   "outcome": "passed",
+   "value": 0.4022427579821821,
+   "limit": "<= 0.5",
+   "margin": 0.09775724201781788
+  },
+  "REQ-GAIN-CORNERS": {
+   "outcome": "passed",
+   "value": 1.3636736113526455,
+   "limit": "1.235..1.365",
+   "margin": 0.0013263886473544595
+  },
+  "REQ-FLAT": {
+   "outcome": "passed",
+   "value": 0.0979711262197327,
+   "limit": "<= 0.5",
+   "margin": 0.4020288737802673
+  },
+  "REQ-GAIN": {
+   "outcome": "passed",
+   "value": 1.3011328035570473,
+   "limit": "1.235..1.365",
+   "margin": null
+  },
+  "REQ-ALIAS": {
+   "outcome": "passed",
+   "value": -60.33030524960851,
+   "limit": "<= -55.8",
+   "margin": 4.53030524960851
+  },
+  "REQ-STAB": {
+   "outcome": "failed",
+   "value": 52.844602146847194,
+   "limit": "<= 3.0",
+   "margin": -49.844602146847194
+  }
+ },
+ "fast_check_results": {
+  "bom_consistency": {
+   "outcome": "blocked",
+   "detail": "15 lines: 14 consistent, 0 MISMATCH, 1 unresolved | unresolved: J1,J2 | C6,C7: rating margin note: 5.25 V applied = 52% of the 10 V rating; effective-capacitance coverage under bias MISSING (no manufacturer curve)",
+   "mismatched_lines": [],
+   "unresolved_lines": [
+    "J1,J2"
+   ]
+  },
+  "ac_response": {
+   "outcome": "passed",
+   "per_requirement": {
+    "REQ-GAIN": "passed",
+    "REQ-FLAT": "passed",
+    "REQ-ALIAS": "passed"
+   },
+   "measurements": {
+    "gain_400Hz_V_per_V": 1.3011328035570473,
+    "flatness_dB": 0.09748138794806893,
+    "alias_at_19kHz_dB": -60.34500279938557
+   },
+   "limits": {
+    "gain_V_per_V": [
+     1.235,
+     1.365
+    ],
+    "flatness_dB_max": 0.5,
+    "alias_dB_max": -55.8
+   },
+   "conditions": "nominal parts, Rs = 100 ohm, real TI model (shim), ngspice 44.2"
+  }
+ },
+ "note": "baseline measured by the trusted pipeline; the evaluator re-runs the FULL pipeline (all corners) on your design; fast checks are nominal only"
+}
