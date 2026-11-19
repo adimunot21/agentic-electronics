@@ -421,6 +421,8 @@ class Controller:
         """Reload a stopped run: state counters, workspace and transcript (from the trace) are restored; limits may be raised in kw['limits']."""
         c = cls(run_dir, **kw)
         c.state = json.loads((run_dir / "state.json").read_text())
+        if c.state["state"] == "ACCEPTED":
+            raise RuntimeError(f"run {run_dir} already ended in state ACCEPTED (stop_reason={c.state['stop_reason']!r}); a finished run cannot be resumed")
         c.state["stop_reason"] = None
         c.baseline_record = json.loads((run_dir / "baseline_record.json").read_text())
         improvement = c.task.kind == "improvement"
