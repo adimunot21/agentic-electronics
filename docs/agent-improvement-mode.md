@@ -67,3 +67,53 @@ Verified without inference: the task loads and its policy verifies against the f
 | Implemented, unexercised | improvement resume (code path written; no test), improvement mode with `claude-cli` |
 | Blocked / limits | live trial (budget); STAB nonregression vs rev-3 decision; new-MPN verification; MODEL_* behaviour; corner results unavailable to the agent before submit |
 | Future | held-out improvement task; coordinated-specialist and basic-mode comparison on this task; component-selection/PCB-layout objectives |
+
+## Pre-trial hardening (what a live agent would experience)
+
+Tests: `tests/unit/test_improvement_trial_readiness.py` (36 tests; no model, no docker, stub pipelines; real recorded decisions replayed through the controller).
+Legend: **[T]** verified by a deterministic test, **[C]** code inspection only. Policy file, thresholds and restoration acceptance were not touched.
+
+### 1. What the agent sees after `submit` (improve-stage2-alias)
+| Case | Agent receives | |
+|---|---|---|
+| Accepted | **nothing**: the run ends; the last transcript entry is the agent's own submit. Humans get `output/` | [T] |
+| Rejected, iterations remain | one `TOOL RESULT` JSON (see shape below) | [T] |
+| Rejected on the last allowed iteration | **nothing** (run stops `max_iterations` before feedback is built); decision exists only on disk | [T] |
+| No-op (unchanged design or numerically identical text) | normal rejection; `objective.improvement == 0`, finding kind `no_change_within_jitter`. Unchanged design: evaluated (a full ~100 s run) the first time | [T] |
+| Same design resubmitted | `{"ok":false,"error":{"code":"already_evaluated",...}}`, no evaluation | [T] |
+| Blocked (pipeline error, trusted code changed) | nothing, run stops `evaluation_blocked` | [T] |
+
+Rejection payload (keys exact, [T]): `ok:false, evaluator_verdict:"rejected", findings[], objective{check,unit,direction,baseline,candidate,improvement,min_improvement,met,jitter_tolerance_dB}, circuit_requirement_failures[{id,outcome,value,pre_existing,baseline_value}], unresolved_baseline_failures_not_yours[], note`. 
+`findings` = policy violations only (max 12; `candidate_detail` cut to 200 chars). Recorded real decisions A,B,C,D, regression and no-op produce 977-1620 characters, under the 6000-char cut [T].
+
+**Differs from a naive assumption:** the agent never sees per-corner tables, but a rejection DOES disclose the candidate's corner-derived summary values (objective candidate dB, a violated hard-limit value such as flat corners 0.506 dB, REQ-STAB value) and, for corner failures, the start of the worst-corner assignment (200 chars). Before its first submit the agent sees nominal fast checks only. So "corner results are not visible before submit" holds; after a rejection they are partly visible. Accepted runs reveal nothing to the agent.
+
+### 2. Accounting (per agent reply)
+Budget names: `max_iterations` = evaluator submissions actually run; `max_model_calls` = replies requested; `max_tool_calls` = registry dispatches. There is no separate "evaluation budget": evaluations == iterations except duplicates. `invalid_replies` (limit 3) is **cumulative, not consecutive**, and valid actions do not reset it [T].
+
+| Class | Action | model_calls | tool_calls | invalid_replies | iteration | evaluations | side effects | |
+|---|---|---|---|---|---|---|---|---|
+| 1 pre-dispatch | malformed JSON, no JSON, 2 actions, array of actions, NaN/Infinity/1e999, unknown action key, unknown top-level key, missing `action` | +1 | 0 | +1 | 0 | 0 | none: nothing dispatched, workspace hash, patch files, evaluations dir unchanged | [T] |
+| 1b tool-layer | unknown tool, bad check name, missing arg, out-of-scope patch, unknown op, stale base hash | +1 | **+1** (dispatched, refused by the registry) | 0 | 0 | 0 | none: workspace hash, patch files, evaluations dir unchanged | [T] |
+| 2 evaluated | valid submit, full pipeline, rejected | +1 | 0 (submit is not a tool call) | 0 | +1 | +1 | `decision_NN.json`, evaluation directory | [T] |
+| 2 | no-op submit (unchanged or `5.60n`) | +1 | 0 | 0 | +1 | +1 | a full pipeline run is spent, then rejected | [T] |
+| 2 | duplicate resubmit | +1 | 0 | 0 | 0 | 0 | `no_progress` +1 | [T] |
+| 2 | blocked evaluation | +1 | 0 | 0 | +1 | +1 | run stops | [T] |
+Note: the user-visible assumption that unknown tools and out-of-scope patches leave "tool-call counts" untouched is **wrong**: they are charged as tool calls (class 1b); only parse rejections (class 1) are not. Nothing is ever refunded.
+
+### 3. Crash and resume
+| Event | Behaviour | |
+|---|---|---|
+| Process dies between iterations | `state.json` is saved at every transition/feedback; resume restores counters, usage, policy (re-verified against the frozen hash), patch history, evaluated-design list and the transcript. No evaluation or model call is repeated; counters continue | [T] |
+| Process dies waiting for a model reply | that call is not counted (counters rise only after a reply) and its cost is not recorded. Nothing is "reserved" | [T] for counters, [C] for cost |
+| Process dies mid-evaluation | state stays `EVALUATING`; the iteration and model call are charged, `evaluations` is not, no decision file, no summary, partial files remain in `evaluations/iter_NN/` | [T] |
+| Resume after that | now writes an `evaluation_interrupted` event and increments `interrupted_evaluations`; the crashed iteration **stays charged** (conservative; the agent loses one of its iterations); the retry runs in `iter_NN+1`, so the half-written directory is never reused or trusted | [T] |
+| Pipeline subprocess killed (SIGKILL) with the process alive | `verdict: blocked` (`pipeline_error: CalledProcessError ... SIGKILL`); iteration and evaluation charged; run stops `evaluation_blocked`. Resumed, the same design can be resubmitted (see fix 2) | [T] |
+| Wall budget | `t0` restarts on resume, so wall time is per process, not cumulative | [C] |
+| In-memory fast-check cache | not persisted; after resume, fast checks re-run (no model cost) | [C] |
+| Resume of a run that already ACCEPTED | not guarded | [C] |
+
+### 4. Defects found and fixed
+1. Resume rebuilt the transcript without the `TOOL RESULT:` prefix (trace stored the bare text), so a resumed agent saw different history. The trace now stores the exact message. Old traces are not migrated.
+2. A **blocked** evaluation added the design to the "already evaluated" list, so after a resume the same unjudged design would be refused as "already evaluated and rejected". Blocked designs are no longer added.
+3. Mid-evaluation death left no record on resume; `evaluation_interrupted` is now recorded.
