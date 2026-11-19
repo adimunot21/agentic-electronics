@@ -117,3 +117,9 @@ Note: the user-visible assumption that unknown tools and out-of-scope patches le
 1. Resume rebuilt the transcript without the `TOOL RESULT:` prefix (trace stored the bare text), so a resumed agent saw different history. The trace now stores the exact message. Old traces are not migrated.
 2. A **blocked** evaluation added the design to the "already evaluated" list, so after a resume the same unjudged design would be refused as "already evaluated and rejected". Blocked designs are no longer added.
 3. Mid-evaluation death left no record on resume; `evaluation_interrupted` is now recorded.
+
+### 5. Budget accounting limits (stated plainly)
+* A model call that dies in flight (process death, kill, timeout of the whole harness) is **not counted and its cost is not recorded**: counters and `cost_usd_reported` are updated only after a reply is received. Nothing is reserved beforehand. [verified by test for counters; cost: code inspection]
+* The wall budget (`wall_budget_s`) is measured from process start (`t0`) and **resets on every resume**; it is per process, not cumulative. [code inspection]
+* `--max-budget-usd` is passed to the CLI as a **per-call** cap (`--max-budget-usd`, documented as "only works with --print"); `ae.harness.run` does not set the harness's cumulative `Limits.max_cost_usd` (it stays `None`), and unknown cost can never be enforced anyway. The worst case is therefore bounded only by `--max-model-calls x per-call cap`, and the harness cost total is **not a hard cumulative billing guarantee**. [code inspection]
+* The cost the CLI reports is a list-basis estimate, not billing. **After any live run the run report must state the harness-accounted cost (`summary.json` usage, with `cost_unknown_calls`) next to this note: actual billing is only known from the provider.**
