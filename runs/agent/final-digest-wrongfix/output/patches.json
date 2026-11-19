@@ -1,0 +1,57 @@
+[
+ {
+  "seq": 1,
+  "summary": "fixture",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C1",
+    "field": "mpn_candidate",
+    "to": "C0805C102J5GACTU",
+    "from": "C0805C183J5GACTU"
+   }
+  ],
+  "fingerprint": "cb4a6bf4d7bbba952ebf7f4944d6a122a1cc95ac05bd22dba4f91eb658daf601",
+  "forced_side_effects": [
+   "C1.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "adc412c39aa3681b0ac2c5f087342d9b774eb3cabbc55a4c562b164c2a4d0263",
+  "after_sha256": "66bbc1409d5b3fc0f000e648130febfb4a3d1677ac4dfeb176ff7418babc9d0b"
+ },
+ {
+  "seq": 2,
+  "summary": "fixture",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C1",
+    "field": "mpn_candidate",
+    "to": "C0805C183J5GACTU",
+    "from": "C0805C102J5GACTU"
+   }
+  ],
+  "fingerprint": "720739601f914132b387113527cb02808aac5f1fc53ed03d12491946fd7dae06",
+  "forced_side_effects": [
+   "C1.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "66bbc1409d5b3fc0f000e648130febfb4a3d1677ac4dfeb176ff7418babc9d0b",
+  "after_sha256": "135113c03d2ecaa36ef591fc2810286d0670aa484acb887c947ed8674c879867"
+ },
+ {
+  "seq": 3,
+  "summary": "fixture",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C1",
+    "field": "value",
+    "to": "18n",
+    "from": "1n"
+   }
+  ],
+  "fingerprint": "b335d5c48878fb40ebdd6e8e6f21945c76c2085eeac1ae5c2d187d81ab8ca398",
+  "forced_side_effects": [],
+  "before_sha256": "135113c03d2ecaa36ef591fc2810286d0670aa484acb887c947ed8674c879867",
+  "after_sha256": "30fa60bb042608ee449cc709708c5abfdf7248a6caee3d4f7b4a2d4dd46d2de1"
+ }
+]

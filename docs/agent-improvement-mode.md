@@ -130,3 +130,20 @@ Real docker tools, no model. [verified by test / executed fixture]
 * Wrong-fix fixture (restoration path, `dev-c1-value`): first patch **rejected** (15 violations), restore patch **accepted**, both decisions under `9e86499f119d`.
 * Candidate E (policy `d278109a…` unchanged): **accepted_for_objective**, 98.4 s, policy violations none; REQ-BOM and REQ-STAB reported as pre-existing failures.
 Records: `runs/agent/final-digest-improve/`, `runs/agent/final-digest-wrongfix/` (fixtures, not agent results). The launch-path static inspection is in the hand-back, not repeated here.
+
+
+### 7. Launch hygiene: keep the desktop app's messaging token out of the harness subprocess
+The harness starts `claude -p` with the caller's whole environment. In this desktop-app shell that includes `CLAUDE_CODE_*` variables, among them a messaging socket path and token (names only listed here; values are never printed or stored). The model has no tools, but the child process should not carry them.
+No code change is needed. Launch from a clean environment and keep only what the run needs:
+```bash
+env -i HOME="$HOME" PATH="$PATH" LANG=C.UTF-8 \
+  uv run python -m ae.harness.run --task <task-id> --provider claude-cli --run-id <fresh-id> --max-iterations 3 --max-model-calls 12 --max-budget-usd 0.25
+```
+Narrower alternative (drops only the two messaging variables): `env -u CLAUDE_CODE_MESSAGING_TOKEN -u CLAUDE_CODE_MESSAGING_SOCKET uv run python -m ae.harness.run ...`.
+Check the child environment without printing any value (names only):
+```bash
+env -i HOME="$HOME" PATH="$PATH" LANG=C.UTF-8 python3 -c "import os; print(sorted(k for k in os.environ if k.startswith(('CLAUDE_CODE','ANTHROPIC'))))"   # expect []
+```
+Verified 2026-11-19 (no inference): under `env -i` with only HOME/PATH/LANG, `claude auth status` still reports `loggedIn: true, authMethod: claude.ai`, `docker version` works, and `uv run` loads the harness task. [verified by command]
+NOT verified: that a real model call succeeds from the clean environment. The earlier live runs used the full environment. The first launch from a clean environment is therefore also a test of the clean environment; if it fails with a provider or auth error it costs a failed call, so budget for one retry decision before a live run. Also note `ANTHROPIC_API_KEY` must stay unset (a present key silently switches `-p` to API billing).
+The launch command shown in section 5 of the pre-trial notes above used `--max-model-calls 30 --max-budget-usd 0.5`; the approved trial used 12 and 0.25.

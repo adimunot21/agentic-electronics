@@ -1,0 +1,144 @@
+# FROZEN TASK + ACCEPTANCE POLICY  (kind: improvement)   policy_version: 1
+# Written and committed BEFORE any candidate was evaluated. Do not edit after seeing a result; a change needs a NEW id/version, never an in-place edit.
+# This file is trusted code (in the evaluator's trusted digest); candidates are data and can never address it.
+id: improve-stage2-alias
+kind: improvement
+split: dev
+policy_version: 1
+description: >
+  Improve the worst-case (all 1024 tolerance corners) stopband rejection at 19 kHz-1 MHz of the adopted FE-AAF-001 reference by retuning the stage-2 (1st-order) pole,
+  without consuming more passband flatness or gain margin than the explicit hard constraints allow. This is a passband-flatness vs alias-rejection tradeoff on the CURRENT circuit.
+
+# ---------------------------------------------------------------- baseline (verified against the files at load time; mismatch => verdict `blocked`)
+baseline:
+  design: designs/fe-aaf-001/components.yaml
+  components_sha256: e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d
+  requirements_sha256: 4767130a0f72f059b0cc002354c8527ba7aedc4fc1ef512380e78d2751e64b25
+  note: adopted development baseline (reference + patch 0002). REQ-STAB rev 2 is FAILED on it and stays failed; rev 3 is PROPOSED / NOT APPROVED.
+  # Full baseline record is captured fresh by the trusted pipeline at run time and hashed into every decision (candidate and baseline inputs_sha256 are both recorded).
+
+# ---------------------------------------------------------------- allowed edits (typed patch scope; everything else is rejected before application)
+allowed_edits:
+  parts: [R4, R5, C3]            # stage-2 input resistor, stage-2 feedback resistor, stage-2 feedback capacitor: the stage-2 pole is 1/(2*pi*R5*C3), DC gain -R5/R4
+  fields: [value, mpn_candidate]
+  max_ops: 6                     # value + MPN for each of three parts
+  note: >
+    A value edit without a matching MPN edit fails BOM_CONSISTENCY (blocked -> failed) and is rejected as a regression. An MPN edit forces mpn_status -> unverified_candidate:
+    the new orderable part is NOT manufacturer-sheet verified (see claims_never_made).
+
+# ---------------------------------------------------------------- the single objective
+objective:
+  check: REQ-ALIAS-CORNERS
+  metric: worst-case stopband gain, 19 kHz-1 MHz, over all 1024 vertices of the contract tolerance box, real op-amp model (shim)
+  unit: dB
+  direction: minimize            # more negative = more rejection
+  baseline_value_expected_dB: -58.73526536671747     # recorded in runs/agent/dev-c1-live-1/baseline_record.json; the fresh baseline must reproduce it within jitter
+  min_improvement: 0.25          # dB. Why: ~3 % amplitude; >> jitter (1e-9 dB, see below); chosen from first-order analysis (alias gain ~ pole position, +3 % pole shift = 0.26 dB) so it is reachable inside the
+                                 # flatness reserve; it is a MODEST gain in alias margin (2.94 -> >= 3.19 dB), not a redesign. Fixed before any candidate was evaluated.
+
+# ---------------------------------------------------------------- repeatability / jitter (evidence-based)
+jitter:
+  rel: 1.0e-6
+  abs: 1.0e-9
+  evidence: >
+    two independent full-pipeline evaluations of the SAME design (runs/agent/dev-c1-live-1 baseline_record.json vs evaluations/iter_01/record.json, different run dirs, different times)
+    agree on every numeric check value with max |difference| = 0. ngspice AC/corner runs are deterministic; the tolerance only absorbs float formatting.
+
+# ---------------------------------------------------------------- hard constraints (candidate must satisfy ALL; contract limits are never changed, reserves only tighten)
+hard_constraints:
+  - id: H1
+    check: REQ-FLAT-CORNERS
+    quantity: "worst-case passband flatness over all corners (dB)"
+    max: 0.48
+    contract_limit: 0.5
+    reserve: 0.02
+    reserve_why: "frequency-grid discretisation of the 50 Hz-1 kHz sweep (a peak could fall between grid points); about 4 orders above jitter"
+  - id: H2
+    check: REQ-GAIN-CORNERS
+    quantity: "gain at 400 Hz, MIN over all corners (V/V), read from the pipeline's corners_summary.json gain_min"
+    min: 1.2355
+    contract_limit: 1.235
+    reserve: 0.0005
+  - id: H3
+    check: REQ-GAIN-CORNERS
+    quantity: "gain at 400 Hz, MAX over all corners (V/V), read from corners_summary.json gain_max"
+    max: 1.3645
+    contract_limit: 1.365
+    reserve: 0.0005
+  - id: H4
+    check: REQ-FLAT
+    quantity: "nominal passband flatness, Rs 0 and 100 (dB)"
+    max: 0.48
+    contract_limit: 0.5
+    reserve: 0.02
+  - id: H5
+    check: REQ-GAIN
+    quantity: "nominal gain at 400 Hz, Rs=100 (V/V)"
+    min: 1.2355
+    max: 1.3645
+    contract_limit: [1.235, 1.365]
+    reserve: 0.0005
+  - id: H6
+    check: REQ-ALIAS
+    quantity: "nominal stopband gain 19 kHz-1 MHz (dB); must not be worse than baseline + jitter"
+    max: -55.8
+    contract_limit: -55.8
+    reserve: 0.0
+  - id: H7
+    rule: "every check that is passed in the baseline is passed in the candidate (no new failed/blocked/not_tested/error)"
+traded_metrics: [REQ-FLAT, REQ-FLAT-CORNERS, REQ-GAIN, REQ-GAIN-CORNERS]   # governed by H1-H5 only; exempt from the generic 10 % rule below (they are what the tradeoff spends)
+
+# ---------------------------------------------------------------- non-regression of everything else
+nonregression:
+  generic_margin_fraction: 0.10   # a candidate may consume at most 10 % of any other metric's baseline margin to its contract limit (engineering convention, not derived; stated, not hidden)
+  margin_source: record `margin`, else parsed from record `limit` ("<= a" / ">= a"); metrics with no margin and no parsable limit must keep their status
+  failed_in_baseline:
+    REQ-STAB:                       # rev 2, IN FORCE, FAILED (52.84 dB vs 3.0). The measurement is a deterministic model comparison (contract revision log), so it is treated as trustworthy.
+      rule: "value must not exceed baseline + jitter (no degradation); a failed->passed change is needs_review (rejected as a claim; the contract owner, not this task, decides REQ-STAB)"
+    REQ-BOM:
+      rule: "stays failed; release/bom.csv rows may differ from baseline ONLY in the edited refs, and ONLY by MPN / MPN_Status becoming unverified_candidate"
+  blocked_in_baseline:
+    BOM_CONSISTENCY: {rule: "stays blocked with 0 MISMATCH lines; failed is a regression"}
+  not_tested_in_baseline: [MODEL_STARTUP, MODEL_SATURATION, MODEL_OVERLOAD_RECOVERY]   # must stay not_tested; any other status is an error
+  unchanged_status_required: [ERC, NETLIST_INTENT, PIN_SYMBOL, PIN_FOOTPRINT, PIN_SPICE_HEADER, PIN_WIRING, DECK_VS_NETLIST, DRC_VIOLATIONS, DRC_UNCONNECTED, DRC_PARITY, REQ-MFG]
+
+# ---------------------------------------------------------------- claims this task NEVER makes, whatever the verdict (recorded in every decision)
+claims_never_made:
+  - release_ready (always false)
+  - REQ-STAB resolved / rev 3 approved
+  - "BOM_VERIFICATION of any edited part: new MPNs are unverified_candidate (decoded-consistent only; existence/orderability and datasheet not checked)"
+  - "MODEL_STARTUP / MODEL_SATURATION / MODEL_OVERLOAD_RECOVERY behaviour of the modified stage-2 time constant (checks stay not_tested)"
+  - hardware validation, temperature, supply/ripple behaviour (no source/ripple requirement exists in the contract)
+
+# ---------------------------------------------------------------- verdicts
+verdicts:
+  accepted_for_objective: "all hard constraints and non-regression rules hold AND the objective improved by >= min_improvement. Scope: this objective only; blocked_claims are listed."
+  rejected: "any policy violation OR objective improvement < min_improvement (including no-ops and regressions)"
+  blocked: "trusted code/policy/baseline digest changed, pipeline error, a required check missing/blocked/error, or stale/foreign evidence"
+policy_violation_vs_circuit_failure: >
+  decisions report `policy_violations` (rules of this policy that were broken) separately from `circuit_requirement_failures` (candidate checks whose own outcome is failed, flagged
+  `pre_existing` when also failed in the baseline).
+
+# ---------------------------------------------------------------- bounded local search (deterministic fixtures; NOT agent output)
+search:
+  family: stage2_pole_down       # lowering the stage-2 pole 1/(2*pi*R5*C3) trades passband flatness for alias rejection; R4 follows R5 so DC gain R5/R4 is unchanged
+  max_full_evaluations: 5        # real full-pipeline evaluations (~95 s each); hard cap
+  order: [A_r45_16k9, B_r45_17k4, C_c3_6n2_r45_15k4, D_c3_6n2]
+  stop_rules:
+    - stop after the first candidate (in order) accepted_for_objective AND the next one rejected on H1/H2/H3/H4/H5 (monotone family: larger shifts only consume more flatness)
+    - stop at max_full_evaluations
+    - a candidate rejected before evaluation by the patch validator is recorded and not evaluated
+  controls:                      # labelled controls required by the milestone; evaluated in addition to the search, not counted as search candidates
+    - {id: X_regression_c3_5n1, purpose: "pole UP (less attenuation); must be rejected"}
+    - {id: X_noop_c3_5n60, purpose: "textually different but numerically identical value; must NOT count as improvement"}
+    - {id: X_out_of_scope_r1, purpose: "edit outside allowed_edits; rejected by the validator without evaluation"}
+  candidates:
+    A_r45_16k9:         {pole_shift_pct_expected: -2.4, ops: [[R4, value, 16.9k], [R4, mpn_candidate, RC0603FR-0716K9L], [R5, value, 16.9k], [R5, mpn_candidate, RC0603FR-0716K9L]]}
+    B_r45_17k4:         {pole_shift_pct_expected: -5.2, ops: [[R4, value, 17.4k], [R4, mpn_candidate, RC0603FR-0717K4L], [R5, value, 17.4k], [R5, mpn_candidate, RC0603FR-0717K4L]]}
+    C_c3_6n2_r45_15k4:  {pole_shift_pct_expected: -3.2, ops: [[C3, value, 6.2n], [C3, mpn_candidate, C0805C622J5GACTU], [R4, value, 15.4k], [R4, mpn_candidate, RC0603FR-0715K4L], [R5, value, 15.4k], [R5, mpn_candidate, RC0603FR-0715K4L]]}
+    D_c3_6n2:           {pole_shift_pct_expected: -9.7, ops: [[C3, value, 6.2n], [C3, mpn_candidate, C0805C622J5GACTU]]}
+    X_regression_c3_5n1: {ops: [[C3, value, 5.1n], [C3, mpn_candidate, C0805C512J5GACTU]]}
+    X_noop_c3_5n60:     {ops: [[C3, value, 5.60n]]}
+    X_out_of_scope_r1:  {ops: [[R1, value, 60.4k]]}
+  expectation_note: >
+    Expectations above are first-order estimates written BEFORE running anything; they are not thresholds. The decision uses only the policy sections above.

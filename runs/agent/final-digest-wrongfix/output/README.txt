@@ -1,0 +1,1 @@
+Integrated result in an ISOLATED output workspace. The adopted reference (designs/fe-aaf-001/components.yaml) was NOT modified. Review agent_patch_vs_defect.diff / patches.json; merging is a human decision. release_ready is false: unresolved baseline failures remain (BOM_CONSISTENCY, MODEL_OVERLOAD_RECOVERY, MODEL_SATURATION, MODEL_STARTUP, REQ-BOM, REQ-STAB).

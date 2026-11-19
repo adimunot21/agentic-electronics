@@ -27,3 +27,21 @@ runs/agent/**/scratch/
 runs/agent/**/baseline/
 runs/agent/**/evaluations/iter_*/
 runs/agent/**/defect_evaluation/
+
+# ---- added for the first public push (deliberate choices)
+# test/tool caches and local editor/agent state: regenerated or private, never evidence
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+build/
+dist/
+.idea/
+.vscode/
+.claude/
+# the desktop app / CLI may drop credential-like or session files next to a project: never commit
+.credentials.json
+*.pem
+*.key
+# Bulk regenerated output inside run directories is already excluded above (work*/, scratch/, baseline/, evaluations/iter_*/).
+# What stays tracked on purpose: trace.jsonl, summary.json, state.json, task/policy snapshots, evaluations/decision_*.json, output/ (patches, diffs, components.yaml).

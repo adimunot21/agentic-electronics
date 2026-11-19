@@ -1,0 +1,28 @@
+# Verification ANNOTATION for the two new part numbers in the accepted improve-live-1 candidate.
+# Annotation only: no design, run file, policy or evidence ledger (evidence/bom-verification.yaml) was modified. The candidate is NOT adopted.
+# Checked 2026-11-19 via web search / page fetch (secondary summarisation of distributor pages; no datasheet PDF read, no order placed).
+# "verified" here = value, package and tolerance at a distributor listing + listed Active. It is NOT a stock guarantee and NOT a datasheet review (voltage/TC/derating not reviewed).
+candidate_run: runs/agent/improve-live-1
+candidate_manifest_sha256: eb824be5cd3625b1573bf6ebbd8183099b9fe1a2167715585c082365c3260109
+parts:
+  - mpn: RC0603FR-0718K7L
+    used_for: [R4, R5]
+    assumed: {value: "18.7k", tolerance: "1%", package: "0603"}
+    result: verified_at_distributor_listing
+    found: {value: "18.7 kOhm", tolerance: "1%", package: "0603 (1608 metric)", status: Active, manufacturer: Yageo}
+    sources:
+      - {name: DigiKey product page, url: "https://www.digikey.com/en/products/detail/yageo/RC0603FR-0718K7L/726993", note: "stock shown 106 at fetch time; a search snippet showed 64,696 and 17-week lead time: stock figures conflict and are volatile"}
+      - {name: JLCPCB parts library C155690, url: "https://jlcpcb.com/partdetail/C155690", note: "value/tolerance/package match; no stock status shown"}
+      - {name: Yageo RC datasheet (linked from DigiKey, NOT read), url: "https://yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L"}
+    not_checked: [datasheet power/voltage derating, TCR, price, Mouser/LCSC availability (no live page found)]
+  - mpn: C0805C512J5GACTU
+    used_for: [C3]
+    assumed: {value: "5.1n", tolerance: "5%", dielectric: C0G, package: "0805"}
+    result: verified_at_distributor_listing
+    found: {value: "5100 pF", tolerance: "5%", voltage: "50V", dielectric: "C0G/NP0", package: "0805 (2012 metric)", status: Active, manufacturer: KEMET}
+    sources:
+      - {name: DigiKey keyword-search result page, url: "https://www.digikey.com/en/products/result?keywords=C0805C512J5GACTU", note: "listing read through a page-text fetch of a search page: stock 5,896, 15-week lead time at fetch time; no direct product-page URL obtained"}
+    weaker_corroboration: [{name: IBS Electronics (broker) listing, url: "https://www.ibselectronics.com/part/kemet/c0805c512j5gactu/1477880/", note: "seen only as a search snippet (HTTP 403 on fetch)"}]
+    not_checked: [KEMET datasheet, Mouser/LCSC (Mouser fetch timed out; no LCSC page found), DC-bias/ageing (C0G, assumed negligible, as for the existing C3)]
+alternatives_suggested: none (no alternative was needed or found in a cited listing)
+note: "Absence at a source I could not read (RS Online and IBS returned 403, Mouser timed out) is not evidence that a part does not exist."

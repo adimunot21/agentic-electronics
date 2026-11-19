@@ -1,0 +1,10 @@
+{
+ "task": "dev-c1-value",
+ "part": "C1",
+ "field": "value",
+ "from": "18n",
+ "to": "1n",
+ "pristine_sha256": "e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d",
+ "defective_sha256": "adc412c39aa3681b0ac2c5f087342d9b774eb3cabbc55a4c562b164c2a4d0263",
+ "created_by": "test setup (ae.harness.tasks.create_defect), not by the agent"
+}

@@ -1,0 +1,28 @@
+{
+ "run_dir": "/home/adimunot21/dev/agentic-electronics/runs/agent/final-digest-wrongfix",
+ "task": "dev-c1-value",
+ "split": "dev",
+ "mode": "engineered_single_agent",
+ "provider": "scripted-fixture",
+ "fixture": true,
+ "task_kind": "restoration",
+ "final_state": "ACCEPTED",
+ "stop_reason": "accepted",
+ "iterations": 2,
+ "model_calls": 7,
+ "tool_calls": 5,
+ "evaluations": 2,
+ "elapsed_s": 191.4,
+ "usage": {
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "cost_usd_reported": 0.0,
+  "cost_unknown_calls": 0,
+  "model_seconds": 0.0,
+  "tool_seconds": 1.7144103520549834,
+  "eval_seconds": 182.15696625807323,
+  "cost_note": "cost is a provider-reported list-basis estimate; unknown calls make the total unknown (None), never 0"
+ },
+ "live_agent_success": false,
+ "accepted_by_independent_evaluator": true
+}
