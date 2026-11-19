@@ -416,3 +416,20 @@ def test_feedback_payload_for_real_recorded_decisions_fits_and_has_the_documente
     assert set(fb) == {"ok", "evaluator_verdict", "findings", "objective", "circuit_requirement_failures", "unresolved_baseline_failures_not_yours", "note"}
     assert set(fb["objective"]) == {"check", "unit", "direction", "baseline", "candidate", "improvement", "min_improvement", "met", "jitter_tolerance_dB"}
     print(f"\n[{label}] payload {len(raw)} chars; findings rules: {[f['rule'] for f in fb['findings']]}")
+
+
+# =================================================================== terminal-state resume guard
+def test_resume_of_an_accepted_run_is_refused_with_a_clear_error_and_changes_nothing(tmp_path):
+    h = Harness(tmp_path)
+    h.new([A("get_design"), patch_ops(GOOD), A("submit", summary="s")], Limits(max_iterations=2)).run()
+    state_before, trace_before = (h.run / "state.json").read_text(), (h.run / "trace.jsonl").read_text()
+    with pytest.raises(RuntimeError, match="already ended.*ACCEPTED"):
+        h.resume([A("get_design")])
+    assert (h.run / "state.json").read_text() == state_before and (h.run / "trace.jsonl").read_text() == trace_before and len(h.calls) == 1
+
+
+def test_resume_of_a_run_stopped_by_limits_or_crash_is_still_allowed(tmp_path):
+    h = Harness(tmp_path)
+    h.new([A("get_design"), A("submit", summary="s")], Limits(max_iterations=1)).run()                   # stopped: max_iterations (non-terminal: limits may be raised)
+    r = h.resume([A("get_design")], Limits(max_iterations=3, max_model_calls=4))
+    assert r.state["stop_reason"] is None
