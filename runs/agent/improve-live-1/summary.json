@@ -1,0 +1,28 @@
+{
+ "run_dir": "/home/adimunot21/dev/agentic-electronics/runs/agent/improve-live-1",
+ "task": "improve-stage2-alias",
+ "split": "dev",
+ "mode": "engineered_single_agent",
+ "provider": "claude-cli",
+ "fixture": false,
+ "task_kind": "improvement",
+ "final_state": "ACCEPTED",
+ "stop_reason": "accepted",
+ "iterations": 1,
+ "model_calls": 10,
+ "tool_calls": 8,
+ "evaluations": 1,
+ "elapsed_s": 325.6,
+ "usage": {
+  "input_tokens": 20,
+  "output_tokens": 8333,
+  "cost_usd_reported": 0.4846621,
+  "cost_unknown_calls": 0,
+  "model_seconds": 104.26378411706537,
+  "tool_seconds": 8.24130602600053,
+  "eval_seconds": 102.71496274194214,
+  "cost_note": "cost is a provider-reported list-basis estimate; unknown calls make the total unknown (None), never 0"
+ },
+ "live_agent_success": true,
+ "accepted_by_independent_evaluator": true
+}

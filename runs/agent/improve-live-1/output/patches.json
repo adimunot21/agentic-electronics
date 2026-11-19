@@ -1,0 +1,99 @@
+[
+ {
+  "seq": 1,
+  "summary": "Raise R4,R5 16.5k->17.4k (gain ratio unchanged) to lower the stage-2 pole ~5% for more alias rejection; MPNs updated to match.",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "value",
+    "to": "17.4k",
+    "from": "16.5k"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0717K4L",
+    "from": "RC0603FR-0716K5L"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "value",
+    "to": "17.4k",
+    "from": "16.5k"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0717K4L",
+    "from": "RC0603FR-0716K5L"
+   }
+  ],
+  "fingerprint": "d9bf357170868164447d7e16aa90d34014282f953115f3b3489afde7b1d752bc",
+  "forced_side_effects": [
+   "R4.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R5.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d",
+  "after_sha256": "9a96029facf3da186a77874cdf9633fb3dc7c362b7df79ab536644c196cc8a6e"
+ },
+ {
+  "seq": 2,
+  "summary": "Retune stage-2 pole: R4,R5 18.7k and C3 5.1n (RC product +3.2% vs baseline, gain ratio unchanged), a smaller flatness cost than the 17.4k/5.6n step; MPNs updated to match.",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "value",
+    "to": "18.7k",
+    "from": "17.4k"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0718K7L",
+    "from": "RC0603FR-0717K4L"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "value",
+    "to": "18.7k",
+    "from": "17.4k"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0718K7L",
+    "from": "RC0603FR-0717K4L"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "value",
+    "to": "5.1n",
+    "from": "5.6n"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "mpn_candidate",
+    "to": "C0805C512J5GACTU",
+    "from": "C0805C562J5GACTU"
+   }
+  ],
+  "fingerprint": "3d90329c8af07f9e1c65832cc42a10eb5a28589b752f4ed5284415a5077bf827",
+  "forced_side_effects": [
+   "R4.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R5.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "C3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "9a96029facf3da186a77874cdf9633fb3dc7c362b7df79ab536644c196cc8a6e",
+  "after_sha256": "eb824be5cd3625b1573bf6ebbd8183099b9fe1a2167715585c082365c3260109"
+ }
+]

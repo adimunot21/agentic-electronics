@@ -1,0 +1,31 @@
+{
+ "state": "ACCEPTED",
+ "iteration": 1,
+ "model_calls": 10,
+ "tool_calls": 8,
+ "evaluations": 1,
+ "invalid_replies": 1,
+ "identical_patch_hits": 0,
+ "no_progress": 0,
+ "stop_reason": "accepted",
+ "evaluated_manifest_sha256": [
+  "eb824be5cd3625b1573bf6ebbd8183099b9fe1a2167715585c082365c3260109"
+ ],
+ "patch_fingerprints": [
+  "d9bf357170868164447d7e16aa90d34014282f953115f3b3489afde7b1d752bc",
+  "3d90329c8af07f9e1c65832cc42a10eb5a28589b752f4ed5284415a5077bf827"
+ ],
+ "best_violation_count": null,
+ "usage": {
+  "input_tokens": 20,
+  "output_tokens": 8333,
+  "cost_usd_reported": 0.4846621,
+  "cost_unknown_calls": 0,
+  "model_seconds": 104.26378411706537,
+  "tool_seconds": 8.24130602600053,
+  "eval_seconds": 102.71496274194214
+ },
+ "provider": "claude-cli",
+ "fixture": false,
+ "mode": "engineered_single_agent"
+}
