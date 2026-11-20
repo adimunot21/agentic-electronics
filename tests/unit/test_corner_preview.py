@@ -66,3 +66,15 @@ def test_preview_gain_limits_agree_with_the_contract():
     src = inspect.getsource(mc.run_corners)
     lo, hi = _limits()["gain"]
     assert f"{lo} <=" in src and f"<= {hi}" in src                                       # run_corners hardcodes the same 1.235..1.365 window the preview reports
+
+
+def test_requirements_preview_shares_the_budget_is_improvement_only_and_prompt_mentions_stab(tmp_path):
+    ctx, calls = make_ctx(tmp_path, improvement=False)
+    assert not build_registry(ctx).call("run_check", {"check": "requirements_preview"}).ok and calls == []
+    ctx, calls = make_ctx(tmp_path / "b", improvement=True, max_previews=1)
+    reg = build_registry(ctx)
+    assert reg.call("run_check", {"check": "requirements_preview"}).ok and ctx.corner_previews == 1
+    blocked = reg.call("run_check", {"check": "corner_preview"})
+    assert not blocked.ok and blocked.error["code"] == "preview_budget_exhausted"                  # one shared budget for both preview kinds
+    from ae.harness.controller import IMPROVEMENT_PROMPT
+    assert "requirements_preview" in IMPROVEMENT_PROMPT and "REQ-STAB" in IMPROVEMENT_PROMPT

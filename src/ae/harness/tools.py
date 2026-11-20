@@ -9,7 +9,7 @@ from typing import Callable
 import yaml
 
 from ae import bomcheck
-from ae.harness.checks import CHECKS, run_fast
+from ae.harness.checks import CHECKS, PREVIEW_CHECKS, run_fast
 from ae.harness.contracts import Arg, ToolError, ToolRegistry, ToolSpec
 from ae.harness.workspace import REPO_ROOT, Workspace, trusted_digest
 
@@ -26,7 +26,7 @@ class AgentContext:
     patch_log: list = field(default_factory=list)
     improvement: bool = False          # improvement tasks also get `declare_no_improvement` and the worst-case `corner_preview` check
     corner_previews: int = 0           # uses so far (the sweep is ~1 min of simulation); bounded by max_corner_previews
-    max_corner_previews: int = 8
+    max_corner_previews: int = 12      # fresh sweeps of EITHER preview check (corner ~50 s, requirements ~40 s); cache hits are free
 
 
 def _contract(repo: Path) -> dict:
@@ -70,20 +70,20 @@ def build_registry(ctx: AgentContext) -> ToolRegistry:
     def run_check(check: str) -> dict:
         if check not in CHECKS:
             raise ToolError("invalid_arguments", f"unknown check {check!r}", {"available": list(CHECKS)})
-        if check == "corner_preview" and not ctx.improvement:
-            raise ToolError("invalid_arguments", "corner_preview is available only in improvement tasks", {"available": [c for c in CHECKS if c != "corner_preview"]})
+        if check in PREVIEW_CHECKS and not ctx.improvement:
+            raise ToolError("invalid_arguments", f"{check} is available only in improvement tasks", {"available": [c for c in CHECKS if c not in PREVIEW_CHECKS]})
         key = (check, ctx.workspace.sha256(), ctx.trusted_combined)
         if key in ctx.cache:
             return {**ctx.cache[key], "cache_hit": True, "evidence_key": [check, key[1][:12], key[2][:12]]}
-        if check == "corner_preview":
+        if check in PREVIEW_CHECKS:
             if ctx.corner_previews >= ctx.max_corner_previews:
-                raise ToolError("preview_budget_exhausted", f"corner_preview is limited to {ctx.max_corner_previews} fresh runs per task; submit or declare instead", {"used": ctx.corner_previews})
+                raise ToolError("preview_budget_exhausted", f"previews (corner_preview + requirements_preview) are limited to {ctx.max_corner_previews} fresh runs per task; submit or declare instead", {"used": ctx.corner_previews})
             ctx.corner_previews += 1
         out = ctx.checks_fn([check], ctx.workspace.manifest, ctx.scratch / f"fast_{key[1][:10]}")
         res = out.get(check)
         if not isinstance(res, dict) or "outcome" not in res:
             raise ToolError("unreadable_result", f"check {check} produced no readable result", {"got": str(out)[:200]})
-        if check == "corner_preview" and res["outcome"] in ("error", "blocked"):
+        if check in PREVIEW_CHECKS and res["outcome"] in ("error", "blocked"):
             if res["outcome"] == "error":
                 ctx.corner_previews -= 1                                   # never reached the sweep (e.g. netlist export failed): no budget spent
             return {**res, "cache_hit": False, "evidence_key": [check, key[1][:12], key[2][:12]]}      # transient failures are not cached, so the same design can be retried
@@ -100,8 +100,8 @@ def build_registry(ctx: AgentContext) -> ToolRegistry:
     reg.register(ToolSpec("get_design_evidence", "Read evidence recorded for one part: BOM verification ledger entry and design-time calculation record.", {"ref": Arg("str", "part reference, e.g. 'C1'")}), get_design_evidence)
     reg.register(ToolSpec("decode_mpn", "Decode a manufacturer part number (Kemet MLCC, Yageo RC/RT) into value/package/tolerance/rating.", {"mpn": Arg("str", "ordering code")}), decode_mpn)
     reg.register(ToolSpec("get_failure_report", "Measured failures of the design you were given (fast checks run on it before you started).", {}), get_failure_report)
-    reg.register(ToolSpec("run_check", "Run a REAL check on the CURRENT design: bom_consistency (MPN vs schematic value/package/tolerance/rating), ac_response (nominal AC gain/flatness/alias vs the contract), or corner_preview (improvement tasks only: the evaluator's own worst-case sweep over ALL tolerance corners, about a minute, limited uses; advisory).",
-                          {"check": Arg("str", "bom_consistency | ac_response | corner_preview (improvement tasks)")}, timeout_s=150.0), run_check)
+    reg.register(ToolSpec("run_check", "Run a REAL check on the CURRENT design: bom_consistency (MPN vs schematic value/package/tolerance/rating), ac_response (nominal AC gain/flatness/alias vs the contract), corner_preview (improvement tasks only: the evaluator\'s own worst-case sweep over ALL tolerance corners, about a minute) or requirements_preview (improvement tasks only: the evaluator\'s nominal sweep of every requirement incl. REQ-STAB, bias, noise, settling; about 40 s). Both are limited in number per task and advisory.",
+                          {"check": Arg("str", "bom_consistency | ac_response | corner_preview | requirements_preview (improvement tasks)")}, timeout_s=150.0), run_check)
     reg.register(ToolSpec("propose_patch", "Propose AND apply (in the isolated workspace) a constrained patch: {summary, base_sha256, ops:[{op:'set_field', part, field:'value'|'mpn_candidate', to}]}. Rejected if stale or out of scope.",
                           {"patch": Arg("dict", "the patch object")}, writes_workspace=True), propose_patch)
     reg.register(ToolSpec("submit", "Finish: ask the independent evaluator to judge the current design. It runs the full trusted pipeline and may reject.", {"summary": Arg("str", "what you changed and why")}, timeout_s=5.0), lambda summary: {"submitted": True})

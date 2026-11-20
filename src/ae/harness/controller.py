@@ -88,7 +88,8 @@ Rules: you cannot read or write files; requirements, thresholds, the frozen poli
 (scope: value and mpn_candidate of the parts named in the task's allowed_edits; changing an MPN resets its verification status; a value edit without a matching MPN edit fails the BOM check).
 Patch format: {{"summary": str, "base_sha256": <manifest_sha256 from get_design>, "ops": [{{"op":"set_field","part":"R4","field":"value","to":"..."}}]}}.
 The task has ONE objective with a minimum improvement and hard constraints; the evaluator re-runs the full pipeline over all tolerance corners and judges against the frozen policy. `ac_response` is nominal only. `run_check corner_preview` runs the evaluator's own worst-case sweep over ALL tolerance corners on your current design
-(about a minute, limited uses per task, advisory: the evaluator still decides and also applies further rules); use it before submitting. Pre-existing failures (e.g. REQ-STAB) are not yours to fix or hide and must not get worse. A rejection reports policy violations separately from failed circuit requirements.
+(about a minute, advisory: the evaluator still decides and also applies further rules). `run_check requirements_preview` shows the nominal value of EVERY requirement, including REQ-STAB, bias, noise and settling,
+which the non-regression rules guard and which corner_preview does not report (compare with the baseline values in the brief). Both previews are limited in number per task; use them before submitting. Pre-existing failures (e.g. REQ-STAB) are not yours to fix or hide and must not get worse. A rejection reports policy violations separately from failed circuit requirements.
 Do not guess hidden answers; do not try to weaken checks. If you cannot find a justified improvement, call `declare_no_improvement` with your reasons: it ends the run, spends no evaluation and is recorded as its own outcome.
 Submitting a design that is electrically identical to the baseline or to one already evaluated is refused before any evaluation (it costs you a turn, nothing else); exploring and reverting freely is fine.
 If two evaluated designs in a row set neither a better worst-case objective nor fewer broken checks than before, a further submission ends the run instead of being evaluated."""
@@ -257,20 +258,20 @@ class Controller:
         self.state["baseline_state"] = canonical_state(self.ws.text())
         self.state["visited_states"] = [self.state["baseline_state"]]
         by = {c["id"]: c for c in self.baseline_record["checks"]}
-        keys = [pol.objective_check, "REQ-FLAT-CORNERS", "REQ-GAIN-CORNERS", "REQ-FLAT", "REQ-GAIN", "REQ-ALIAS", "REQ-STAB"]
+        keys = [pol.objective_check, "REQ-FLAT-CORNERS", "REQ-GAIN-CORNERS", "REQ-FLAT", "REQ-GAIN", "REQ-ALIAS", "REQ-STAB", "REQ-BIAS", "REQ-IQ", "REQ-ZIN", "REQ-HEADROOM", "REQ-SETTLE", "REQ-NOISE"]
         brief = {"design_manifest_sha256": self.ws.sha256(), "policy_id": pol.task_id, "policy_version": pol.version, "policy_sha256": pol.sha256,
                  "objective": pol.raw["objective"], "hard_constraints": pol.raw["hard_constraints"], "allowed_edits": pol.raw["allowed_edits"], "non_regression": pol.raw["nonregression"],
                  "claims_never_made": pol.raw["claims_never_made"],
                  "baseline_measurements": {k: {"outcome": by[k]["outcome"], "value": by[k].get("value"), "limit": by[k].get("limit"), "margin": by[k].get("margin")} for k in keys},
                  "fast_check_results": self.checks_fn(["bom_consistency", "ac_response"], self.ws.manifest, self.ctx.scratch / "baseline_fast"),
-                 "note": "baseline measured by the trusted pipeline; the evaluator re-runs the FULL pipeline (all corners) on your design; ac_response is nominal only; run_check corner_preview shows the same worst-case corner numbers (limited uses)"}
+                 "note": "baseline measured by the trusted pipeline; the evaluator re-runs the FULL pipeline (all corners) on your design; ac_response is nominal only; run_check corner_preview / requirements_preview show the evaluator's own corner and per-requirement numbers (limited uses)"}
         self.ctx.failure_report = brief
         (self.run_dir / "task_brief.json").write_text(json.dumps(brief, indent=1, default=str))
         self._transition("TASK_READY", task=pol.task_id, policy_sha256=pol.sha256[:12])
         self.registry = build_registry(self.ctx)
         specs = "\n".join(json.dumps(sp.schema()) for sp in self.registry.specs())
         self.system = IMPROVEMENT_PROMPT.replace("{tools}", specs)
-        self.messages = [{"role": "user", "content": f"TASK ({self.task.id}): {self.task.description}\nFrozen objective, constraints and baseline:\n{json.dumps(brief, indent=1, default=str)[:7000]}\nBegin. Reply with one JSON action."}]
+        self.messages = [{"role": "user", "content": f"TASK ({self.task.id}): {self.task.description}\nFrozen objective, constraints and baseline:\n{json.dumps(brief, indent=1, default=str)[:12000]}\nBegin. Reply with one JSON action."}]
         self._event("message", role="user", content=self.messages[0]["content"])
         return None
 

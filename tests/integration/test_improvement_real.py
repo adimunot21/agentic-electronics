@@ -55,3 +55,13 @@ def test_real_corner_preview_reproduces_the_evaluators_baseline_corner_numbers(t
     assert m["alias_corners_worst_dB"] == pytest.approx(-58.73526536671747, abs=1e-6)
     assert m["flatness_corners_worst_dB"] == pytest.approx(0.4022427579821821, abs=1e-6)
     assert m["gain_corners_min_V_per_V"] == pytest.approx(1.24338294379962, abs=1e-9) and m["gain_corners_max_V_per_V"] == pytest.approx(1.3636736113526455, abs=1e-9)
+
+
+@pytest.mark.skipif(not ready, reason="needs docker + shimmed model")
+def test_real_requirements_preview_reproduces_the_baseline_nominal_numbers_including_req_stab(tmp_path):
+    """Real docker/ngspice: requirements_preview runs ae.sim.evaluate_all, so on the baseline it must equal the full pipeline's recorded nominal values (REQ-STAB = 52.8446 dB, FAILED)."""
+    out = run_fast(["requirements_preview"], PRISTINE, tmp_path)["requirements_preview"]
+    r = out["requirements"]
+    assert out["outcome"] == "info" and "not_acceptance" in out
+    assert r["REQ-STAB"]["value"] == pytest.approx(52.844602146847194, abs=1e-6) and r["REQ-STAB"]["outcome"] == "failed"
+    assert r["REQ-ALIAS"]["value"] == pytest.approx(-60.33030524960851, abs=1e-6) and r["REQ-BIAS"]["value"] == pytest.approx(9.65, abs=1e-6)

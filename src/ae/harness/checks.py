@@ -4,6 +4,8 @@ bom_consistency: schematic generated from the candidate manifest -> KiCad netlis
 ac_response:    nominal AC run (Rs = 100 ohm) judged against the CONTRACT limits (gain window, flatness, alias at exactly 19 kHz).
 corner_preview: the evaluator's OWN worst-case sweep (ae.mc.run_corners: all 1024 vertices of the contract tolerance box, real model) on the candidate. ADVISORY: the independent evaluator still
                 judges the design with the full pipeline and further rules (REQ-STAB, reserves, BOM, non-regression); this only shows the agent the same corner numbers the evaluator will compute.
+requirements_preview: the evaluator's own nominal requirement sweep (ae.sim.evaluate_all: gain, flatness, alias, input impedance, bias, quiescent current, headroom, settling, REQ-STAB, noise), ~35 s. ADVISORY like
+                corner_preview; it exists so the agent can see the metrics the non-regression rules guard (REQ-STAB especially) BEFORE a 100 s evaluation.
 Outcomes: passed | failed | blocked | error. Raw measurements are returned, never only a verdict.
 """
 from __future__ import annotations
@@ -18,7 +20,8 @@ from ae.sim import SimRun, ac_run, load_ideal
 from ae.stages import kicad_netlist
 from ae.toolchain import REPO_ROOT
 
-CHECKS = ("bom_consistency", "ac_response", "corner_preview")
+CHECKS = ("bom_consistency", "ac_response", "corner_preview", "requirements_preview")
+PREVIEW_CHECKS = ("corner_preview", "requirements_preview")      # improvement tasks only, budgeted, advisory
 
 
 def _limits() -> dict:
@@ -66,4 +69,11 @@ def run_fast(names: list[str], components_path: Path, workdir: Path) -> dict:
                                      "worst_flatness_corner": cr["worst_flat"]["corner"],
                                      "limits": {"gain_V_per_V": list(lim["gain"]), "flatness_dB_max": lim["flat"], "alias_dB_max": lim["alias"]},
                                      "conditions": "ALL tolerance corners, real TI model (shim); same code as the evaluator; ADVISORY: the evaluator also applies reserves, REQ-STAB and non-regression rules that this does not report"}
+    if "requirements_preview" in names:
+        from ae.sim import evaluate_all                            # same trusted code the evaluator's pipeline runs
+        sim_rp = SimRun(work=workdir / "requirements_preview", netlist=workdir / "fe_aaf_001.net")
+        ms = evaluate_all(sim_rp)
+        out["requirements_preview"] = {"outcome": "info", "not_acceptance": "nominal parts only; no policy reserves, no baseline comparison, no objective, no corners; only the independent evaluator accepts or rejects",
+                                       "requirements": {m.req: {"outcome": m.outcome, "value": m.value, "limit": m.limit, "margin": m.margin} for m in ms},
+                                       "conditions": "nominal parts, real TI model (shim); same code as the evaluator (ae.sim.evaluate_all). REQ-STAB is rev 2 and FAILED on the baseline; compare its VALUE with the baseline value in the task brief"}
     return out
