@@ -43,3 +43,15 @@ def test_real_noop_text_change_is_numerically_identical(tmp_path):
     base = run_fast(["ac_response"], PRISTINE, tmp_path / "base")
     same = run_fast(["ac_response"], candidate(tmp_path, "X_noop_c3_5n60"), tmp_path / "noop")
     assert same["ac_response"]["measurements"] == base["ac_response"]["measurements"]
+
+
+@pytest.mark.skipif(not ready, reason="needs docker + shimmed model")
+def test_real_corner_preview_reproduces_the_evaluators_baseline_corner_numbers(tmp_path):
+    """Real docker/ngspice: the agent-facing corner_preview must give the SAME worst-case numbers the full pipeline records for the baseline (same trusted code, deterministic)."""
+    from ae.harness.checks import run_fast
+    out = run_fast(["corner_preview"], PRISTINE, tmp_path)["corner_preview"]
+    m = out["measurements"]
+    assert out["outcome"] == "within_contract_limits" and "not_acceptance" in out and m["corners_completed"] == m["corners_total"] == 1024
+    assert m["alias_corners_worst_dB"] == pytest.approx(-58.73526536671747, abs=1e-6)
+    assert m["flatness_corners_worst_dB"] == pytest.approx(0.4022427579821821, abs=1e-6)
+    assert m["gain_corners_min_V_per_V"] == pytest.approx(1.24338294379962, abs=1e-9) and m["gain_corners_max_V_per_V"] == pytest.approx(1.3636736113526455, abs=1e-9)

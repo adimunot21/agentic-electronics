@@ -2,6 +2,8 @@
 
 bom_consistency: schematic generated from the candidate manifest -> KiCad netlist -> ae.bomcheck (value/package/tolerance/dielectric/rating vs MPN decode).
 ac_response:    nominal AC run (Rs = 100 ohm) judged against the CONTRACT limits (gain window, flatness, alias at exactly 19 kHz).
+corner_preview: the evaluator's OWN worst-case sweep (ae.mc.run_corners: all 1024 vertices of the contract tolerance box, real model) on the candidate. ADVISORY: the independent evaluator still
+                judges the design with the full pipeline and further rules (REQ-STAB, reserves, BOM, non-regression); this only shows the agent the same corner numbers the evaluator will compute.
 Outcomes: passed | failed | blocked | error. Raw measurements are returned, never only a verdict.
 """
 from __future__ import annotations
@@ -16,7 +18,7 @@ from ae.sim import SimRun, ac_run, load_ideal
 from ae.stages import kicad_netlist
 from ae.toolchain import REPO_ROOT
 
-CHECKS = ("bom_consistency", "ac_response")
+CHECKS = ("bom_consistency", "ac_response", "corner_preview")
 
 
 def _limits() -> dict:
@@ -49,4 +51,19 @@ def run_fast(names: list[str], components_path: Path, workdir: Path) -> dict:
             out["ac_response"] = {"outcome": "passed" if all(ok.values()) else "failed", "per_requirement": {k: ("passed" if v else "failed") for k, v in ok.items()},
                                   "measurements": {"gain_400Hz_V_per_V": g, "flatness_dB": f, "alias_at_19kHz_dB": a},
                                   "limits": {"gain_V_per_V": list(lim["gain"]), "flatness_dB_max": lim["flat"], "alias_dB_max": lim["alias"]}, "conditions": "nominal parts, Rs = 100 ohm, real TI model (shim), ngspice 44.2"}
+    if "corner_preview" in names:
+        from ae.mc import run_corners                              # same trusted code the evaluator's pipeline runs
+        lim = _limits()
+        cr = run_corners(workdir / "corner_preview", workdir / "fe_aaf_001.net")
+        if not cr["rows"] or cr["completed"] != cr["n"]:
+            out["corner_preview"] = {"outcome": "blocked", "detail": f"only {cr['completed']} of {cr['n']} corners completed"}
+        else:
+            flat_worst = cr["worst_flat"]["passband_flatness_dB_max_abs"]
+            ok = {"REQ-FLAT-CORNERS": cr["flat_fail"] == 0, "REQ-GAIN-CORNERS": cr["gain_fail"] == 0, "REQ-ALIAS-CORNERS": cr["stop_fail"] == 0}
+            out["corner_preview"] = {"outcome": "within_contract_limits" if all(ok.values()) else "outside_contract_limits", "not_acceptance": "this does NOT test the required objective improvement over the baseline, the policy reserves, REQ-STAB or non-regression; only the independent evaluator accepts or rejects", "per_requirement": {k: ("passed" if v else "failed") for k, v in ok.items()},
+                                     "measurements": {"alias_corners_worst_dB": cr["stop_worst"], "flatness_corners_worst_dB": flat_worst, "gain_corners_min_V_per_V": cr["gain_min"],
+                                                      "gain_corners_max_V_per_V": cr["gain_max"], "corners_completed": cr["completed"], "corners_total": cr["n"]},
+                                     "worst_flatness_corner": cr["worst_flat"]["corner"],
+                                     "limits": {"gain_V_per_V": list(lim["gain"]), "flatness_dB_max": lim["flat"], "alias_dB_max": lim["alias"]},
+                                     "conditions": "ALL tolerance corners, real TI model (shim); same code as the evaluator; ADVISORY: the evaluator also applies reserves, REQ-STAB and non-regression rules that this does not report"}
     return out
