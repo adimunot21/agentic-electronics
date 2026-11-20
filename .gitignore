@@ -50,3 +50,5 @@ dist/
 docs/second-circuit/candidates.md
 docs/second-circuit/draft-contract.md
 docs/second-circuit/evaluator-plan.md
+!tests/unit/data/
+!src/ae/parts/data/
