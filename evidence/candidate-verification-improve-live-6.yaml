@@ -1,0 +1,24 @@
+# Verification ANNOTATION for the two new part numbers in the accepted improve-live-6 candidate. Annotation only: no design, run file, policy or ledger was modified. The candidate is NOT adopted.
+# Checked 2026-11-20 via DigiKey keyword search and general web search (secondary summarisation; no datasheet read, nothing ordered).
+# Absence at the sources searched is NOT proof that a part does not exist.
+candidate_run: runs/agent/improve-live-6
+candidate_manifest_sha256_prefix: 44049d3713c2
+parts:
+  - mpn: RC0603FR-0759K6L
+    used_for: [R1]
+    assumed: {value: "59.6k", tolerance: "1%", package: "0603"}
+    result: NOT_FOUND_AT_SOURCES_SEARCHED
+    sources:
+      - {name: DigiKey keyword search, url: "https://www.digikey.com/en/products/result?keywords=RC0603FR-0759K6L", note: "'did not return any results'"}
+      - {name: general web search, note: "no listing; the neighbouring 59k (RC0603FR-0759KL) and 57.6k (RC0603FR-0757K6L) parts are listed"}
+    design_note: "59.6k is not an E96 value (E96 has 59.0 and 60.4). The manifest declares this 1% part family as series E96, so a 59.6k 1% part is not expected to exist; the harness's value/MPN decode only checks that the part number agrees with the value written, not that the part is orderable."
+  - mpn: C0805C203J5GACTU
+    used_for: [C1]
+    assumed: {value: "20n", tolerance: "5%", dielectric: C0G, package: "0805"}
+    result: NOT_FOUND_AT_SOURCES_SEARCHED
+    sources:
+      - {name: DigiKey keyword search, url: "https://www.digikey.com/en/products/result?keywords=C0805C203J5GACTU", note: "'did not return any results'; suggests C0805C103J5GACTU (10 nF)"}
+      - {name: general web search, note: "no listing for the 20 nF part; only the 20 pF sibling C0805C200J5GACTU found"}
+    design_note: "20 nF is in the E24 series (the C1 manifest series), so a part may exist; this search did not find one."
+alternatives_suggested: none (no alternative found in a cited listing)
+consequence: "accepted_for_objective stays valid for the frozen objective, but neither new part number is verified orderable: the design must not be described as buildable."

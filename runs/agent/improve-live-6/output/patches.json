@@ -1,0 +1,330 @@
+[
+ {
+  "seq": 1,
+  "summary": "Lower stage-2 corner: C3 5.6n -> 6.2n",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "value",
+    "to": "6.2n",
+    "from": "5.6n"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "mpn_candidate",
+    "to": "C0805C622J5GACTU",
+    "from": "C0805C562J5GACTU"
+   }
+  ],
+  "fingerprint": "c243a3bbd45f5d719470049f0911ec7fa0db07e53c5afee0abd047b0cc0f477f",
+  "forced_side_effects": [
+   "C3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d",
+  "after_sha256": "9c7615bd20c8091de275b13725b25d0814928d7d48316e1471f6f3fbdc62bac0"
+ },
+ {
+  "seq": 2,
+  "summary": "Revert C3 to 5.6n; raise R4/R5 to 17.4k (keeps gain, moderate stage-2 corner shift)",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "value",
+    "to": "5.6n",
+    "from": "6.2n"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "mpn_candidate",
+    "to": "C0805C562J5GACTU",
+    "from": "C0805C622J5GACTU"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "value",
+    "to": "17.4k",
+    "from": "16.5k"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0717K4L",
+    "from": "RC0603FR-0716K5L"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "value",
+    "to": "17.4k",
+    "from": "16.5k"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0717K4L",
+    "from": "RC0603FR-0716K5L"
+   }
+  ],
+  "fingerprint": "9b34b31675a8fceccc63a944ba7ad4772591c79617a033616fd88286d98dea02",
+  "forced_side_effects": [
+   "C3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R4.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R5.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "9c7615bd20c8091de275b13725b25d0814928d7d48316e1471f6f3fbdc62bac0",
+  "after_sha256": "0e913b4956e62ddf90b03b8e0c57e797129aafddd9d9341096a63fc616a46598"
+ },
+ {
+  "seq": 3,
+  "summary": "Shift bandwidth between stages: C1 18n->20n (stage 1 lower), R4/R5 16.5k->15.8k (stage 2 higher)",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C1",
+    "field": "value",
+    "to": "20n",
+    "from": "18n"
+   },
+   {
+    "op": "set_field",
+    "part": "C1",
+    "field": "mpn_candidate",
+    "to": "C0805C203J5GACTU",
+    "from": "C0805C183J5GACTU"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "value",
+    "to": "15.8k",
+    "from": "17.4k"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0715K8L",
+    "from": "RC0603FR-0717K4L"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "value",
+    "to": "15.8k",
+    "from": "17.4k"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0715K8L",
+    "from": "RC0603FR-0717K4L"
+   }
+  ],
+  "fingerprint": "073687be0df40c8adc91bc8e42099d921d379fb2f5f2846460e420ca496316dd",
+  "forced_side_effects": [
+   "C1.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R4.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R5.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "0e913b4956e62ddf90b03b8e0c57e797129aafddd9d9341096a63fc616a46598",
+  "after_sha256": "4c4681c5c7d66d950229ff5cf8f91947ffe415b70fc997c6b5f15ed4bc3e5d5c"
+ },
+ {
+  "seq": 4,
+  "summary": "Trim gain via R2 76.8k->76k and nudge stage-2 corner up (R4/R5 15.4k) to recover flatness while keeping C1 20n",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R2",
+    "field": "value",
+    "to": "76k",
+    "from": "76.8k"
+   },
+   {
+    "op": "set_field",
+    "part": "R2",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0776KL",
+    "from": "RC0603FR-0776K8L"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "value",
+    "to": "15.4k",
+    "from": "15.8k"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0715K4L",
+    "from": "RC0603FR-0715K8L"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "value",
+    "to": "15.4k",
+    "from": "15.8k"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0715K4L",
+    "from": "RC0603FR-0715K8L"
+   }
+  ],
+  "fingerprint": "4a715270cedb1d018109100d28d5dae1d3ceecafff725d95fd8419b38ac4aa29",
+  "forced_side_effects": [
+   "R2.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R4.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R5.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "4c4681c5c7d66d950229ff5cf8f91947ffe415b70fc997c6b5f15ed4bc3e5d5c",
+  "after_sha256": "bec1e79ee4cb37cdf66f40be1f66c7c975864d33a4a556d04d9b4d2c053d84e9"
+ },
+ {
+  "seq": 5,
+  "summary": "Revert R2 and R4/R5 to baseline; keep C1 20n only",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R2",
+    "field": "value",
+    "to": "76.8k",
+    "from": "76k"
+   },
+   {
+    "op": "set_field",
+    "part": "R2",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0776K8L",
+    "from": "RC0603FR-0776KL"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "value",
+    "to": "16.5k",
+    "from": "15.4k"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0716K5L",
+    "from": "RC0603FR-0715K4L"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "value",
+    "to": "16.5k",
+    "from": "15.4k"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0716K5L",
+    "from": "RC0603FR-0715K4L"
+   }
+  ],
+  "fingerprint": "74da5b65127e41e7ef75d0f43d54eb3d01748af0a07cccfaf3365a5a5cbeccb1",
+  "forced_side_effects": [
+   "R2.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R4.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R5.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "bec1e79ee4cb37cdf66f40be1f66c7c975864d33a4a556d04d9b4d2c053d84e9",
+  "after_sha256": "51b9e0b645bb91f43726a533e629fdb2f8654af5f1f768d7c933be756ab8a0d3"
+ },
+ {
+  "seq": 6,
+  "summary": "Trim gain: R2 76.8k->76k with C1 20n",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R2",
+    "field": "value",
+    "to": "76k",
+    "from": "76.8k"
+   },
+   {
+    "op": "set_field",
+    "part": "R2",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0776KL",
+    "from": "RC0603FR-0776K8L"
+   }
+  ],
+  "fingerprint": "26bea5670bdd922a4be9f38c2a568a37d68a3576c0c102d36498422f7655f92e",
+  "forced_side_effects": [
+   "R2.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "51b9e0b645bb91f43726a533e629fdb2f8654af5f1f768d7c933be756ab8a0d3",
+  "after_sha256": "3fa92538cb84ec689c7313029bda3fd4d57409dbae42a83223cce967b3f583b0"
+ },
+ {
+  "seq": 7,
+  "summary": "Isolate STAB cause: revert R2 to 76.8k, keep C1 20n",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R2",
+    "field": "value",
+    "to": "76.8k",
+    "from": "76k"
+   },
+   {
+    "op": "set_field",
+    "part": "R2",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0776K8L",
+    "from": "RC0603FR-0776KL"
+   }
+  ],
+  "fingerprint": "5cf76899f9d94be16fa2091ef9579296d73af76be31035ec1c90d6e8cbb907b7",
+  "forced_side_effects": [
+   "R2.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "3fa92538cb84ec689c7313029bda3fd4d57409dbae42a83223cce967b3f583b0",
+  "after_sha256": "51b9e0b645bb91f43726a533e629fdb2f8654af5f1f768d7c933be756ab8a0d3"
+ },
+ {
+  "seq": 8,
+  "summary": "Trim gain via R1 59k->59.6k with C1 20n (R2 back at baseline)",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R1",
+    "field": "value",
+    "to": "59.6k",
+    "from": "59k"
+   },
+   {
+    "op": "set_field",
+    "part": "R1",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0759K6L",
+    "from": "RC0603FR-0759KL"
+   }
+  ],
+  "fingerprint": "3713bff9ab7251c94ca34959bcfa580fc65aab102de8e3b4a21fee4f739da0b4",
+  "forced_side_effects": [
+   "R1.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "51b9e0b645bb91f43726a533e629fdb2f8654af5f1f768d7c933be756ab8a0d3",
+  "after_sha256": "44049d3713c2086bcb5178d759fcd842c10284d11b7063d59a0ac646d4191bb3"
+ }
+]

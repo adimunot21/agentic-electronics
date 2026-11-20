@@ -1,0 +1,60 @@
+{
+ "state": "ACCEPTED",
+ "iteration": 2,
+ "model_calls": 29,
+ "tool_calls": 25,
+ "evaluations": 2,
+ "invalid_replies": 1,
+ "identical_patch_hits": 0,
+ "no_progress": 0,
+ "refused_submits": 0,
+ "pending_feedback": false,
+ "best_objective": 0.9150934741792653,
+ "best_infeasible_checks": 1,
+ "evaluated_states": [
+  "ee6436aa73910bb87f084943133818a2b0667d7284b98799088e3910d1c4a93b",
+  "16f3ece09cad15ef28d63ce34179cc5349891926edce0de572b14877c5c1d7db"
+ ],
+ "visited_states": [
+  "aef08b2a4017be62e1c6d2273816a0d64844888c3de6f55cf68bc55a07b4c0ed",
+  "f70d4ff4b15bcd435b8cde1d022f979e1a177b04bc5efcd51c2a48389b4336fa",
+  "d98ccf0ae3956953be005a65e3b505ea341b5637a8e77ebe74f16d802e7be8c3",
+  "15163b9ca68aabe98b6c5aed5db2a2f025eeb2d919d8b0e416fef9ffc5b2f57b",
+  "78f791e6c803501b027a68169bb3c11fabbcaf60f04edc071e4160d4d5963f52",
+  "2131493d9caa834e66e23bdfbaa22092679afb9afa72f78e5c603978bd23c83f",
+  "ee6436aa73910bb87f084943133818a2b0667d7284b98799088e3910d1c4a93b",
+  "16f3ece09cad15ef28d63ce34179cc5349891926edce0de572b14877c5c1d7db"
+ ],
+ "state_revisits": 0,
+ "baseline_state": "aef08b2a4017be62e1c6d2273816a0d64844888c3de6f55cf68bc55a07b4c0ed",
+ "stop_reason": "accepted",
+ "evaluated_manifest_sha256": [
+  "3fa92538cb84ec689c7313029bda3fd4d57409dbae42a83223cce967b3f583b0",
+  "44049d3713c2086bcb5178d759fcd842c10284d11b7063d59a0ac646d4191bb3"
+ ],
+ "patch_fingerprints": [
+  "c243a3bbd45f5d719470049f0911ec7fa0db07e53c5afee0abd047b0cc0f477f",
+  "9b34b31675a8fceccc63a944ba7ad4772591c79617a033616fd88286d98dea02",
+  "073687be0df40c8adc91bc8e42099d921d379fb2f5f2846460e420ca496316dd",
+  "4a715270cedb1d018109100d28d5dae1d3ceecafff725d95fd8419b38ac4aa29",
+  "74da5b65127e41e7ef75d0f43d54eb3d01748af0a07cccfaf3365a5a5cbeccb1",
+  "26bea5670bdd922a4be9f38c2a568a37d68a3576c0c102d36498422f7655f92e",
+  "5cf76899f9d94be16fa2091ef9579296d73af76be31035ec1c90d6e8cbb907b7",
+  "3713bff9ab7251c94ca34959bcfa580fc65aab102de8e3b4a21fee4f739da0b4"
+ ],
+ "best_violation_count": null,
+ "usage": {
+  "input_tokens": 56,
+  "output_tokens": 15025,
+  "cost_usd_reported": 1.9959450999999997,
+  "cost_unknown_calls": 1,
+  "model_seconds": 180.9108289212454,
+  "tool_seconds": 343.7212345772423,
+  "eval_seconds": 179.06597793207038
+ },
+ "provider": "claude-cli",
+ "fixture": false,
+ "mode": "engineered_single_agent",
+ "had_feedback": true,
+ "final_feedback_delivered": true
+}
