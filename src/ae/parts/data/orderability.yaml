@@ -1,0 +1,85 @@
+# Offline orderability cache. It records CATALOGUE EXISTENCE evidence only. It never records stock, price, lead time or lifecycle status
+# (none is legitimately obtainable offline; see docs/research/orderability.md). Every entry carries its source, retrieval date, what it proves and caveats.
+schema_version: 1
+generated: 2026-11-20
+families:
+  - family_id: yageo_rc_l_0603_1pct
+    manufacturer: Yageo
+    mpn_template: "RC0603FR-07{code}L"        # F = +-1 %, R = paper tape, 07 = 7 inch reel, L = lead free (Yageo RC_L ordering information, same sheet)
+    kind: resistor
+    value_series: E96
+    value_min: 1.0                             # ohm; RC0603 1 % (E24/E96) resistance range, lower limit
+    value_max: 1.0e7                           # ohm; RC0603 1 % (E24/E96) resistance range, upper limit (10 Mohm, inclusive)
+    tolerance_pct: 1.0
+    package: "0603"
+    basis: "manufacturer datasheet range statement"
+    source:
+      url: https://www.yageogroup.com/content/datasheet/asset/file/PYU-RC_GROUP_51_ROHS_L
+      doc_id: "Yageo RC_L series data sheet, PYu-RC_Group_51_RoHS_L"
+      revision: "Product specification - November 14, 2025 V.14"
+      sha256: 7b6f0ae72708ca4b38126f84b5407a3e970a94cb60bc1a0afdaeb25a23d839bb
+      retrieved: 2026-11-20
+    proves:
+      - "Table 2 of the V.14 data sheet lists RC0603 (1/10 W) with 1% (E24/E96) resistance range 1 ohm <= R <= 10 Mohm; the global part number scheme RC0603 F R 07 <value> L is the series' ordering scheme."
+      - "The same 1 ohm - 10 Mohm 1 % range appears in the older V.11 (July 2020) copy and in the V.4 (2009) copy already in evidence/datasheets/yageo_rc (sha256 419181287881...)."
+    does_not_prove:
+      - "stock at any distributor, price, minimum order quantity or lead time"
+      - "that each individual E96 value is currently in production or Active (the data sheet states a range for the series, not a per-value orderable list)"
+      - "lifecycle status (no EOL/NRND information is in the data sheet)"
+      - "that any specific MPN is listed by any particular distributor"
+    caveats:
+      - "Catalogue-range coverage for E96 values: the data sheet says E24/E96; its note about 'E24 exception values 10/11/13/15/20/75' concerns marking codes, not orderability."
+      - "Data sheet is a manufacturer document hosted by the manufacturer; it may be superseded by a later revision at any time."
+      - "Voltage rating differs between data sheet revisions (V.4: 50 V working; V.11/V.14: 75 V); irrelevant to orderability."
+listing_seen:
+  # Entries exist ONLY for MPNs already evidenced in evidence/bom-verification.yaml (generated 2026-11-17). 'listing_seen' means the evidence ledger recorded the code; it is not stock.
+  - mpn: RC0603FR-0759KL
+    family_id: yageo_rc_l_0603_1pct
+    basis: "distributor listings seen via web-search summaries (DigiKey/Arrow/Avnet/Future/IBS/Buerklin/element14), recorded in the BOM ledger"
+    source: &rc_ledger
+      doc_id: "evidence/bom-verification.yaml (line R1)"
+      revision: "ledger generated 2026-11-17; listing summaries re-earned 2026-11-17 for the new code"
+      evidence_ref: "evidence/bom-verification.yaml"
+      retrieved: 2026-11-17
+    proves: ["an ordering code with this exact value appeared in distributor search-result summaries on 2026-11-17"]
+    does_not_prove: ["stock", "price", "that the distributor page still exists", "that the code is Active"]
+    caveats: ["listing pages themselves were blocked (HTTP 403); only search-engine summaries were seen", "no exact-code manufacturer document"]
+  - {mpn: RC0603FR-0776K8L, family_id: yageo_rc_l_0603_1pct, basis: "distributor listing summaries, ledger line R2", source: {<<: *rc_ledger, doc_id: "evidence/bom-verification.yaml (line R2)"},
+     proves: ["an ordering code with this exact value appeared in distributor search-result summaries on 2026-11-17"], does_not_prove: ["stock", "price", "that the distributor page still exists", "that the code is Active"],
+     caveats: ["listing pages themselves were blocked (HTTP 403); only search-engine summaries were seen", "no exact-code manufacturer document"]}
+  - {mpn: RC0603FR-076K19L, family_id: yageo_rc_l_0603_1pct, basis: "distributor listing summaries, ledger line R3", source: {<<: *rc_ledger, doc_id: "evidence/bom-verification.yaml (line R3)"},
+     proves: ["an ordering code with this exact value appeared in distributor search-result summaries on 2026-11-17"], does_not_prove: ["stock", "price", "that the distributor page still exists", "that the code is Active"],
+     caveats: ["listing pages themselves were blocked (HTTP 403); only search-engine summaries were seen", "no exact-code manufacturer document"]}
+  - {mpn: RC0603FR-0716K5L, family_id: yageo_rc_l_0603_1pct, basis: "distributor listing summaries, ledger lines R4/R5", source: {<<: *rc_ledger, doc_id: "evidence/bom-verification.yaml (lines R4,R5)"},
+     proves: ["an ordering code with this exact value appeared in distributor search-result summaries on 2026-11-17"], does_not_prove: ["stock", "price", "that the distributor page still exists", "that the code is Active"],
+     caveats: ["listing pages themselves were blocked (HTTP 403); only search-engine summaries were seen", "no exact-code manufacturer document"]}
+  - {mpn: RC0603FR-07475RL, family_id: yageo_rc_l_0603_1pct, basis: "distributor listing summaries, ledger line R6", source: {<<: *rc_ledger, doc_id: "evidence/bom-verification.yaml (line R6)"},
+     proves: ["an ordering code with this exact value appeared in distributor search-result summaries (Arrow/RS/Octopart/Findchips/DigiKey) on 2026-11-17"], does_not_prove: ["stock", "price", "that the distributor page still exists", "that the code is Active"],
+     caveats: ["listing pages themselves were blocked (HTTP 403); only search-engine summaries were seen", "no exact-code manufacturer document"]}
+  - mpn: C0805C183J5GACTU
+    family_id: null
+    basis: "Kemet-generated part spec sheet for the exact ordering code"
+    source: &kemet_ledger
+      url: https://search.kemet.com/download/specsheet/C0805C183J5GACTU
+      doc_id: "Kemet part spec sheet C0805C183J5GACTU (evidence/datasheets/kemet_parts/C0805C183J5GACTU.pdf)"
+      revision: "generated 2026-11-17, no revision number on the sheet"
+      sha256: 1f0ec616a76e15a6c78e6c494b80960be07cc06f703bbb4c237e5fed07dfd992
+      retrieved: 2026-11-17
+    proves: ["Kemet's own catalogue tool produced a specification sheet for this exact code on 2026-11-17 (0.018 uF, 5 %, 50 VDC, C0G, 0805)"]
+    does_not_prove: ["stock", "price", "that the code is Active (the sheet does not state lifecycle)", "that the code is orderable from any distributor"]
+    caveats: ["a spec sheet can exist for catalogue entries that are not stocked", "sheet carries no lifecycle field"]
+  - {mpn: C0805C102J5GACTU, family_id: null, basis: "Kemet-generated part spec sheet for the exact ordering code",
+     source: {url: https://search.kemet.com/download/specsheet/C0805C102J5GACTU, doc_id: "Kemet part spec sheet C0805C102J5GACTU (evidence/datasheets/kemet_parts/C0805C102J5GACTU.pdf)", revision: "generated 2026-11-17, no revision number on the sheet", sha256: 7cf5a1d05bff9114cee72c3619eb8e3a55d455547bb50ae759ddbee3c667b2b1, retrieved: 2026-11-17},
+     proves: ["Kemet's own catalogue tool produced a specification sheet for this exact code on 2026-11-17 (1000 pF, 5 %, 50 VDC, C0G, 0805)"],
+     does_not_prove: ["stock", "price", "that the code is Active (the sheet does not state lifecycle)", "that the code is orderable from any distributor"], caveats: ["a spec sheet can exist for catalogue entries that are not stocked", "sheet carries no lifecycle field"]}
+  - {mpn: C0805C562J5GACTU, family_id: null, basis: "Kemet-generated part spec sheet for the exact ordering code",
+     source: {url: https://search.kemet.com/download/specsheet/C0805C562J5GACTU, doc_id: "Kemet part spec sheet C0805C562J5GACTU (evidence/datasheets/kemet_parts/C0805C562J5GACTU.pdf)", revision: "generated 2026-11-17, no revision number on the sheet", sha256: e93d98ff1ed0a06b3ac7784b7a9af1c8df1a05b4b05ae69f931f28245706758c, retrieved: 2026-11-17},
+     proves: ["Kemet's own catalogue tool produced a specification sheet for this exact code on 2026-11-17 (5600 pF, 5 %, 50 VDC, C0G, 0805)"],
+     does_not_prove: ["stock", "price", "that the code is Active (the sheet does not state lifecycle)", "that the code is orderable from any distributor"], caveats: ["a spec sheet can exist for catalogue entries that are not stocked", "sheet carries no lifecycle field"]}
+  - {mpn: C0805C331J5GACTU, family_id: null, basis: "Kemet-generated part spec sheet for the exact ordering code",
+     source: {url: https://search.kemet.com/download/specsheet/C0805C331J5GACTU, doc_id: "Kemet part spec sheet C0805C331J5GACTU (evidence/datasheets/kemet_parts/C0805C331J5GACTU.pdf)", revision: "generated 2026-11-17, no revision number on the sheet", sha256: 4a854f7ed3c5290823aee9cf7336f0ef90519e4d5c6b622e6af58d9c6a647347, retrieved: 2026-11-17},
+     proves: ["Kemet's own catalogue tool produced a specification sheet for this exact code on 2026-11-17 (330 pF, 5 %, 50 VDC, C0G, 0805)"],
+     does_not_prove: ["stock", "price", "that the code is Active (the sheet does not state lifecycle)", "that the code is orderable from any distributor"], caveats: ["a spec sheet can exist for catalogue entries that are not stocked", "sheet carries no lifecycle field"]}
+known_gaps:
+  - family: "kemet_c0805c_c0g_50v_5pct"
+    reason: "No legitimately readable Kemet capacitance-range statement (C0G, 0805, 50 V: min/max capacitance, offered E24 values) was obtained on 2026-11-20. The current C0G data sheet host had an expired TLS certificate; distributor pages were not fetched; the only catalogue copy reached (CERN-hosted, 2005/2006 vintage) was too old and garbled to cite. So no range entry is made: unseen capacitor values return 'unknown', never 'catalogue_range_covered'."
