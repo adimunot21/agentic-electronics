@@ -52,7 +52,8 @@ class Limits:
     max_cost_usd: float | None = None    # enforced only when the provider reports cost; unknown cost cannot be enforced (recorded)
     identical_patch_limit: int = 2
     no_progress_limit: int = 2
-    max_invalid_replies: int = 3
+    max_invalid_replies: int = 3         # restoration mode: CUMULATIVE. Improvement mode: CONSECUTIVE invalid replies (reset by any valid action); see max_invalid_replies_total
+    max_invalid_replies_total: int = 12  # improvement mode: cumulative backstop (live runs of 30-45 calls emit an occasional prose reply; improve-live-7 ended on 3 scattered ones)
     max_refused_submits: int = 3         # improvement mode: zero-diff / duplicate submissions refused BEFORE evaluation; cumulative bound so a refuse-loop cannot run forever
     max_state_revisits: int = 6          # improvement mode: re-entering an already visited design state while exploring is legitimate; this bounds endless explore-revert cycling WITHOUT a submission (reset at every submission)
     progress_eps_db: float = 0.05        # improvement mode: a new best objective must beat the previous best by this much (10 % of the 0.5 dB target) to count as progress
@@ -324,11 +325,16 @@ class Controller:
             action, err = self._parse(reply.text)
             if action is None:
                 self.state["invalid_replies"] += 1
-                self._event("invalid_reply", error=err)
-                if self.state["invalid_replies"] >= self.limits.max_invalid_replies:
-                    return self._stop("invalid_replies")
+                self.state["consecutive_invalid"] = self.state.get("consecutive_invalid", 0) + 1
+                self._event("invalid_reply", error=err, consecutive=self.state["consecutive_invalid"])
+                if self.policy is None:
+                    if self.state["invalid_replies"] >= self.limits.max_invalid_replies:
+                        return self._stop("invalid_replies")
+                elif self.state["consecutive_invalid"] >= self.limits.max_invalid_replies or self.state["invalid_replies"] >= self.limits.max_invalid_replies_total:
+                    return self._stop("invalid_replies", consecutive=self.state["consecutive_invalid"], total=self.state["invalid_replies"])
                 self._feedback({"ok": False, "error": {"code": "invalid_reply", "message": f"could not parse your reply: {err}. Reply with ONE JSON object {{\"reasoning\":..,\"action\":{{\"tool\":..,\"args\":{{..}}}}}}"}})
                 continue
+            self.state["consecutive_invalid"] = 0
             if action["tool"] == "submit":
                 result = self._submit(action["args"])
                 if result is not None:

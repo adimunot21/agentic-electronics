@@ -92,10 +92,15 @@ def test_iteration_cap_stops_after_the_evaluated_rejection_and_allows_no_further
     assert s["stop_reason"] == "max_iterations" and s["evaluations"] == 1 and prov.i == 3
 
 
-def test_invalid_reply_cap_is_cumulative_and_hard(tmp_path):
-    ctl, prov = make(tmp_path, ["junk", A("get_design"), "junk", A("get_design"), "junk"], Limits(max_iterations=3))
+def test_invalid_reply_cap_is_consecutive_with_a_cumulative_backstop(tmp_path):
+    ctl, prov = make(tmp_path, ["junk", "junk", "junk", A("get_design")], Limits(max_iterations=3))
     s = ctl.run()
-    assert s["stop_reason"] == "invalid_replies" and prov.i == 5
+    assert s["stop_reason"] == "invalid_replies" and prov.i == 3                                      # 3 consecutive
+    sub = tmp_path / "total"
+    sub.mkdir()
+    ctl, prov = make(sub, ["junk", A("get_design")] * 12 + ["junk"], Limits(max_iterations=3, max_model_calls=40, max_tool_calls=40, max_invalid_replies_total=12))
+    s = ctl.run()
+    assert s["stop_reason"] == "invalid_replies" and ctl.state["invalid_replies"] == 12 and s["tool_calls"] == 11       # scattered replies hit the cumulative backstop at 12
 
 
 def test_noop_control_text_edit_is_refused_before_evaluation_under_the_state_based_gate(tmp_path):

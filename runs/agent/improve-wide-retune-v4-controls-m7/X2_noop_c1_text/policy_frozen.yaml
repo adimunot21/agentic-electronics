@@ -1,0 +1,176 @@
+# FROZEN TASK + ACCEPTANCE POLICY  (kind: improvement)   policy v4, policy_version: 4
+# Task id improve-wide-retune-alias-v4. A NEW id, frozen before any agent run. Policies v1-v3 (improve-stage2-alias, improve-wide-retune-alias, improve-wide-retune-alias-v3) are not edited.
+# The ONLY semantic differences from v3 are allowed_edits.enforce_series and the agent-visible allowed_edits.series_rule (accepted values must be orderable E-series values); nothing else.
+# FROZEN TASK + ACCEPTANCE POLICY  (kind: improvement)   policy v3, policy_version: 3
+# Task id improve-wide-retune-alias-v3. A NEW id, frozen before any agent run. Policy v2 (improve-wide-retune-alias, sha256 7a02c547...) and v1 (improve-stage2-alias, sha256 d278109a...) are not edited.
+# The ONLY semantic difference from v2 is the added agent-visible statement in `objective.scoring_statement`; everything else is carried over byte-for-byte.
+# FROZEN TASK + ACCEPTANCE POLICY  (kind: improvement)   policy_version: 2
+# Task id improve-wide-retune-alias. A NEW id: policy v1 (improve-stage2-alias, sha256 d278109a...) is not edited. Written and committed BEFORE anything was evaluated for this task.
+# No scripted candidate search exists for this task and none may be added before the first live run (a known solution in the repo would remove the point of a fresh task).
+# This file is trusted code (inside the evaluator's trusted digest). Differences from v1 are flagged "V2-CHANGE" below; every other rule is carried over byte-for-byte.
+id: improve-wide-retune-alias-v4
+kind: improvement
+split: dev
+policy_version: 4
+description: >
+  Improve the worst-case (all 1024 tolerance corners) stopband rejection at 19 kHz-1 MHz of the adopted FE-AAF-001 reference by retuning the passive parts of the stage-1 and stage-2
+  filters, without consuming more passband flatness or gain margin than the explicit hard constraints allow. Contract requirements, checks and thresholds are not changed.
+
+baseline:
+  design: designs/fe-aaf-001/components.yaml
+  components_sha256: e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d
+  requirements_sha256: 4767130a0f72f059b0cc002354c8527ba7aedc4fc1ef512380e78d2751e64b25
+  note: same adopted development baseline as v1. REQ-STAB rev 2 is FAILED on it and stays failed; rev 3 is PROPOSED / NOT APPROVED.
+
+# V2-CHANGE (scope): v1 allowed R4, R5, C3 and 6 ops. v2 allows all eight filter passives of both stages and the largest edit they can express (8 parts x 2 fields = 16 ops).
+# Why 16: max_ops is only a patch-size sanity bound here. The real limits are the hard constraints and the BOM rule; a smaller cap would be an arbitrary prior about which parts a retune needs.
+allowed_edits:
+  parts: [R1, R2, R3, C1, C2, R4, R5, C3]
+  fields: [value, mpn_candidate]
+  max_ops: 16
+  enforce_series: true
+  series_rule: "Every edited value must be a standard value of the part's declared E-series (E96 for the 1% resistors, E24 for the capacitors); other values are refused by the patch validator. A new part number must match its value."
+  note: >
+    A value edit without a matching MPN edit fails BOM_CONSISTENCY (blocked -> failed) and is rejected as a regression. An MPN edit forces mpn_status -> unverified_candidate:
+    the new orderable part is NOT manufacturer-sheet verified (see claims_never_made).
+
+# V2-CHANGE (threshold): min_improvement 0.25 (v1) -> 0.5 dB. Derivation is in the separate `derivation` key below (not part of the brief shown to an agent).
+objective:
+  check: REQ-ALIAS-CORNERS
+  metric: worst-case stopband gain, 19 kHz-1 MHz, over all 1024 vertices of the contract tolerance box, real op-amp model (shim)
+  unit: dB
+  direction: minimize
+  baseline_value_expected_dB: -58.73526536671747
+  min_improvement: 0.5
+  scoring_statement: "The scored objective is the WORST CASE over the task's complete tolerance-corner set (all 1024 vertices of the contract tolerance box), not the nominal value that the fast ac_response check shows. A rejection reports each failing rule with its measured value and its limit, plus the objective's baseline, candidate and required improvement."
+
+jitter:
+  rel: 1.0e-6
+  abs: 1.0e-9
+  evidence: same as v1 (two independent full-pipeline evaluations of the same design agree with max |difference| 0); the later textual no-op finding (REQ-SETTLE moved ~0.001 mV) is absorbed by the 10 % margin rule.
+
+# ---------------------------------------------------------------- hard constraints (candidate must satisfy ALL; contract limits are never changed, reserves only tighten)
+hard_constraints:
+  - id: H1
+    check: REQ-FLAT-CORNERS
+    quantity: "worst-case passband flatness over all corners (dB)"
+    max: 0.48
+    contract_limit: 0.5
+    reserve: 0.02
+    reserve_why: "frequency-grid discretisation of the 50 Hz-1 kHz sweep (a peak could fall between grid points); about 4 orders above jitter"
+  - id: H2
+    check: REQ-GAIN-CORNERS
+    quantity: "gain at 400 Hz, MIN over all corners (V/V), read from the pipeline's corners_summary.json gain_min"
+    min: 1.2355
+    contract_limit: 1.235
+    reserve: 0.0005
+  - id: H3
+    check: REQ-GAIN-CORNERS
+    quantity: "gain at 400 Hz, MAX over all corners (V/V), read from corners_summary.json gain_max"
+    max: 1.3645
+    contract_limit: 1.365
+    reserve: 0.0005
+  - id: H4
+    check: REQ-FLAT
+    quantity: "nominal passband flatness, Rs 0 and 100 (dB)"
+    max: 0.48
+    contract_limit: 0.5
+    reserve: 0.02
+  - id: H5
+    check: REQ-GAIN
+    quantity: "nominal gain at 400 Hz, Rs=100 (V/V)"
+    min: 1.2355
+    max: 1.3645
+    contract_limit: [1.235, 1.365]
+    reserve: 0.0005
+  - id: H6
+    check: REQ-ALIAS
+    quantity: "nominal stopband gain 19 kHz-1 MHz (dB); must not be worse than baseline + jitter"
+    max: -55.8
+    contract_limit: -55.8
+    reserve: 0.0
+  - id: H7
+    rule: "every check that is passed in the baseline is passed in the candidate (no new failed/blocked/not_tested/error)"
+traded_metrics: [REQ-FLAT, REQ-FLAT-CORNERS, REQ-GAIN, REQ-GAIN-CORNERS]   # governed by H1-H5 only; exempt from the generic 10 % rule below (they are what the tradeoff spends)
+
+# ---------------------------------------------------------------- non-regression of everything else
+nonregression:
+  generic_margin_fraction: 0.10   # a candidate may consume at most 10 % of any other metric's baseline margin to its contract limit (engineering convention, not derived; stated, not hidden)
+  margin_source: record `margin`, else parsed from record `limit` ("<= a" / ">= a"); metrics with no margin and no parsable limit must keep their status
+  failed_in_baseline:
+    REQ-STAB:                       # rev 2, IN FORCE, FAILED (52.84 dB vs 3.0). The measurement is a deterministic model comparison (contract revision log), so it is treated as trustworthy.
+      rule: "value must not exceed baseline + jitter (no degradation); a failed->passed change is needs_review (rejected as a claim; the contract owner, not this task, decides REQ-STAB)"
+    REQ-BOM:
+      rule: "stays failed; release/bom.csv rows may differ from baseline ONLY in the edited refs, and ONLY by MPN / MPN_Status becoming unverified_candidate"
+  blocked_in_baseline:
+    BOM_CONSISTENCY: {rule: "stays blocked with 0 MISMATCH lines; failed is a regression"}
+  not_tested_in_baseline: [MODEL_STARTUP, MODEL_SATURATION, MODEL_OVERLOAD_RECOVERY]   # must stay not_tested; any other status is an error
+  unchanged_status_required: [ERC, NETLIST_INTENT, PIN_SYMBOL, PIN_FOOTPRINT, PIN_SPICE_HEADER, PIN_WIRING, DECK_VS_NETLIST, DRC_VIOLATIONS, DRC_UNCONNECTED, DRC_PARITY, REQ-MFG]
+
+# ---------------------------------------------------------------- claims this task NEVER makes, whatever the verdict (recorded in every decision)
+claims_never_made:
+  - release_ready (always false)
+  - REQ-STAB resolved / rev 3 approved
+  - "BOM_VERIFICATION of any edited part: new MPNs are unverified_candidate (decoded-consistent only; existence/orderability and datasheet not checked)"
+  - "MODEL_STARTUP / MODEL_SATURATION / MODEL_OVERLOAD_RECOVERY behaviour of the modified stage-2 time constant (checks stay not_tested)"
+  - hardware validation, temperature, supply/ripple behaviour (no source/ripple requirement exists in the contract)
+
+# ---------------------------------------------------------------- verdicts
+verdicts:
+  accepted_for_objective: "all hard constraints and non-regression rules hold AND the objective improved by >= min_improvement. Scope: this objective only; blocked_claims are listed."
+  rejected: "any policy violation OR objective improvement < min_improvement (including no-ops and regressions)"
+  blocked: "trusted code/policy/baseline digest changed, pipeline error, a required check missing/blocked/error, or stale/foreign evidence"
+policy_violation_vs_circuit_failure: >
+  decisions report `policy_violations` (rules of this policy that were broken) separately from `circuit_requirement_failures` (candidate checks whose own outcome is failed, flagged
+  `pre_existing` when also failed in the baseline).
+
+# ---------------------------------------------------------------- plumbing controls (labelled; evaluated only to verify the evaluator path; NONE is a solving candidate)
+plumbing_controls:
+  X2_regression_stage2_pole_up:
+    purpose: "raises the stage-2 pole (smaller R4=R5): alias rejection gets worse; must be rejected"
+    ops: [[R4, value, 15k], [R4, mpn_candidate, RC0603FR-0715KL], [R5, value, 15k], [R5, mpn_candidate, RC0603FR-0715KL]]
+    expected_verdict: rejected
+  X2_noop_c1_text:
+    purpose: "textually different but numerically identical value; must NOT count as an improvement"
+    ops: [[C1, value, 18.0n]]
+    expected_verdict: rejected
+  X2_out_of_scope_r7:
+    purpose: "R7 (VREF/2 divider) is outside allowed_edits; must be refused by the patch validator before any evaluation"
+    ops: [[R7, value, 10.2k]]
+    expected_verdict: no_evaluation
+
+# ---------------------------------------------------------------- derivation of min_improvement (first-order; ideal-op-amp model calibrated on the real baseline; NOT a search)
+derivation:
+  calibration: >
+    A first-order cascade model (MFB stage 1 + inverting 1st-order stage 2, ideal op-amp, 1024 tolerance vertices) reproduces the real-pipeline baseline within 0.06 dB / 0.011 dB / 0.001 V/V
+    (alias corners -58.68 vs -58.735 dB; flatness corners 0.413 vs 0.402 dB; gain range 1.2430..1.3632 vs 1.2434..1.3637). It is used only to size the threshold, not to select edits.
+  single_stage_bound: >
+    v1 (stage-2 only) had a continuous linearised bound of about 0.34 dB under the same flatness and gain budget; the real search realised 0.27 dB.
+  wider_edit_set_bound: >
+    With stage-1 parts and gain-trim freedom added, the same linearisation allows a continuous improvement of about 1.0 dB for scalings within +/-2 % of every part, with corner flatness 0.463 dB
+    and corner gain inside [1.2357, 1.3561] (a nonlinear re-check of the continuous point in the same ideal model; the point itself is deliberately not recorded).
+    Larger scalings stop being useful: at +/-4 % the flatness limit is already exceeded.
+  grid_granularity: >
+    E96 resistor steps are about 2.4 %, E24 capacitor steps about 10 %. One E96 step in a pole-setting resistor is worth roughly 0.2 dB of alias gain, so 0.25 dB (v1) is about one grid step.
+  chosen: >
+    0.5 dB = about half of the ~1.0 dB continuous bound (leaves a factor 2 for grid quantisation, ideal-vs-real model error and the unevaluated REQ-STAB rule), at least two E96 steps of
+    pole shift (a coordinated retune, not a single swap), 17 % of the 2.94 dB alias margin, and 5 orders of magnitude above jitter.
+plausibility: >
+  Plausibly attainable, not proven. First-order math says the budgets are tight but not empty: flatness has 0.078 dB of headroom, gain is nearly saturated at the top (0.0008 V/V) and has 0.008 V/V at the bottom,
+  and the v1 search showed that stage-2 moves alone buy about 0.27 dB at a flatness cost of about 0.22 dB per dB of alias gain. The wider edit set adds degrees of freedom whose first-order effect on
+  alias, flatness and gain differ, so a combination may exist that the stage-2-only task could not reach. What stays unknowable without evaluation: the REQ-STAB value of any stage-1 edit (it has never been
+  measured; v1 only showed that it moves with C3 and barely with R4/R5, and the rule allows no increase), model-vs-ideal differences near 1 MHz, and whether the E96/E24 grid contains a combination at all.
+  A rejected run is an informative outcome, not a failure of the harness.
+
+# ---------------------------------------------------------------- governance (settings; enforcement truth verified by tests/unit/test_improvement_v2.py and code inspection)
+governance:
+  max_iterations: 3           # = max full evaluations. Hard stop: checked after each evaluated rejection; no further evaluation can start. Duplicate designs are not evaluated and not counted.
+  max_model_calls: 20         # hard stop BEFORE each model call (loop top). A call in flight is bounded only by model_timeout_s (240 s); a call lost to a crash is uncounted.
+  max_tool_calls: 80          # harness default, hard stop before each dispatch; not set from the command line
+  max_invalid_replies: 3      # cumulative (never reset by valid actions); hard stop
+  model_timeout_s: 240        # harness default; the CLI subprocess is killed on timeout, the call is counted, its cost is unknown
+  wall_budget_s: 2400         # harness default; checked before each call, per process (resets on resume); a running call/evaluation can overshoot it
+  per_call_budget_usd: 0.25   # CLI --max-budget-usd, checked by the CLI against its own estimate, can be exceeded; NOT a run total
+  per_call_token_limits: unsupported by the harness (no flag is passed); not set
+  cumulative_dollar_cap: unsupported by the harness (Limits.max_cost_usd is not exposed on the command line)
+

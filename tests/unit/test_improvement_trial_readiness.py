@@ -257,11 +257,18 @@ def test_class1_unparseable_reply_charges_one_model_call_and_one_invalid_reply_a
     assert ctl.ws.sha256() == sha256_text(PRISTINE.read_text()) and ctl.ws.history == []
 
 
-def test_class1_invalid_reply_limit_is_cumulative_not_consecutive(tmp_path):
+def test_class1_improvement_mode_invalid_reply_limit_is_consecutive_with_a_cumulative_backstop(tmp_path):
+    """Changed after improve-live-7 (it ended on 3 SCATTERED prose replies in a 36-call run): improvement mode stops on 3 CONSECUTIVE invalid replies, or 12 in total; restoration keeps the cumulative rule."""
     h = Harness(tmp_path)
-    ctl = h.new([BAD_REPLIES["malformed_json"], A("get_design"), BAD_REPLIES["no_json_at_all"], A("get_design"), BAD_REPLIES["missing_action_key"], A("get_design")], Limits(max_iterations=3))
+    scattered = [BAD_REPLIES["malformed_json"], A("get_design"), BAD_REPLIES["no_json_at_all"], A("get_design"), BAD_REPLIES["missing_action_key"], A("get_design")]
+    ctl = h.new(scattered, Limits(max_iterations=3, max_model_calls=6))
     s = ctl.run()
-    assert s["stop_reason"] == "invalid_replies" and h.state()["invalid_replies"] == 3 and h.state()["tool_calls"] == 2        # valid actions in between did NOT reset the counter
+    assert s["stop_reason"] == "max_model_calls" and h.state()["invalid_replies"] == 3 and h.state()["tool_calls"] == 3          # valid actions in between reset the streak: no stop
+    sub = tmp_path / "consecutive"
+    sub.mkdir()
+    h2 = Harness(sub)
+    s2 = h2.new([A("get_design")] + [BAD_REPLIES["malformed_json"]] * 4, Limits(max_iterations=3)).run()
+    assert s2["stop_reason"] == "invalid_replies" and h2.state()["invalid_replies"] == 3 and h2.state()["consecutive_invalid"] == 3
 
 
 REGISTRY_REJECTIONS = {
