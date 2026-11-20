@@ -25,6 +25,7 @@ class ScopePolicy:
     max_ops: int = 4
     value_pattern: str = r"^\d+(\.\d+)?[pnumkM]?$"
     mpn_pattern: str = r"^[A-Za-z0-9\-]{6,32}$"
+    enforce_series: bool = False                        # policy allowed_edits.enforce_series: edited `value` must be a standard value of the part's declared E-series
 
 
 DEFAULT_SCOPE = ScopePolicy()
@@ -45,6 +46,14 @@ class ValidatedPatch:
 
 def _parts(text: str) -> dict:
     return yaml.safe_load(text)["parts"]
+
+
+def _series_ok(value_text: str, series: str) -> bool:
+    from ae.harness.eseries import in_series
+    try:
+        return in_series(value_text, series)
+    except ValueError:
+        return False
 
 
 def validate_patch(patch: object, manifest_text: str, scope: ScopePolicy = DEFAULT_SCOPE) -> ValidatedPatch:
@@ -79,6 +88,10 @@ def validate_patch(patch: object, manifest_text: str, scope: ScopePolicy = DEFAU
         pattern = scope.value_pattern if op["field"] == "value" else scope.mpn_pattern
         if not re.fullmatch(pattern, op["to"]):
             raise ToolError("malformed_patch", f"op {i}: {op['field']} {op['to']!r} does not match the allowed format")
+        if scope.enforce_series and op["field"] == "value":
+            series = parts[op["part"]].get("series") or ("E24" if op["part"].startswith("C") else None)        # capacitors declare no series in the manifest: C0G 5 % parts follow E24
+            if series is None or not _series_ok(op["to"], series):
+                raise ToolError("not_in_series", f"op {i}: {op['to']!r} is not a standard {series or 'declared-series'} value for {op['part']}; a part with this value is not expected to be orderable", {"part": op["part"], "series": series})
         old = str(parts[op["part"]].get(op["field"]))
         if old == op["to"]:
             raise ToolError("malformed_patch", f"op {i}: no change ({op['part']}.{op['field']} is already {old!r})")

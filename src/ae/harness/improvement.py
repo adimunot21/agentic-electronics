@@ -45,7 +45,8 @@ class ImprovementPolicy:
     max_ops: int
 
     def scope(self) -> ScopePolicy:
-        return ScopePolicy(part_pattern="^(?:" + "|".join(re.escape(p) for p in self.allowed_parts) + ")$", fields=frozenset(self.allowed_fields), max_ops=self.max_ops)
+        return ScopePolicy(part_pattern="^(?:" + "|".join(re.escape(p) for p in self.allowed_parts) + ")$", fields=frozenset(self.allowed_fields), max_ops=self.max_ops,
+                           enforce_series=bool(self.raw["allowed_edits"].get("enforce_series", False)))
 
 
 def load_policy(path: Path, repo: Path = REPO_ROOT) -> ImprovementPolicy:

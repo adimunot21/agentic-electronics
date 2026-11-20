@@ -1,0 +1,30 @@
+{
+ "run_dir": "/home/adimunot21/dev/agentic-electronics/runs/agent/improve-wide-retune-v4-controls/X2_out_of_scope_r7",
+ "task": "improve-wide-retune-alias-v4",
+ "split": "dev",
+ "mode": "engineered_single_agent",
+ "provider": "scripted-fixture",
+ "fixture": true,
+ "task_kind": "improvement",
+ "final_feedback_delivered": true,
+ "refused_submits": 1,
+ "final_state": "STOPPED",
+ "stop_reason": "provider_error",
+ "iterations": 0,
+ "model_calls": 5,
+ "tool_calls": 3,
+ "evaluations": 0,
+ "elapsed_s": 4.3,
+ "usage": {
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "cost_usd_reported": null,
+  "cost_unknown_calls": 1,
+  "model_seconds": 0.0,
+  "tool_seconds": 2.094547641929239,
+  "eval_seconds": 0.0,
+  "cost_note": "cost is a provider-reported list-basis estimate; unknown calls make the total unknown (None), never 0"
+ },
+ "live_agent_success": false,
+ "accepted_by_independent_evaluator": false
+}
