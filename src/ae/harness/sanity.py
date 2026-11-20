@@ -243,6 +243,10 @@ def _edit_sanity(candidate_text: str, baseline_text: str, previous_text: str | N
                      "re-balance the filter corner / Q toward the baseline values")
     if w:
         warnings.append(w)
+    w = _limit_check("ALIAS_CORNERS", "worst corner stopband (19 kHz..1 MHz)", predicted["corner_alias_worst_db"], limits.alias_max_db, limits.model_error_alias_db, True, " dB",
+                     "lower the filter corner frequency (larger R*C, especially C3 / R5) to gain stopband attenuation across tolerances")
+    if w:
+        warnings.append(w)
     w = _limit_check("ALIAS_NOMINAL", "nominal stopband (19 kHz..1 MHz)", predicted["nominal_alias_db_worst_rs"], limits.alias_max_db, limits.model_error_alias_db, True, " dB",
                      "lower the filter corner frequency (larger R*C) to gain stopband attenuation")
     if w:

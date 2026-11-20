@@ -155,14 +155,23 @@ def test_validation_fixture_real_pipeline() -> None:
         real, warned = entry["real"], set(codes(result, "warn"))
         expected = {"GAIN_CORNER_MIN": real["corner_gain_min"] < limits.gain_min, "GAIN_CORNER_MAX": real["corner_gain_max"] > limits.gain_max,
                     "FLAT_CORNERS": real["corner_flat_worst_db"] > limits.flat_max_db, "FLAT_NOMINAL": real["nominal_flat_db_worst_rs"] > limits.flat_max_db,
-                    "ALIAS_NOMINAL": real["nominal_alias_db_worst_rs"] > limits.alias_max_db}
+                    "ALIAS_NOMINAL": real["nominal_alias_db_worst_rs"] > limits.alias_max_db, "ALIAS_CORNERS": real["corner_alias_worst_db"] > limits.alias_max_db}
+        measured = {"GAIN_CORNER_MIN": ("corner_gain_min", limits.gain_min, limits.model_error_gain), "GAIN_CORNER_MAX": ("corner_gain_max", limits.gain_max, limits.model_error_gain),
+                    "FLAT_CORNERS": ("corner_flat_worst_db", limits.flat_max_db, limits.model_error_flat_db), "FLAT_NOMINAL": ("nominal_flat_db_worst_rs", limits.flat_max_db, limits.model_error_flat_db),
+                    "ALIAS_NOMINAL": ("nominal_alias_db_worst_rs", limits.alias_max_db, limits.model_error_alias_db), "ALIAS_CORNERS": ("corner_alias_worst_db", limits.alias_max_db, limits.model_error_alias_db)}
         for code, breached in expected.items():
             if breached:
                 breaches += 1
                 assert code in warned, (name, code)       # false negative
             else:
-                assert code not in warned, (name, code)   # false positive
+                key, limit, error = measured[code]
+                if code in warned:                        # a warn without a real breach is only tolerated inside the model-error band (conservative edge call)
+                    assert abs(real[key] - limit) <= error, (name, code)
     assert breaches >= 8
+    alias_breaches = [n for n, e in data.items() if e["real"]["nominal_alias_db_worst_rs"] > limits.alias_max_db]
+    assert len(alias_breaches) >= 4 and all("ALIAS_NOMINAL" in codes(edit_sanity(manifest_with(data[n]["edits"]), BASELINE_TEXT), "warn") for n in alias_breaches)
+    # ideal reads the stopband HIGHER than real (conservative) everywhere, including the breach region
+    assert all(edit_sanity(manifest_with(e["edits"]), BASELINE_TEXT)["predicted"]["nominal_alias_db_worst_rs"] >= e["real"]["nominal_alias_db_worst_rs"] for e in data.values())
 
 
 if __name__ == "__main__":
