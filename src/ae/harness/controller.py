@@ -4,7 +4,7 @@ States:  INIT -> BASELINE_CAPTURED -> DEFECT_VERIFIED -> AGENT_TURN <-> (tool ca
                                                                                        |-> REJECTED_CONTINUE -> AGENT_TURN
          any state -> STOPPED(reason)   (resumable: state.json + trace.jsonl)
 Stop reasons: accepted | max_iterations | max_model_calls | max_tool_calls | wall_budget | cost_budget | repeated_identical_patch | no_progress | invalid_replies |
-              provider_error | defect_not_detected | baseline_unavailable | evaluation_blocked
+              provider_error | provider_usage_limit (resumable after the reset; the failed call is not charged) | defect_not_detected | baseline_unavailable | evaluation_blocked
 The controller owns state; the model only returns one JSON action per turn. The model never touches files: its only effect on the design is `propose_patch`.
 """
 from __future__ import annotations
@@ -29,7 +29,7 @@ from ae.harness.designstate import canonical_state
 from ae.harness.improvement import ACCEPT, PolicyError, edited_refs, load_policy
 from ae.harness.providers import ModelProvider
 from ae.harness.tasks import Task, create_defect
-from ae.harness.tools import AgentContext, build_registry
+from ae.harness.tools import AgentContext, advisory_sanity, build_registry
 from ae.harness.workspace import REPO_ROOT, Workspace, trusted_digest
 
 
@@ -88,7 +88,7 @@ Return nothing but that single JSON object (two actions in one reply are rejecte
 Rules: you cannot read or write files; requirements, thresholds, the frozen policy and the evaluator are protected. Your only design edit is `propose_patch`
 (scope: value and mpn_candidate of the parts named in the task's allowed_edits; changing an MPN resets its verification status; a value edit without a matching MPN edit fails the BOM check).
 Patch format: {{"summary": str, "base_sha256": <manifest_sha256 from get_design>, "ops": [{{"op":"set_field","part":"R4","field":"value","to":"..."}}]}}.
-The task has ONE objective with a minimum improvement and hard constraints; the evaluator re-runs the full pipeline over all tolerance corners and judges against the frozen policy. `ac_response` is nominal only. `run_check corner_preview` runs the evaluator's own worst-case sweep over ALL tolerance corners on your current design
+The task has ONE objective with a minimum improvement and hard constraints; the evaluator re-runs the full pipeline over all tolerance corners and judges against the frozen policy. `ac_response` is nominal only. `run_check preview` is the recommended single check (ONE budget unit): it runs the corner sweep AND the nominal requirements and projects the policy rules (objective gain, corner limits, REQ-STAB, REQ-BIAS and the other guarded margins) as ok / WOULD_BE_REJECTED. `run_check corner_preview` runs the evaluator's own worst-case sweep over ALL tolerance corners on your current design
 (about a minute, advisory: the evaluator still decides and also applies further rules). `run_check requirements_preview` shows the nominal value of EVERY requirement, including REQ-STAB, bias, noise and settling,
 which the non-regression rules guard and which corner_preview does not report (compare with the baseline values in the brief). Both previews are limited in number per task; use them before submitting. Pre-existing failures (e.g. REQ-STAB) are not yours to fix or hide and must not get worse. A rejection reports policy violations separately from failed circuit requirements.
 Do not guess hidden answers; do not try to weaken checks. If you cannot find a justified improvement, call `declare_no_improvement` with your reasons: it ends the run, spends no evaluation and is recorded as its own outcome.
@@ -151,6 +151,26 @@ def parse_action(text: str) -> tuple[dict | None, str | None]:
     return {"tool": act["tool"], "args": act.get("args", {}), "reasoning": str(obj.get("reasoning", ""))[:500]}, None
 
 
+def guard_context(policy, baseline_record: dict) -> dict:
+    """What the combined `preview` needs to project the frozen policy's rules (read-only data derived from the policy and the baseline record)."""
+    from ae.harness.improvement import _by_id
+    return {"policy_raw": policy.raw, "objective_check": policy.objective_check, "baseline_checks": _by_id(baseline_record),
+            "rules": {"margin_fraction": policy.margin_fraction, "abs_tol": policy.abs_tol, "rel_tol": policy.rel_tol, "min_improvement": policy.min_improvement}}
+
+
+def preview_spend(tool_call_event: dict) -> int:
+    """Fresh preview budget units one recorded run_check tool_call spent (mirrors tools.run_check): a fresh (non cache-hit) corner_preview / requirements_preview that reached the
+    sweep. 'error' outcomes were refunded; 'blocked' outcomes were not; tool errors (ok false, e.g. preview_budget_exhausted) never spent."""
+    check = (tool_call_event.get("args") or {}).get("check")
+    if check not in ("corner_preview", "requirements_preview", "preview"):
+        return 0
+    result = tool_call_event.get("result") or {}
+    payload = result.get("result") or {}
+    if check == "preview":                                    # combined: one unit, refunded only when the corner part never reached a sweep (tools._combined_preview)
+        return int(bool(result.get("ok")) and payload.get("cache_hit") is False and (payload.get("corner_preview") or {}).get("outcome") != "error")
+    return int(bool(result.get("ok")) and payload.get("cache_hit") is False and payload.get("outcome") != "error")
+
+
 class Controller:
     def __init__(self, run_dir: Path, task: Task, provider: ModelProvider, evaluator: TrustedEvaluator, limits: Limits = Limits(), mode: Mode = Mode.ENGINEERED_SINGLE,
                  pristine_manifest: Path | None = None, baseline_record: dict | None = None, checks_fn: Callable = run_fast, evaluate_defect: bool = False, repo: Path = REPO_ROOT, baseline_dir: Path | None = None):
@@ -181,6 +201,8 @@ class Controller:
         self._save()
 
     def _save(self) -> None:
+        if getattr(self, "ctx", None) is not None:
+            self.state["corner_previews_used"] = self.ctx.corner_previews      # the preview budget is per task, so it must survive a resume (live-8 got 12 more after resuming)
         (self.run_dir / "state.json").write_text(json.dumps(self.state, indent=1, default=str))
 
     def _stop(self, reason: str, **extra) -> dict:
@@ -258,6 +280,8 @@ class Controller:
         self.ctx = AgentContext(self.ws, self.run_dir / "scratch", failure_report={}, checks_fn=self.checks_fn, repo=self.repo, trusted_combined=self.evaluator.digest_at_start["combined"], improvement=True)
         self.state["baseline_state"] = canonical_state(self.ws.text())
         self.state["visited_states"] = [self.state["baseline_state"]]
+        self.ctx.guard = guard_context(pol, self.baseline_record)
+        self.ctx.baseline_manifest_text = self.pristine.read_text()
         by = {c["id"]: c for c in self.baseline_record["checks"]}
         keys = [pol.objective_check, "REQ-FLAT-CORNERS", "REQ-GAIN-CORNERS", "REQ-FLAT", "REQ-GAIN", "REQ-ALIAS", "REQ-STAB", "REQ-BIAS", "REQ-IQ", "REQ-ZIN", "REQ-HEADROOM", "REQ-SETTLE", "REQ-NOISE"]
         brief = {"design_manifest_sha256": self.ws.sha256(), "policy_id": pol.task_id, "policy_version": pol.version, "policy_sha256": pol.sha256,
@@ -306,6 +330,7 @@ class Controller:
             stop = self._budget_stop()
             if stop:
                 return stop
+            feedback_pending_before_call = self.state.get("pending_feedback", False)
             self.state["pending_feedback"] = False                                 # this call carries every message built so far, including the newest feedback
             reply = self.provider.complete(self.system, self._transcript(), self.limits.model_timeout_s)
             u = self.state["usage"]
@@ -314,11 +339,19 @@ class Controller:
             if reply.usage:
                 u["input_tokens"] += (reply.usage.get("input_tokens") or 0)
                 u["output_tokens"] += (reply.usage.get("output_tokens") or 0)
-            if reply.cost_usd is None:
+            if reply.usage_limit:
+                self.state["model_calls"] -= 1                                     # a call refused by the usage limit consumed none of the run's own budget (model_seconds still counts)
+                self.state["pending_feedback"] = feedback_pending_before_call      # the refused call never carried the feedback to the agent
+            elif reply.cost_usd is None:
                 u["cost_unknown_calls"] += 1
             else:
                 u["cost_usd_reported"] += reply.cost_usd
             self._event("model_reply", text=reply.text, error=reply.error, usage=reply.usage, cost_usd=reply.cost_usd, cost_basis=reply.cost_basis, model=reply.model, elapsed_s=round(reply.elapsed_s, 2))
+            if reply.usage_limit:
+                self.state["usage_limit"] = reply.usage_limit
+                self.state["usage_limit_hits"] = self.state.get("usage_limit_hits", 0) + 1
+                self._event("provider_usage_limit", **reply.usage_limit)
+                return self._stop("provider_usage_limit", reset_at_iso=reply.usage_limit.get("reset_at_iso"), reset_text=reply.usage_limit.get("reset_text"))
             if reply.error:
                 return self._stop("provider_error", error=reply.error)
             self.messages.append({"role": "assistant", "content": reply.text})
@@ -427,6 +460,9 @@ class Controller:
                 return self._stop("no_progress", detail="design identical to one already evaluated")
             self._feedback({"ok": False, "error": {"code": "already_evaluated", "message": "this exact design was already evaluated and rejected; change the design before submitting again"}})
             return None
+        sanity = advisory_sanity(self.ctx) if self.policy is not None else None     # ADVISORY only: recorded, never gates the submission
+        if sanity is not None:
+            self._event("sanity_advisory", status=sanity["status"], codes=[w["code"] for w in sanity["warnings"]], warnings=sanity["warnings"])
         self.state["iteration"] += 1
         self._transition("EVALUATING", iteration=self.state["iteration"], manifest_sha256=sha[:12])
         ev_dir = self.run_dir / "evaluations" / f"iter_{self.state['iteration']:02d}"
@@ -436,6 +472,7 @@ class Controller:
         else:
             decision = self.evaluator.evaluate(self.ws.manifest, ev_dir, self.baseline_record)
         self.state["usage"]["eval_seconds"] += time.monotonic() - t
+        self.ctx.last_evaluated_manifest_text = self.ws.text()
         self.state["evaluations"] += 1
         if decision["verdict"] != "blocked":                              # a blocked evaluation never judged the design: it must stay resubmittable after a resume
             self.state["evaluated_manifest_sha256"].append(sha)
@@ -465,6 +502,8 @@ class Controller:
         extra = {"objective": decision.get("objective"), "circuit_requirement_failures": decision.get("circuit_requirement_failures")} if self.policy is not None else {}
         payload = {"ok": False, "evaluator_verdict": "rejected", "findings": findings, **extra, "unresolved_baseline_failures_not_yours": decision["unresolved_baseline_failures"],
                    "note": "fresh evidence was produced by the protected pipeline; fix the cause of the findings, do not guess"}
+        if sanity is not None and sanity["warnings"]:
+            payload["advisory_sanity"] = sanity                                         # ideal-model view of the design just rejected; explains gain/flatness findings, changes nothing
         # FEEDBACK BEFORE STOP: the rejection's feedback is built and delivered first; stop conditions are checked afterwards. If the evaluation budget is spent there is no further
         # agent turn to deliver it to: it is recorded as built-but-undelivered (and the stop says so) instead of being silently dropped. No extra model call is ever made to deliver it.
         if self.state["iteration"] >= self.limits.max_iterations:
@@ -507,6 +546,7 @@ class Controller:
         c.state = json.loads((run_dir / "state.json").read_text())
         if c.state["state"] == "ACCEPTED":
             raise RuntimeError(f"run {run_dir} already ended in state ACCEPTED (stop_reason={c.state['stop_reason']!r}); a finished run cannot be resumed")
+        previous_stop = c.state.get("stop_reason")
         c.state["stop_reason"] = None
         for key, default in (("refused_submits", 0), ("pending_feedback", False), ("best_objective", 0.0), ("best_infeasible_checks", None), ("evaluated_states", []), ("visited_states", []), ("state_revisits", 0), ("baseline_state", None)):
             c.state.setdefault(key, default)                                    # state files written before the feedback-loop fix lack these keys
@@ -521,12 +561,17 @@ class Controller:
         if improvement and c.state["baseline_state"] is None:                       # state files written before the state-based protection
             c.state["baseline_state"] = canonical_state(c.pristine.read_text())
             c.state["visited_states"] = c.state["visited_states"] or [c.state["baseline_state"]]
+        if improvement:
+            c.ctx.guard = guard_context(c.policy, c.baseline_record)
+            c.ctx.baseline_manifest_text = c.pristine.read_text()
         c.registry = build_registry(c.ctx)
         c.system = (IMPROVEMENT_PROMPT if improvement else SYSTEM_PROMPT).replace("{tools}", "\n".join(json.dumps(sp.schema()) for sp in c.registry.specs()))
-        c.messages, last = [], 0
+        c.messages, last, previews_spent = [], 0, 0
         for line in (run_dir / "trace.jsonl").read_text().splitlines():
             e = json.loads(line)
             last = e["seq"]
+            if e["type"] == "tool_call" and e.get("tool") == "run_check":
+                previews_spent += preview_spend(e)
             if e["type"] == "message":
                 c.messages.append({"role": e["role"], "content": e["content"]})
             elif e["type"] == "feedback_undelivered":                      # built after the evaluation budget ended; a resumed run (with raised limits) delivers it now
@@ -534,11 +579,14 @@ class Controller:
             elif e["type"] == "model_reply" and not e.get("error"):
                 c.messages.append({"role": "assistant", "content": e["text"]})
         c.seq = last
+        if "corner_previews_used" not in c.state:                                  # state files written before this key: rebuild the spend from the trace (key present wins)
+            c.state["corner_previews_used"] = previews_spent
+        c.ctx.corner_previews = int(c.state["corner_previews_used"])
         c.messages.append({"role": "user", "content": "(run resumed by the controller with the limits shown in task.json; continue from where you stopped)"})
         if c.state["state"] == "EVALUATING" and not (run_dir / "evaluations" / f"decision_{c.state['iteration']:02d}.json").exists():
             c.state["interrupted_evaluations"] = c.state.get("interrupted_evaluations", 0) + 1       # process died mid-evaluation: the iteration stays charged, no verdict exists
             c._event("evaluation_interrupted", iteration=c.state["iteration"], note="no decision file; partial evidence directory is never reused")
-        c._event("resumed", from_state=c.state["state"])
+        c._event("resumed", from_state=c.state["state"], **({"resumed_after": previous_stop} if previous_stop == "provider_usage_limit" else {}))
         return c
 
     def continue_run(self) -> dict:

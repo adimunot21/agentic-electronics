@@ -172,7 +172,7 @@ def test_feedback_after_rejected_regression_has_verdict_reasons_and_summary_metr
     h = Harness(tmp_path)
     ctl, seen = run_to_next_call(h, REGRESSION)
     fb = last_tool_result(seen["transcript"])
-    assert set(fb) == {"ok", "evaluator_verdict", "findings", "objective", "circuit_requirement_failures", "unresolved_baseline_failures_not_yours", "note"}
+    assert set(fb) - {"advisory_sanity"} == {"ok", "evaluator_verdict", "findings", "objective", "circuit_requirement_failures", "unresolved_baseline_failures_not_yours", "note"}     # advisory_sanity: optional, ideal-model advisory (see test_sanity_hook)
     assert fb["ok"] is False and fb["evaluator_verdict"] == "rejected"
     assert fb["objective"]["check"] == "REQ-ALIAS-CORNERS" and fb["objective"]["candidate"] == -57.9 and fb["objective"]["improvement"] < 0     # the corner-based summary VALUE is disclosed
     assert {f["rule"] for f in fb["findings"]} >= {"objective_improvement"}

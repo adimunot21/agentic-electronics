@@ -16,12 +16,14 @@ import yaml
 
 from ae import bomcheck
 from ae.designs import fe_aaf_001 as design
+from ae.harness.improvement import _margin
 from ae.sim import SimRun, ac_run, load_ideal
 from ae.stages import kicad_netlist
 from ae.toolchain import REPO_ROOT
 
-CHECKS = ("bom_consistency", "ac_response", "corner_preview", "requirements_preview")
-PREVIEW_CHECKS = ("corner_preview", "requirements_preview")      # improvement tasks only, budgeted, advisory
+CHECKS = ("bom_consistency", "ac_response", "corner_preview", "requirements_preview", "preview", "edit_sanity")
+PREVIEW_CHECKS = ("corner_preview", "requirements_preview", "preview")      # improvement tasks only, budgeted, advisory
+PREVIEW_PARTS = {"corner_preview": ("corner_preview",), "requirements_preview": ("requirements_preview",), "preview": ("corner_preview", "requirements_preview")}
 
 
 def _limits() -> dict:
@@ -77,3 +79,47 @@ def run_fast(names: list[str], components_path: Path, workdir: Path) -> dict:
                                        "requirements": {m.req: {"outcome": m.outcome, "value": m.value, "limit": m.limit, "margin": m.margin} for m in ms},
                                        "conditions": "nominal parts, real TI model (shim); same code as the evaluator (ae.sim.evaluate_all). REQ-STAB is rev 2 and FAILED on the baseline; compare its VALUE with the baseline value in the task brief"}
     return out
+
+
+def assess_guards(policy_raw: dict, rules: dict, baseline_checks: dict, objective_check: str, corner: dict | None, requirements: dict | None) -> dict:
+    """PROJECTION of the policy's rules onto preview numbers, so the agent sees which rule an evaluation would trip BEFORE spending it (combined `preview`).
+    Pure. Mirrors ae.harness.improvement.decide_improvement for: objective improvement, corner hard constraints H1-H3, REQ-STAB non-regression and the generic margin rule on
+    nominal metrics. It is a projection from nominal/corner previews, NOT the verdict (the evaluator also applies BOM/status/series/row rules and a full pipeline run).
+    rules = {"margin_fraction", "abs_tol", "rel_tol", "min_improvement"}; baseline_checks = {check id: baseline record check dict}. Rows: {id, rule, baseline, candidate, limit, status}."""
+    tol = lambda ref: rules["abs_tol"] + rules["rel_tol"] * abs(ref)
+    rows: list[dict] = []
+
+    def row(cid: str, rule: str, baseline, candidate, limit, ok: bool | None) -> None:
+        rows.append({"id": cid, "rule": rule, "baseline": baseline, "candidate": candidate, "limit": limit, "status": "unknown" if ok is None else ("ok" if ok else "WOULD_BE_REJECTED")})
+
+    if corner and corner.get("outcome") in ("within_contract_limits", "outside_contract_limits"):
+        m = corner["measurements"]
+        base_obj = baseline_checks[objective_check]["value"]
+        gained = base_obj - m["alias_corners_worst_dB"]                                  # objective direction: minimize (more negative is better)
+        row(objective_check, "objective_improvement", base_obj, m["alias_corners_worst_dB"], f"improve by >= {rules['min_improvement']} dB (now {gained:+.3f})", gained >= rules["min_improvement"] + tol(base_obj))
+        for h in policy_raw.get("hard_constraints", []):
+            if h["id"] == "H1":
+                row(h["check"], "H1_hard_limit", None, m["flatness_corners_worst_dB"], f"<= {h['max']}", m["flatness_corners_worst_dB"] <= h["max"])
+            elif h["id"] == "H2":
+                row(h["check"], "H2_gain_min_corners", None, m["gain_corners_min_V_per_V"], f">= {h['min']}", m["gain_corners_min_V_per_V"] >= h["min"])
+            elif h["id"] == "H3":
+                row(h["check"], "H3_gain_max_corners", None, m["gain_corners_max_V_per_V"], f"<= {h['max']}", m["gain_corners_max_V_per_V"] <= h["max"])
+    if requirements:
+        handled = {objective_check, "REQ-ALIAS", "REQ-GAIN", "REQ-FLAT"}                 # traded metrics are governed by the hard constraints, not the margin rule
+        for cid, c in requirements["requirements"].items():
+            b = baseline_checks.get(cid)
+            if b is None or cid in handled:
+                continue
+            if cid == "REQ-STAB":
+                v, bv = c["value"], b["value"]
+                row(cid, "REQ-STAB_nonregression", bv, v, f"<= baseline + {tol(bv):.3g}", v is not None and v <= bv + tol(bv))
+                continue
+            if b["outcome"] != "passed":
+                continue
+            mb, mc = _margin(b), _margin(c)               # same margin extraction as the evaluator (record margin, else parsed limit)
+            if mb is None or mc is None:
+                continue
+            allowed = rules["margin_fraction"] * mb if mb > 0 else 0.0
+            row(cid, "margin_nonregression", {"value": b.get("value"), "margin": mb}, {"value": c.get("value"), "margin": mc}, f"margin >= {mb - allowed - tol(mb):.4g}", mc >= mb - allowed - tol(mb))
+    bad = [r for r in rows if r["status"] == "WOULD_BE_REJECTED"]
+    return {"projection_only": True, "would_trip": [f"{r['id']}:{r['rule']}" for r in bad], "all_projected_rules_ok": not bad, "rows": rows}

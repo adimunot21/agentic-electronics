@@ -1,0 +1,21 @@
+# H-lead review note (harness area), 2026-11-20
+
+Signed: H-lead (harness area lead). Implementer for item 1: H-engineer (a subagent I spawned). Nothing committed or pushed; no live model call, no API key.
+
+## Item 1: provider usage-limit handling (done)
+Real failure strings were read from runs/agent/improve-live-7 and -8 trace.jsonl: `You've hit your 5-hour limit · resets 9:10am|2:10pm (Europe/London)`, api_error_status 429.
+- providers.py: `parse_usage_limit` (429 or "hit your ... limit"; reset parsed to the next occurrence in the stated IANA zone, None when not parseable, never raises), `ModelReply.usage_limit`, `usage_limit_wait_seconds`, `wait_for`; `ScriptedProvider` can return a prepared `ModelReply` (fixture).
+- controller.py: new stop reason `provider_usage_limit` (state.usage_limit, trace event, `resumed_after` marker); the refused call is not charged to model_calls, cost_unknown_calls or feedback delivery. Preview budget persisted as `corner_previews_used`; old states are rebuilt from the trace (improve-live-8 -> 12, improve-live-7 -> 8, matching the recorded exhaustion).
+- scripts/resume_improvement_run.py: argparse (positionals unchanged), `--wait-until-reset` (sleep only, no API calls, `--margin-s`, `--max-wait-s`), `--dry-run`, `--runs-dir`. Works on old live-7/8 records via the trace.
+## Item 2: combined preview (done by H-lead)
+`run_check preview`: ONE budget unit that runs corner sweep + nominal requirements and returns `policy_projection` (checks.assess_guards): objective gain vs min_improvement, H1-H3 corner limits, REQ-STAB non-regression, generic margin rule (REQ-BIAS etc.) as ok / WOULD_BE_REJECTED. Reuses cached single previews (only missing parts run); same refund rule; counted by resume reconstruction. Projection only, not a verdict. No SIM-side change was needed (uses existing `run_corners` and `evaluate_all`), so no coordination with the SIM lead was required. The live-8 evaluation-1 shape (BIAS loss 0.092 vs 0.035 allowed) is a test.
+## Review
+Diff reviewed against the contract and the 297 baseline tests. No blocking defect. Engineer deviations accepted: refused call excluded from cost accounting; pending_feedback restored; old-run reset anchored at trace mtime (otherwise a stale record points to tomorrow). Limits of my own work: the projection mirrors only the rule families listed above (not BOM/status/series/row rules), and uses nominal-vs-record margins, so a projected "ok" is not a guarantee.
+## Tests
+`uv run pytest tests/unit -q`: 305 passed (23 new in test_provider_limit.py, 8 in test_combined_preview.py, rest includes other lanes). Integration tests not run (project lead).
+## Follow-ups for the project lead
+controller.py, tools.py, checks.py, providers.py changed: if they are in the trusted digest, a digest supersession is needed before the next live run. docs/agent-improvement-mode.md section 16 should be updated (items 1 and 2 done); not in my lane. `runs/probes/tiny/*.json` show as modified but are not mine.
+
+## Cross-review of S-lead sanity.py / test_sanity.py and advisory hook (H-lead, same day)
+Findings sent to S-lead (no edits to its files): (1) SanityLimits docstring labels vs v4 policy ids are off (flat is H1, gain H2/H3, alias H4/H6) and limits are hardcoded, suggest limits_from_policy; (2) baseline predict() recomputed per call, cache it; (3) OBJECTIVE_NOT_IMPROVED fires on MPN-only edits; (4) unit-suffixed values like "4k7"/"1uF" are skipped (safe, untested); (5) GAIN_NOMINAL has no borderline band; (6) missing tests for flat/alias limit overrides and previous==candidate. No blocker; validation against live-8 real numbers is sound.
+Hook (advisory only, no change to refusal/acceptance): `tools.advisory_sanity(ctx)` (never raises); free `run_check edit_sanity` (no preview budget, improvement only); `_submit` records a `sanity_advisory` trace event before evaluation; a rejection payload gains an optional `advisory_sanity` key only when warnings exist. Needed one test edit: test_improvement_trial_readiness pinned the exact feedback key set, now allows the optional key (agent-visible feedback contract widened: lead to confirm). `previous` = last evaluated design (None after a resume). New tests: tests/unit/test_sanity_hook.py (5). Full unit suite: 345 passed. Digest supersession needed again (controller/tools/checks changed).
