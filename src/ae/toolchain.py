@@ -7,6 +7,7 @@ Network is disabled by default: the tools must not need it, and this proves it.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -47,6 +48,25 @@ def _text(value: bytes | str | None) -> str:
     return value.decode(errors="replace") if isinstance(value, bytes) else (value or "")
 
 
+def open_for_container(workdir: Path) -> None:
+    """Make a bind-mounted work directory writable by the containers' uid 1000.
+
+    Root cause of the CI failures (every integration lane red since the first public push): the tool containers run as uid 1000 (kicad / the router's `-u 1000:1000`) and write into a host
+    directory owned by the host user. On a developer machine that user is also uid 1000; on a GitHub runner it is uid 1001, so every container write failed (ERC and netlist `error`, no ngspice
+    output, no routed board). The images' HOME (/home/kicad, with the KiCad library tables) is mode 700 for uid 1000, so the container user cannot simply be switched to the host uid.
+    Instead the host user opens its own directory tree (a+rwX); entries the containers created earlier are owned by uid 1000 and already writable by them. No-op when the host IS uid 1000.
+    """
+    if os.getuid() == 1000:
+        return
+    for root, dirs, files in os.walk(workdir):
+        for name in [""] + dirs + files:
+            path = os.path.join(root, name) if name else root
+            try:
+                os.chmod(path, os.stat(path).st_mode | 0o777 if os.path.isdir(path) else os.stat(path).st_mode | 0o666)
+            except OSError:
+                pass                                              # owned by uid 1000 (made by a container): already writable by it
+
+
 def run_router(
     dsn: str, ses: str, workdir: Path, *, max_passes: int = 20, timeout_s: int = 300
 ) -> StageRecord:
@@ -55,6 +75,7 @@ def run_router(
     --hostname/--add-host: the JVM logger errors if the container hostname does not resolve.
     Peak memory comes from the container cgroup (memory.peak): the JRE image has no python/time.
     """
+    open_for_container(workdir)
     container = f"ae-route-{uuid.uuid4().hex[:8]}"
     script = (
         f'java -jar /opt/fr/freerouting-2.5.0.jar --gui.enabled=false -de {dsn} -do {ses} -mp {max_passes}; '
@@ -95,6 +116,7 @@ def run_in_image(
         REPO_ROOT / "src": "/opt/src:ro",
         **(extra_mounts or {}),
     }
+    open_for_container(workdir)
     container = f"ae-{name}-{uuid.uuid4().hex[:8]}"
     docker = ["docker", "run", "--rm", "--name", container, "-w", "/work", "-e", "HOME=/home/kicad", "-e", "PYTHONPATH=/opt/src"]
     if not network:
