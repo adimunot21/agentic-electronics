@@ -48,6 +48,7 @@ def main() -> int:
     print(f"{'freerouting':<18} exit={route.exit_code:<3} {route.wall_s:>7.2f}s  rss={route.peak_rss_mb}MB  [{route.outcome}]")
     stage("import_ses_fill", ["python3", "/opt/ae/pcb_ops.py", "ses", "tiny.kicad_pcb", "tiny.ses", "tiny_routed.kicad_pcb"])
     # DRC/parity needs board and schematic to share a stem: publish the routed board under the project name.
+    (WORK / "tiny.kicad_pcb").unlink(missing_ok=True)       # created earlier by a uid-1000 container: on a CI runner (uid 1001) the host may not overwrite it, but may replace it (the directory is open)
     shutil.copy(WORK / "tiny_routed.kicad_pcb", WORK / "tiny.kicad_pcb")
     stage("drc_routed", ["kicad-cli", "pcb", "drc", "--schematic-parity", "--format", "json", "--severity-all",
                          "--exit-code-violations", "-o", "drc_routed.json", "tiny.kicad_pcb"])
