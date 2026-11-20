@@ -16,6 +16,7 @@ import yaml
 
 from ae import bomcheck
 from ae.designs import fe_aaf_001 as design
+from ae.harness.circuit import FE_AAF_001, CircuitProfile
 from ae.harness.improvement import _margin
 from ae.sim import SimRun, ac_run, load_ideal
 from ae.stages import kicad_netlist
@@ -81,7 +82,7 @@ def run_fast(names: list[str], components_path: Path, workdir: Path) -> dict:
     return out
 
 
-def assess_guards(policy_raw: dict, rules: dict, baseline_checks: dict, objective_check: str, corner: dict | None, requirements: dict | None) -> dict:
+def assess_guards(policy_raw: dict, rules: dict, baseline_checks: dict, objective_check: str, corner: dict | None, requirements: dict | None, profile: CircuitProfile = FE_AAF_001) -> dict:
     """PROJECTION of the policy's rules onto preview numbers, so the agent sees which rule an evaluation would trip BEFORE spending it (combined `preview`).
     Pure. Mirrors ae.harness.improvement.decide_improvement for: objective improvement, corner hard constraints H1-H3, REQ-STAB non-regression and the generic margin rule on
     nominal metrics. It is a projection from nominal/corner previews, NOT the verdict (the evaluator also applies BOM/status/series/row rules and a full pipeline run).
@@ -105,12 +106,12 @@ def assess_guards(policy_raw: dict, rules: dict, baseline_checks: dict, objectiv
             elif h["id"] == "H3":
                 row(h["check"], "H3_gain_max_corners", None, m["gain_corners_max_V_per_V"], f"<= {h['max']}", m["gain_corners_max_V_per_V"] <= h["max"])
     if requirements:
-        handled = {objective_check, "REQ-ALIAS", "REQ-GAIN", "REQ-FLAT"}                 # traded metrics are governed by the hard constraints, not the margin rule
+        handled = {objective_check, *profile.guard_traded_ids}                 # traded metrics are governed by the hard constraints, not the margin rule
         for cid, c in requirements["requirements"].items():
             b = baseline_checks.get(cid)
             if b is None or cid in handled:
                 continue
-            if cid == "REQ-STAB":
+            if cid == profile.stability_check_id:
                 v, bv = c["value"], b["value"]
                 row(cid, "REQ-STAB_nonregression", bv, v, f"<= baseline + {tol(bv):.3g}", v is not None and v <= bv + tol(bv))
                 continue

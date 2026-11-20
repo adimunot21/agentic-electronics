@@ -6,7 +6,7 @@ Rule followed: no API keys, no accounts, no distributor scraping; manufacturer d
 ## Bottom line
 * Obtainable and grounded: for the **resistors**, the Yageo RC_L data sheet states the catalogue range for RC0603 1 % (E24/E96): 1 ohm to 10 Mohm. Every E96 value in that range therefore falls inside the series' stated catalogue. This is "catalogue existence by range statement".
 * Not obtainable offline and legitimately: **stock, price, lead time, current lifecycle**. They are volatile and API-gated or licence-restricted, so nothing of this kind is cached.
-* **Capacitors: not grounded.** I could not read a current, legible Kemet statement of the C0G / 0805 / 50 V capacitance range. So no capacitor range is cached; only the four exact codes already evidenced are marked `listing_evidenced`. Unseen values return `unknown`.
+* **Capacitors: grounded only to a 2016 revision.** A legible per-value table (KEMET C1003_C0G, 7/21/2016) lists 77 values for C0805C J5G 50 V; the current revision could not be read. Listed values map to `catalogue_range_covered`; unlisted values return `unknown`.
 
 ## (a) Catalogue existence
 ### Yageo RC_L, RC0603, 1 %
@@ -17,11 +17,13 @@ Rule followed: no API keys, no accounts, no distributor scraping; manufacturer d
 * What this proves: the series' catalogue statement covers every E96 value 1 ohm-10 Mohm in 1 %. It does **not** prove that a given value is in production, Active, or stocked: a range statement is not a per-value list.
 * A reproducible side effect: R1 = 59.6k (improve-live-6) is not E96 and is `unknown`; 59k, 76.8k, 6.19k, 16.5k are `catalogue_range_covered` and, being in the ledger, `listing_evidenced`.
 
-### Kemet C0G 0805 50 V
-* Wanted: Kemet C0G data sheet (C1002 family), 0805 / 50 V min/max capacitance and offered E24 values.
-* Result: **not obtained.** The current datasheet host (`content.kemet.com`) returned an expired TLS certificate (I did not bypass it). Distributor pages were not fetched (terms; the harness also refused). The only legible-at-all catalogue copy reached was a CERN-hosted 2005/2006 Kemet catalogue (PDF created 2005-10-04), whose extracted C0G table is garbled and out of date, so it is not cited as evidence.
-* Evidence we do have, from the earlier session: exact-code Kemet spec sheets (generated 2026-11-17 through search.kemet.com, public tool, sha256s in `evidence/bom-verification.yaml`) for C0805C183J5GACTU, C0805C102J5GACTU, C0805C562J5GACTU, C0805C331J5GACTU. They prove Kemet's tool produced a sheet for those codes; they carry no lifecycle field.
-* Next step to close the gap (human, outside this tool): obtain the current Kemet C0G SMD data sheet (C1002 C0G_SMD, any readable copy with revision/date), read the 0805 / 50 V column, and add a `families` entry with limits and any E24 gaps.
+### Kemet C0G 0805 50 V (updated, second pass 2026-11-20)
+* Source: KEMET `C1003_C0G` "C0G Dielectric, 10 - 250 VDC (Commercial Grade)", footer date **7/21/2016** (PDF created 2016-10-14), https://extranet.mandieselturbo.com/electronics/datasheets/Kemet/MLCC_SMD/C1003_C0G_2016.pdf, sha256 `75db98383c378259270ea98a0e74f33e37a5fc315de897df8858ae654d5b2d34`. It is a third-party-hosted copy of the manufacturer document and **ten years old**, not the current revision. The current host `content.kemet.com` still had an expired TLS certificate (not bypassed); Mouser/DigiKey mirrors were not fetched (harness refused); a Farnell mirror timed out twice.
+* Read: Table 1A (0201-1206), pages 5-6 of the PDF. Extracted by word coordinates (the 0805 / 50 V column is the 4th of 7 cells in the 0805 group, x about 446), cross-checked against the layout text. Footnote: "Capacitance range Includes E24 decade values only." (KEMET C1003_C0G).
+* Result for C0805C...J5GACTU (0805, 50 V, +-5 % J, C0G): J tolerance is offered from 10 pF up (below 10 pF only B/C/D tolerances). Listed values (77): **every E24 value from 10 pF to 9.1 nF (72 values)**, plus **10, 12, 15, 18, 22 nF** in the 10 nF decade. **11, 13, 16, 20, 24 nF are NOT listed**, nor anything from 27 nF up (the 0805 / 50 V cell is empty). So the table range is 10 pF - 22 nF with gaps, not a clean min/max.
+* Consistency check: the four codes with 2026-11-17 Kemet spec sheets (330 pF, 1 nF, 5.6 nF, 18 nF) are all in the table. That supports the table but does not prove 2026 coverage; a newer revision may list more (unlisted = `unknown`, never "does not exist").
+* Implemented as a second family `kemet_c0805c_c0g_50v_5pct` with an explicit `listed_values_pf` list (same provenance rules). The v4 task's C1-C3 baseline values (18n, 1n, 5.6n) map to `catalogue_range_covered`; E24 values such as 11n, 13n, 16n, 20n, 24n, 27n return `unknown`.
+* Read vs inferred: READ = the table cells, tolerance column, footnote. INFERRED = that an empty 0805 / 50 V cell means "not offered in the 2016 revision" (a layout-based reading of the PDF, plus the thickness-code cell content, which is not an availability statement).
 
 ## (b) Stock, lifecycle, price: candidate sources, assessed honestly
 | Source | Usable offline? | Verdict |
@@ -38,10 +40,10 @@ Stock and price are volatile (hours) and non-redistributable; a cache of them wo
 Files: `src/ae/parts/data/orderability.yaml`, `src/ae/parts/orderability.py`, `tests/unit/test_orderability.py`.
 * `families[]`: family_id, manufacturer, mpn_template, kind, value_series, value_min, value_max, tolerance_pct, package, basis, source{url, doc_id, revision, sha256, retrieved}, proves[], does_not_prove[], caveats[].
 * `listing_seen[]`: only MPNs present in `evidence/bom-verification.yaml` (R1-R6 RC codes, four 0805 C0G codes); same provenance fields (`evidence_ref` replaces `url` where the evidence is a ledger line).
-* `known_gaps[]`: records the missing Kemet range.
+* Capacitor families use `listed_values_pf` (explicit per-value table) instead of series+range; `known_gaps[]` records that only the 2016 revision was readable.
 * Loader fails closed: schema_version, required provenance, future dates, forbidden keys (stock/price/availability/lead_time/lifecycle) anywhere in the file, unknown series.
 * `orderability_of(mpn | (family_id, value))` returns `{status, basis, caveats, source, does_not_prove}`, status in `catalogue_range_covered | listing_evidenced | unknown`. There is no `in_stock` value. MPN input is decoded, re-encoded to the canonical Yageo code (so `RC0603FR-07010KL` is rejected), then range and E96 membership are checked.
-* Tests: 35 new in `tests/unit/test_orderability.py` (672+1 E96 values by value and by MPN, out-of-range, non-E96, provenance rejection, no in_stock). Full unit suite: 340 passed.
+* Tests: 71 in `tests/unit/test_orderability.py` (all E96 values by value and by MPN, all 72 E24 values 10 pF-9.1 nF plus 10-22 nF by value and MPN, unlisted and non-E24 values unknown, provenance rejection, no in_stock). Last full unit run: 401 passed, 2 failed in `test_circuit_profile.py` (not my files; concurrent work by another lane).
 
 ## Integration caveats (not done here)
 * `src/ae/**/*.py` is inside the evaluator's trusted-digest globs (`TRUSTED_GLOBS` in `src/ae/harness/workspace.py`), so adding `src/ae/parts/*.py` changes the trusted digest and needs the usual supersession note. The YAML data file is outside the listed `.py` glob, but check the remaining globs before assuming it is untracked.

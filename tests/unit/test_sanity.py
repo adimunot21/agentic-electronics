@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from ae.harness.sanity import SanityLimits, edit_sanity
+from ae.harness.sanity import SanityLimits, edit_sanity, limits_from_policy
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BASELINE_TEXT = (REPO_ROOT / "designs" / "fe-aaf-001" / "components.yaml").read_text()
@@ -115,6 +115,54 @@ def test_borderline_severity_logic() -> None:
     assert w["severity"] == "info" and "borderline" in w["message"] and borderline["status"] == "ok"
     clear = edit_sanity(eval2, BASELINE_TEXT, limits=SanityLimits(gain_min=1.2192 - 0.01, model_error_gain=0.0005))
     assert "GAIN_CORNER_MIN" not in codes(clear)
+
+
+def test_limits_from_policy_matches_defaults_v4() -> None:
+    policy_path = REPO_ROOT / "src" / "ae" / "harness" / "tasks" / "improve_wide_retune_alias_v4.yaml"
+    assert limits_from_policy(policy_path) == SanityLimits()
+    assert limits_from_policy(yaml.safe_load(policy_path.read_text())) == SanityLimits()
+
+
+def test_limits_from_policy_missing_constraint() -> None:
+    with pytest.raises(ValueError):
+        limits_from_policy({"hard_constraints": [{"id": "H1", "check": "REQ-FLAT-CORNERS", "max": 0.48}]})
+    with pytest.raises(ValueError):
+        limits_from_policy({})
+
+
+def test_gain_nominal_borderline_band() -> None:
+    eval2 = manifest_with(EVAL2_EDITS)           # nominal gain Rs=100 predicted 1.2761
+    near = edit_sanity(eval2, BASELINE_TEXT, limits=SanityLimits(gain_min=1.2761 + 0.0002, model_error_gain=0.0005))
+    assert next(w for w in near["warnings"] if w["code"] == "GAIN_NOMINAL")["severity"] == "warn"
+    near = edit_sanity(eval2, BASELINE_TEXT, limits=SanityLimits(gain_min=1.2761 - 0.0002, model_error_gain=0.0005))
+    assert next(w for w in near["warnings"] if w["code"] == "GAIN_NOMINAL")["severity"] == "info"
+
+
+def test_validation_fixture_real_pipeline() -> None:
+    """11 designs (E24 cap / E96 resistor steps, several breaking gain/flatness) measured with the real pipeline (tests/unit/data/sanity_validation.json):
+    model errors stay within the SanityLimits defaults, and every real breach of a policy limit is flagged (warn) by the matching code - no false negatives."""
+    import json
+    data = json.loads((REPO_ROOT / "tests" / "unit" / "data" / "sanity_validation.json").read_text())["designs"]
+    limits = SanityLimits()
+    tolerance = {"corner_gain_min": limits.model_error_gain, "corner_gain_max": limits.model_error_gain, "nominal_gain_rs100": limits.model_error_gain,
+                 "corner_flat_worst_db": limits.model_error_flat_db, "nominal_flat_db_worst_rs": limits.model_error_flat_db,
+                 "corner_alias_worst_db": limits.model_error_alias_db, "nominal_alias_db_worst_rs": limits.model_error_alias_db}
+    breaches = 0
+    for name, entry in data.items():
+        result = edit_sanity(manifest_with(entry["edits"]), BASELINE_TEXT)
+        for key, tol in tolerance.items():
+            assert abs(result["predicted"][key] - entry["real"][key]) <= tol, (name, key)
+        real, warned = entry["real"], set(codes(result, "warn"))
+        expected = {"GAIN_CORNER_MIN": real["corner_gain_min"] < limits.gain_min, "GAIN_CORNER_MAX": real["corner_gain_max"] > limits.gain_max,
+                    "FLAT_CORNERS": real["corner_flat_worst_db"] > limits.flat_max_db, "FLAT_NOMINAL": real["nominal_flat_db_worst_rs"] > limits.flat_max_db,
+                    "ALIAS_NOMINAL": real["nominal_alias_db_worst_rs"] > limits.alias_max_db}
+        for code, breached in expected.items():
+            if breached:
+                breaches += 1
+                assert code in warned, (name, code)       # false negative
+            else:
+                assert code not in warned, (name, code)   # false positive
+    assert breaches >= 8
 
 
 if __name__ == "__main__":

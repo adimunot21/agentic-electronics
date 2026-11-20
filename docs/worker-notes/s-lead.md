@@ -22,3 +22,9 @@ Ideal op-amp cascade predicts corner gain within 0.0005 V/V, flatness within 0.0
 
 ## Tests
 uv run pytest tests/unit -q: 345 passed (after follow-ups). Not run: integration/docker.
+
+## Batch 2 (2026-11-20)  -  signed: S-lead
+- S-engineer: limits_from_policy (matches by check+field; v4 equals defaults), GAIN_NOMINAL borderline band, validation on 11 real-pipeline designs (baseline + 10 large C1/C2/C3/R edits; fixture tests/unit/data/sanity_validation.json). Max errors: gain 0.0006 V/V, flat 0.0172 dB (band 0.02, thin), alias 0.066 dB (band 0.1). 9 real breaches, all warned, no false positives. Alias limit never breached in sample, so ALIAS_NOMINAL only validated as not firing wrongly.
+- R-engineer: Kemet C0G 0805 50V per-value table found only in a 2016 revision (C1003, third-party mirror; current Kemet host cert expired, not bypassed). 77 listed values; unlisted -> unknown, never absent. Cached as family kemet_c0805c_c0g_50v_5pct. 2016 age is the main caveat.
+- Second-circuit engineer: recommends FE-ISENSE-001 (high-side current-sense difference amp, OPA2314). DRAFT docs only in docs/second-circuit/. Review notes: the witness (OWNER-ONLY-witness.md, owner-only/*.py.txt) sits inside the repo docs tree and must be moved out of any agent-visible tree before an agent run; draft limits (e.g. zero offset 120 mV vs 121 mV datasheet bound) have no margin; model GBW gap (141-158 kHz vs 116 kHz hand estimate) uninvestigated; evaluation time and effort estimates are unmeasured.
+- Tests: uv run pytest tests/unit -q was 404 passed at S-engineer finish; 2 failures seen mid-run in tests/unit/test_circuit_profile.py belong to H-lead's concurrent work.

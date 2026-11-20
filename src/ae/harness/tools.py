@@ -9,6 +9,7 @@ from typing import Callable
 import yaml
 
 from ae import bomcheck
+from ae.harness.circuit import FE_AAF_001, CircuitProfile
 from ae.harness.checks import CHECKS, PREVIEW_CHECKS, assess_guards, run_fast
 from ae.harness.contracts import Arg, ToolError, ToolRegistry, ToolSpec
 from ae.harness.workspace import REPO_ROOT, Workspace, trusted_digest
@@ -29,17 +30,25 @@ class AgentContext:
     baseline_manifest_text: str | None = None       # improvement tasks: adopted baseline manifest text (input of the advisory edit_sanity)
     last_evaluated_manifest_text: str | None = None  # the design most recently sent to the evaluator (edit_sanity's "previous")
     guard: dict | None = None          # improvement tasks: {"policy_raw", "rules", "baseline_checks", "objective_check"} used by the combined `preview` to project the policy rules
+    profile: CircuitProfile = FE_AAF_001   # which circuit's requirements / evidence ledger / derivation record the read-only tools serve
     max_corner_previews: int = 12      # fresh sweeps of EITHER preview check (corner ~50 s, requirements ~40 s); cache hits are free
 
 
 def advisory_sanity(ctx: AgentContext, manifest_text: str | None = None, full: bool = False) -> dict | None:
     """ADVISORY ideal-op-amp edit check (ae.harness.sanity) of the current (or given) design. Never raises, never changes acceptance or refusal; None when not applicable
     (restoration task, no baseline text). Compact form = status + warnings (code, severity, message); full adds the predicted numbers."""
-    if not ctx.improvement or ctx.baseline_manifest_text is None:
+    if not ctx.improvement or ctx.baseline_manifest_text is None or not ctx.profile.edit_sanity:      # no ideal model for this circuit: hook is off
         return None
     try:
         from ae.harness.sanity import edit_sanity
-        res = edit_sanity(manifest_text if manifest_text is not None else ctx.workspace.text(), ctx.baseline_manifest_text, previous_manifest_text=ctx.last_evaluated_manifest_text)
+        kwargs = {}
+        if ctx.guard is not None:                                  # limits follow the frozen policy of the task (v4 values equal the module defaults); fall back to defaults when the policy has no such constraints
+            try:
+                from ae.harness.sanity import limits_from_policy
+                kwargs["limits"] = limits_from_policy(ctx.guard["policy_raw"])
+            except (ValueError, ImportError, KeyError):
+                pass
+        res = edit_sanity(manifest_text if manifest_text is not None else ctx.workspace.text(), ctx.baseline_manifest_text, previous_manifest_text=ctx.last_evaluated_manifest_text, **kwargs)
         out = {"advisory": True, "status": res.get("status"), "not_acceptance": res.get("not_acceptance", "advisory only; the independent evaluator decides"),
                "warnings": [{k: w.get(k) for k in ("code", "severity", "message")} for w in res.get("warnings", [])]}
         if res.get("status") == "skipped":
@@ -51,15 +60,15 @@ def advisory_sanity(ctx: AgentContext, manifest_text: str | None = None, full: b
         return {"advisory": True, "status": "skipped", "reason": f"{type(exc).__name__}: {str(exc)[:120]}", "warnings": []}
 
 
-def _contract(repo: Path) -> dict:
-    return yaml.safe_load((repo / "requirements/fe-aaf-001.yaml").read_text())
+def _contract(repo: Path, profile: CircuitProfile = FE_AAF_001) -> dict:
+    return yaml.safe_load((repo / profile.requirements_path).read_text())
 
 
 def build_registry(ctx: AgentContext) -> ToolRegistry:
     reg = ToolRegistry()
 
     def get_requirements(ids: list | None = None) -> dict:
-        c = _contract(ctx.repo)
+        c = _contract(ctx.repo, ctx.profile)
         reqs = [{"id": r["id"], "text": r["text"], "check": r.get("check"), "verify": r.get("verify")} for r in c["requirements"] if not ids or r["id"] in ids]
         return {"requirements": reqs, "conditions": c["conditions"], "signal_source": c["signal_source"], "note": "read-only; the contract is protected and cannot be edited by any tool"}
 
@@ -74,13 +83,14 @@ def build_registry(ctx: AgentContext) -> ToolRegistry:
         return {"manifest_sha256": ctx.workspace.sha256(), "parts": rows}
 
     def get_design_evidence(ref: str) -> dict:
-        ledger = yaml.safe_load((ctx.repo / "evidence/bom-verification.yaml").read_text())["lines"]
+        prof = ctx.profile
+        ledger = yaml.safe_load((ctx.repo / prof.evidence_ledger).read_text())["lines"] if prof.evidence_ledger else []
         entry = next((l for l in ledger if ref in l["refs"]), None)
-        derivation = json.loads((ctx.repo / "analysis/filter_design_0002.json").read_text())["params"]
-        key = {"C1": "C1", "C2": "C2", "C3": "C3", "R1": "R1", "R2": "R2", "R3": "R3", "R4": "R4", "R5": "R5"}.get(ref)
+        derivation = json.loads((ctx.repo / prof.derivation_record).read_text())["params"] if prof.derivation_record else {}
+        key = ref if ref in prof.derivation_refs else None
         return {"ref": ref, "bom_verification_ledger": ({"level": entry["level"], "mpn": entry["mpn"], "design_value_at_verification": entry["design_value"], "checked_against_design": entry["checked_against_design"],
                                                          "sources": [s.get("what") for s in entry["sources"]]} if entry else None),
-                "design_calculation_record": ({"value_si": derivation[key], "source": "analysis/filter_design_0002.json (design-time derivation)"} if key in derivation else None)}
+                "design_calculation_record": ({"value_si": derivation[key], "source": f"{prof.derivation_record} (design-time derivation)"} if key in derivation else None)}
 
     def decode_mpn(mpn: str) -> dict:
         d = bomcheck.decode(mpn)
@@ -147,7 +157,7 @@ def build_registry(ctx: AgentContext) -> ToolRegistry:
                   "corner_preview": corner, "requirements_preview": reqs, "cache_hit": not fresh, "evidence_key": ["preview", key[1][:12], key[2][:12]]}
         if ctx.guard is not None:
             g = ctx.guard
-            result["policy_projection"] = assess_guards(g["policy_raw"], g["rules"], g["baseline_checks"], g["objective_check"], corner if ok_corner else None, reqs if ok_reqs else None)
+            result["policy_projection"] = assess_guards(g["policy_raw"], g["rules"], g["baseline_checks"], g["objective_check"], corner if ok_corner else None, reqs if ok_reqs else None, ctx.profile)
         return result
 
     def propose_patch(patch: dict) -> dict:

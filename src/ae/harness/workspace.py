@@ -19,9 +19,10 @@ TRUSTED_GLOBS = ["requirements/fe-aaf-001.yaml", "src/ae/**/*.py", "tools_kicad/
                  "src/ae/harness/tasks/*.yaml", "evidence/bom-verification.yaml"]
 
 
-def trusted_digest(repo: Path = REPO_ROOT) -> dict:
+def trusted_digest(repo: Path = REPO_ROOT, extra_globs: tuple = ()) -> dict:
+    """extra_globs (a circuit profile's extra_trusted_globs) are appended to the base list; with none, the result is exactly the pre-profile digest."""
     files = {}
-    for pattern in TRUSTED_GLOBS:
+    for pattern in [*TRUSTED_GLOBS, *extra_globs]:
         for path in sorted(repo.glob(pattern)):
             if path.is_file() and "__pycache__" not in path.parts:
                 files[str(path.relative_to(repo))] = hashlib.sha256(path.read_bytes()).hexdigest()

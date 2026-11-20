@@ -17,6 +17,7 @@ from pathlib import Path
 
 import yaml
 
+from ae.harness.circuit import FE_AAF_001, CircuitProfile, ProfileError, load_profile
 from ae.harness.evaluator import SEVERITY
 from ae.harness.patch import ScopePolicy
 from ae.harness.workspace import REPO_ROOT
@@ -43,28 +44,33 @@ class ImprovementPolicy:
     allowed_parts: tuple
     allowed_fields: tuple
     max_ops: int
+    profile: CircuitProfile = FE_AAF_001       # circuit this policy is for (policy `circuit:` key; absent = FE-AAF-001, as for every frozen policy v1-v4)
 
     def scope(self) -> ScopePolicy:
         return ScopePolicy(part_pattern="^(?:" + "|".join(re.escape(p) for p in self.allowed_parts) + ")$", fields=frozenset(self.allowed_fields), max_ops=self.max_ops,
                            enforce_series=bool(self.raw["allowed_edits"].get("enforce_series", False)))
 
 
-def load_policy(path: Path, repo: Path = REPO_ROOT) -> ImprovementPolicy:
+def load_policy(path: Path, repo: Path = REPO_ROOT, circuits_dir: Path | None = None) -> ImprovementPolicy:
     """Load and VERIFY: baseline design/requirements hashes must equal the files on disk, and contract limits quoted in the policy must equal the protected requirements."""
     text = path.read_text()
     y = yaml.safe_load(text)
     if y.get("kind") != "improvement":
         raise PolicyError(f"{path.name}: not an improvement policy")
+    try:
+        profile = load_profile(y["circuit"], circuits_dir or repo / "src/ae/harness/circuits") if "circuit" in y else FE_AAF_001
+    except ProfileError as exc:
+        raise PolicyError(f"{path.name}: circuit profile: {exc}") from exc
     b = y["baseline"]
-    for key, rel in (("components_sha256", b["design"]), ("requirements_sha256", "requirements/fe-aaf-001.yaml")):
+    for key, rel in (("components_sha256", b["design"]), ("requirements_sha256", profile.requirements_path)):
         actual = hashlib.sha256((repo / rel).read_bytes()).hexdigest()
         if actual != b[key]:
             raise PolicyError(f"baseline_changed: {rel} sha256 {actual[:12]} != frozen {b[key][:12]}")
-    req = {r["id"]: r.get("check") or {} for r in yaml.safe_load((repo / "requirements/fe-aaf-001.yaml").read_text())["requirements"]}
+    req = {r["id"]: r.get("check") or {} for r in yaml.safe_load((repo / profile.requirements_path).read_text())["requirements"]}
     for h in y["hard_constraints"]:
         if "contract_limit" not in h:
             continue
-        chk = req[h["check"].replace("-CORNERS", "")]
+        chk = req[h["check"].replace(profile.corner_suffix, "")]
         lim = h["contract_limit"]
         if isinstance(lim, list):
             ok = [chk.get("min"), chk.get("max")] == list(lim) and abs(h["min"] - lim[0] - h["reserve"]) < 1e-12 and abs(lim[1] - h["max"] - h["reserve"]) < 1e-12
@@ -77,7 +83,7 @@ def load_policy(path: Path, repo: Path = REPO_ROOT) -> ImprovementPolicy:
     ae = y["allowed_edits"]
     return ImprovementPolicy(y["id"], y["policy_version"], hashlib.sha256(text.encode()).hexdigest(), y, y["objective"]["check"], float(y["objective"]["min_improvement"]),
                              float(y["jitter"]["rel"]), float(y["jitter"]["abs"]), float(y["nonregression"]["generic_margin_fraction"]), frozenset(y["traded_metrics"]),
-                             tuple(ae["parts"]), tuple(ae["fields"]), int(ae["max_ops"]))
+                             tuple(ae["parts"]), tuple(ae["fields"]), int(ae["max_ops"]), profile)
 
 
 def _by_id(record: dict) -> dict:
@@ -115,7 +121,7 @@ def edited_refs(baseline_manifest: str, candidate_manifest: str) -> list[str]:
 def decide_improvement(baseline: dict, candidate: dict, policy: ImprovementPolicy, baseline_dir: Path, candidate_dir: Path, baseline_manifest: str, candidate_manifest: str) -> dict:
     """Pure policy decision. `baseline`/`candidate` are trusted pipeline records; *_dir hold their raw outputs (corners_summary.json, release/bom.csv)."""
     base, cand = _by_id(baseline), _by_id(candidate)
-    raw = policy.raw
+    raw, profile = policy.raw, policy.profile
     viol: list[dict] = []
     blocked_reasons: list[str] = []
 
@@ -129,7 +135,7 @@ def decide_improvement(baseline: dict, candidate: dict, policy: ImprovementPolic
     for cid, c in cand.items():
         if c["outcome"] == "error":
             blocked_reasons.append(f"error:{cid}")
-    for cid in ("REQ-ALIAS-CORNERS", "REQ-FLAT-CORNERS", "REQ-GAIN-CORNERS"):
+    for cid in profile.corner_check_ids:
         if cid in cand and cand[cid]["outcome"] == "blocked":
             blocked_reasons.append(f"corners_incomplete:{cid}")
     if blocked_reasons:
@@ -176,19 +182,19 @@ def decide_improvement(baseline: dict, candidate: dict, policy: ImprovementPolic
             if x is None or not (h["min"] <= x <= h["max"]):
                 v("H5_gain_nominal", "REQ-GAIN", value=x, min=h["min"], max=h["max"], unit="V/V")
         elif hid == "H6":
-            xb, xc = base["REQ-ALIAS"]["value"], val("REQ-ALIAS")
+            xb, xc = base[profile.nominal_objective_check]["value"], val(profile.nominal_objective_check)
             if xc is None or xc > h["max"] or xc > xb + policy.abs_tol + policy.rel_tol * abs(xb):
-                v("H6_alias_nominal_nonregression", "REQ-ALIAS", baseline=xb, candidate=xc, unit="dB")
+                v("H6_alias_nominal_nonregression", profile.nominal_objective_check, baseline=xb, candidate=xc, unit="dB")
 
     # ---- non-regression of everything else (traded metrics are governed by H1-H5 only)
     nr = raw["nonregression"]
-    handled = set(policy.traded) | {policy.objective_check, "REQ-ALIAS"}
+    handled = set(policy.traded) | {policy.objective_check, profile.nominal_objective_check}
     for cid, b in base.items():
         c = cand[cid]
         if cid in handled:
             continue
         sb, sc = SEVERITY.get(b["outcome"], 3), SEVERITY.get(c["outcome"], 3)
-        if cid == "REQ-STAB":
+        if cid == profile.stability_check_id:                    # None disables the rule for circuits without one
             if c["outcome"] == "passed":
                 v("REQ-STAB_status_change_needs_review", cid, baseline=b["outcome"], candidate=c["outcome"])
             if c["value"] is None or c["value"] > b["value"] + policy.abs_tol + policy.rel_tol * abs(b["value"]):
@@ -238,18 +244,17 @@ def decide_improvement(baseline: dict, candidate: dict, policy: ImprovementPolic
         elif row is not None and row["MPN_Status"] != "unverified_candidate" and rb.get(k, {}).get("MPN") != row["MPN"]:
             v("bom_edited_mpn_not_marked_unverified", "REQ-BOM", row=k, status=row["MPN_Status"])
 
-    blocked_claims = _blocked_claims(raw, edited, rc)
+    blocked_claims = _blocked_claims(raw, edited, rc, profile)
     verdict = ACCEPT if not viol else "rejected"
     return _finish(verdict, viol, base, cand, policy, edited, None, blocked_claims, baseline_manifest, candidate_manifest, objective=objective, cs=(cs_b, cs_c))
 
 
-def _blocked_claims(raw: dict, edited: list[str], cand_bom: dict) -> list[dict]:
+def _blocked_claims(raw: dict, edited: list[str], cand_bom: dict, profile: CircuitProfile = FE_AAF_001) -> list[dict]:
     claims = []
     for row, r in cand_bom.items():
         if r["MPN_Status"] == "unverified_candidate":
             claims.append({"claim": f"BOM_VERIFICATION:{row}", "why": f"MPN {r['MPN']} is unverified_candidate (value-consistent by decode only; existence/orderability/datasheet not checked)"})
-    claims.append({"claim": "MODEL_STARTUP/SATURATION/OVERLOAD_RECOVERY", "why": "checks stay not_tested; behaviour of the modified stage-2 time constant under startup/saturation/overload is unvalidated"})
-    claims.append({"claim": "REQ-STAB", "why": "rev 2 stays FAILED, rev 3 stays PROPOSED/NOT APPROVED; this task never resolves it"})
+    claims.extend(dict(c) for c in profile.standing_claims)
     return claims
 
 

@@ -21,6 +21,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from ae.harness.circuit import CircuitProfile, resolve_callable
 from ae.harness.workspace import REPO_ROOT, trusted_digest
 
 SEVERITY = {"passed": 0, "blocked": 1, "not_tested": 1, "failed": 2, "error": 3}
@@ -68,25 +69,31 @@ def decide(baseline_checks: list[dict], candidate_checks: list[dict], policy: Ac
 
 
 class TrustedEvaluator:
-    def __init__(self, repo: Path = REPO_ROOT, policy: AcceptancePolicy = AcceptancePolicy()):
-        self.repo, self.policy = repo, policy
-        self.digest_at_start = trusted_digest(repo)
+    def __init__(self, repo: Path = REPO_ROOT, policy: AcceptancePolicy = AcceptancePolicy(), profile: CircuitProfile | None = None, extra_globs: tuple = ()):
+        self.repo, self.policy, self.profile = repo, policy, profile
+        self.extra_globs = tuple(extra_globs) + (tuple(profile.extra_trusted_globs) if profile else ())      # () for FE: the digest is then exactly the pre-profile one
+        self.digest_at_start = self._digest()
+
+    def _digest(self) -> dict:
+        return trusted_digest(self.repo, self.extra_globs) if self.extra_globs else trusted_digest(self.repo)
 
     def run_pipeline(self, components_path: Path, out_dir: Path) -> dict:
+        if self.profile is not None and self.profile.pipeline:           # another circuit's trusted pipeline: (components_path, out_dir) -> record
+            return resolve_callable(self.profile.pipeline)(components_path, out_dir)
         from ae.reference_run import run_reference            # trusted code, imported from the repository (digest-checked)
         run_reference(out_dir, label="harness-evaluation", components_path=components_path)
         return json.loads((out_dir / "record.json").read_text())
 
     def _guarded_run(self, components_path: Path, out_dir: Path, pipeline, start: float):
         """Run the trusted pipeline under the trusted-code digest guard. Returns (record, None) or (None, blocked_decision)."""
-        before = trusted_digest(self.repo)
+        before = self._digest()
         if before["combined"] != self.digest_at_start["combined"]:
             return None, {"verdict": "blocked", "reason": "trusted_code_changed_before_evaluation", "release_ready": False}
         try:
             record = (pipeline or self.run_pipeline)(components_path, out_dir)
         except Exception as exc:
             return None, {"verdict": "blocked", "reason": f"pipeline_error: {type(exc).__name__}: {exc}", "release_ready": False, "elapsed_s": time.monotonic() - start}
-        after = trusted_digest(self.repo)
+        after = self._digest()
         if after["combined"] != self.digest_at_start["combined"]:
             return None, {"verdict": "blocked", "reason": "trusted_code_changed_during_evaluation", "release_ready": False}
         return record, None

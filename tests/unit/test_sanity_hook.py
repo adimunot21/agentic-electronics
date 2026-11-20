@@ -82,3 +82,22 @@ def test_a_crashing_sanity_module_cannot_break_a_submission(tmp_path, monkeypatc
 def patch_ops_action():
     from tests.unit.test_improvement_feedback_loop import NOOP
     return NOOP
+
+
+def test_system_prompt_describes_preview_and_edit_sanity_as_advisory():
+    from ae.harness.controller import IMPROVEMENT_PROMPT as P
+    assert "edit_sanity" in P and "free" in P and "advisory" in P and "not a verdict" in P and "run_check preview" in P
+    assert len(P) < 6500                                      # headroom: the first message (prompt is separate, but keep it compact) stays well inside the transcript cap
+
+
+def test_hook_uses_the_policy_limits_and_falls_back_to_defaults(tmp_path, monkeypatch):
+    import ae.harness.sanity as sanity
+    seen = []
+    real = sanity.edit_sanity
+    monkeypatch.setattr(sanity, "edit_sanity", lambda *a, **k: (seen.append(k.get("limits")), real(*a, **k))[1])
+    rig, ctl = ready(tmp_path)
+    advisory_sanity(ctl.ctx)
+    assert seen[-1] is not None and seen[-1].gain_min == 1.2355 and seen[-1].alias_max_db == -55.8 and seen[-1].flat_max_db == 0.48      # policy values (v3/v4 frozen)
+    ctl.ctx.guard = {**ctl.ctx.guard, "policy_raw": {"hard_constraints": []}}
+    advisory_sanity(ctl.ctx)
+    assert seen[-1] is None                                                                                                                   # incomplete policy -> module defaults, still advisory

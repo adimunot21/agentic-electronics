@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from ae.harness.eseries import E96
+from ae.harness.eseries import E24, E96
 from ae.parts.orderability import (ALLOWED_STATUSES, CacheError, DEFAULT_CACHE_PATH, encode_resistance_code, load_cache, orderability_of, parse_cache)
 
 FAMILY = "yageo_rc_l_0603_1pct"
@@ -62,8 +62,41 @@ def test_listing_evidenced_for_exactly_the_mpns_in_the_evidence_ledger():
         assert orderability_of(mpn, CACHE).status == "listing_evidenced"
 
 
-def test_unevidenced_capacitor_is_unknown_not_covered():
-    assert orderability_of("C0805C472J5GACTU", CACHE).status == "unknown"                  # no grounded Kemet range statement exists
+CAP_FAMILY = "kemet_c0805c_c0g_50v_5pct"
+E24_PF = [int(m) * 10 ** d for d in range(0, 4) for m in E24 if not (d == 0 and m < 10)]
+E24_PF = [v for v in E24_PF if 10 <= v <= 9100]                                                # 10 pF .. 9.1 nF: every E24 value is in the table
+
+
+def _pf_code(picofarads: int) -> str:
+    digits = str(picofarads)
+    return f"{digits[:2]}{len(digits) - 2}"
+
+
+def test_every_e24_value_10pf_to_9n1_is_covered_by_value_and_by_mpn():
+    assert len(E24_PF) == 72
+    for picofarads in E24_PF:
+        assert orderability_of((CAP_FAMILY, f"{picofarads}p"), CACHE).status == "catalogue_range_covered", picofarads
+        assert orderability_of(f"C0805C{_pf_code(picofarads)}J5GACTU", CACHE).status in ("catalogue_range_covered", "listing_evidenced"), picofarads
+
+
+@pytest.mark.parametrize("value", ["10n", "12n", "15n", "18n", "22n", "1n", "5.6n", "330p"])
+def test_edit_scope_style_capacitor_values_in_the_table_are_covered(value):
+    assert orderability_of((CAP_FAMILY, value), CACHE).status == "catalogue_range_covered"
+
+
+@pytest.mark.parametrize("value", ["11n", "13n", "16n", "20n", "24n", "27n", "100n", "2.2u", "9.1p", "5p", "21n", "5.7n", "19n", "0"])
+def test_unlisted_or_non_e24_capacitor_values_are_unknown(value):
+    assert orderability_of((CAP_FAMILY, value), CACHE).status == "unknown"
+
+
+@pytest.mark.parametrize("mpn", ["C0805C113J5GACTU", "C0805C273J5GACTU", "C0805C104J5GACTU", "C0805C189J5GACTU", "C0805C183K5GACTU", "C0805C183J3GACTU", "C0603C183J5GACTU", "C0805C183J5RACTU"])
+def test_other_kemet_codes_are_unknown(mpn):
+    assert orderability_of(mpn, CACHE).status == "unknown"                                    # unlisted value, other tolerance/voltage/size/dielectric
+
+
+def test_capacitor_listing_evidenced_beats_range_and_unevidenced_listed_value_is_range_covered():
+    assert orderability_of("C0805C183J5GACTU", CACHE).status == "listing_evidenced"
+    assert orderability_of("C0805C472J5GACTU", CACHE).status == "catalogue_range_covered"      # 4.7 nF: in the table, no exact-code evidence held
     assert CACHE.known_gaps
 
 
@@ -74,7 +107,7 @@ def test_never_returns_in_stock_or_any_unlisted_status():
 
 
 def test_results_carry_provenance_and_never_claim_stock():
-    for query in ("RC0603FR-0759KL", (FAMILY, "60.4k"), "C0805C183J5GACTU"):
+    for query in ("RC0603FR-0759KL", (FAMILY, "60.4k"), "C0805C183J5GACTU", (CAP_FAMILY, "4.7n")):
         result = orderability_of(query, CACHE)
         assert result.source and result.source["retrieved"] and result.source["doc_id"] and result.source["revision"]
         assert any("stock" in item for item in result.does_not_prove)
@@ -88,7 +121,8 @@ def test_shipped_cache_entries_all_have_provenance():
 
 @pytest.mark.parametrize("path,missing", [(("families", 0, "source", "retrieved"), "retrieved"), (("families", 0, "source", "doc_id"), "doc_id"), (("families", 0, "source", "revision"), "revision"),
                                           (("families", 0, "source"), "source"), (("listing_seen", 0, "source"), "source"), (("listing_seen", 3, "source", "retrieved"), "retrieved"),
-                                          (("families", 0, "does_not_prove"), "does_not_prove")])
+                                          (("families", 0, "does_not_prove"), "does_not_prove"), (("families", 1, "source", "retrieved"), "retrieved"), (("families", 1, "source", "revision"), "revision"),
+                                          (("families", 1, "source"), "source"), (("families", 1, "listed_values_pf"), "listed_values_pf")])
 def test_loader_rejects_missing_provenance(path, missing):
     raw = copy.deepcopy(_raw())
     node = raw
@@ -96,6 +130,17 @@ def test_loader_rejects_missing_provenance(path, missing):
         node = node[key]
     del node[path[-1]]
     with pytest.raises(CacheError):
+        parse_cache(raw)
+
+
+def test_loader_rejects_malformed_capacitor_family():
+    raw = copy.deepcopy(_raw())
+    raw["families"][1]["listed_values_pf"] = [10, -1]
+    with pytest.raises(CacheError, match="listed_values_pf"):
+        parse_cache(raw)
+    raw = copy.deepcopy(_raw())
+    del raw["families"][1]["voltage_v"]
+    with pytest.raises(CacheError, match="voltage_v"):
         parse_cache(raw)
 
 

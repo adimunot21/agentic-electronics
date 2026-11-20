@@ -45,3 +45,8 @@ dist/
 *.key
 # Bulk regenerated output inside run directories is already excluded above (work*/, scratch/, baseline/, evaluations/iter_*/).
 # What stays tracked on purpose: trace.jsonl, summary.json, state.json, task/policy snapshots, evaluations/decision_*.json, output/ (patches, diffs, components.yaml).
+
+# second-circuit DRAFT contract/evaluator plan: contain witness-design values, owner review only; do not publish
+docs/second-circuit/candidates.md
+docs/second-circuit/draft-contract.md
+docs/second-circuit/evaluator-plan.md

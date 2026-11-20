@@ -31,6 +31,38 @@ families:
       - "Catalogue-range coverage for E96 values: the data sheet says E24/E96; its note about 'E24 exception values 10/11/13/15/20/75' concerns marking codes, not orderability."
       - "Data sheet is a manufacturer document hosted by the manufacturer; it may be superseded by a later revision at any time."
       - "Voltage rating differs between data sheet revisions (V.4: 50 V working; V.11/V.14: 75 V); irrelevant to orderability."
+  - family_id: kemet_c0805c_c0g_50v_5pct
+    manufacturer: Kemet
+    mpn_template: "C0805C{code}J5GACTU"      # C0805C = 0805 standard C-series, J = +-5 %, 5 = 50 VDC, G = C0G, A = n/a, C = 100 % matte Sn, TU = packaging (code = 2 significant digits + zeros, in pF)
+    kind: capacitor
+    voltage_v: 50
+    dielectric: C0G
+    tolerance_pct: 5.0
+    package: "0805"
+    basis: "manufacturer datasheet per-value capacitance table (0805, 50 V column, J tolerance offered)"
+    # Values (pF) with a populated 0805 / 50 V cell and J (+-5 %) in the tolerance column of Table 1A. Footnote of the table: "Capacitance range Includes E24 decade values only."
+    # Below 10 pF the table offers only B/C/D (pF) tolerances, so no J-tolerance part exists there. 10 pF - 9.1 nF: every E24 value; 10 nF decade: only 10, 12, 15, 18, 22 nF are listed
+    # (11, 13, 16, 20 nF are NOT listed: unknown, not proven absent). 27 nF and above: no 0805 / 50 V cell in this revision.
+    listed_values_pf: [10, 11, 12, 13, 15, 16, 18, 20, 22, 24, 27, 30, 33, 36, 39, 43, 47, 51, 56, 62, 68, 75, 82, 91, 100, 110, 120, 130, 150, 160, 180, 200, 220, 240, 270, 300, 330, 360, 390, 430, 470, 510, 560, 620, 680, 750, 820, 910, 1000, 1100, 1200, 1300, 1500, 1600, 1800, 2000, 2200, 2400, 2700, 3000, 3300, 3600, 3900, 4300, 4700, 5100, 5600, 6200, 6800, 7500, 8200, 9100, 10000, 12000, 15000, 18000, 22000]
+    source:
+      url: https://extranet.mandieselturbo.com/electronics/datasheets/Kemet/MLCC_SMD/C1003_C0G_2016.pdf
+      doc_id: "KEMET C1003_C0G, 'C0G Dielectric, 10 - 250 VDC (Commercial Grade)', Table 1A"
+      revision: "C1003_C0G, footer date 7/21/2016 (PDF created 2016-10-14); third-party hosted copy of the manufacturer document, NOT the current revision"
+      sha256: 75db98383c378259270ea98a0e74f33e37a5fc315de897df8858ae654d5b2d34
+      retrieved: 2026-11-20
+      quote: '"Capacitance range Includes E24 decade values only." (KEMET C1003_C0G, Table 1A footnote)'
+    proves:
+      - "In the 7/21/2016 revision of KEMET's C0G commercial data sheet, each listed value (pF) has a populated C0805C 50 V cell with +-5 % (J) offered, i.e. a catalogue entry existed for C0805C<code>J5GACTU."
+      - "The four ordering codes already evidenced by 2026-11-17 Kemet spec sheets (330 pF, 1 nF, 5.6 nF, 18 nF) all appear in this table, so the table agrees with the newer evidence."
+    does_not_prove:
+      - "stock at any distributor, price, minimum order quantity or lead time"
+      - "that a listed value is Active or in production in 2026 (the 2016 table says nothing about lifecycle; it is ten years old)"
+      - "that an UNLISTED value (e.g. 11 nF, 27 nF) does not exist: later revisions may have extended the 0805 / 50 V range, so unlisted means unknown"
+      - "the packaging suffix TU (7-inch reel) is available for each value"
+    caveats:
+      - "Document is a 2016 revision, hosted by a third party (a customer's extranet); the current KEMET revision (content.kemet.com) could not be read: its TLS certificate was expired and was not bypassed."
+      - "Table cells carry chip-thickness codes (DN, DP, DE, ...) only; they are not read as availability."
+      - "The table was read by extracting word positions (x-coordinate of the 0805 / 50 V column) from the PDF, not by eye; footnote markers (*) group some rows (110-180 pF, 200-270 pF), expanded here as E24 values."
 listing_seen:
   # Entries exist ONLY for MPNs already evidenced in evidence/bom-verification.yaml (generated 2026-11-17). 'listing_seen' means the evidence ledger recorded the code; it is not stock.
   - mpn: RC0603FR-0759KL
@@ -57,7 +89,7 @@ listing_seen:
      proves: ["an ordering code with this exact value appeared in distributor search-result summaries (Arrow/RS/Octopart/Findchips/DigiKey) on 2026-11-17"], does_not_prove: ["stock", "price", "that the distributor page still exists", "that the code is Active"],
      caveats: ["listing pages themselves were blocked (HTTP 403); only search-engine summaries were seen", "no exact-code manufacturer document"]}
   - mpn: C0805C183J5GACTU
-    family_id: null
+    family_id: kemet_c0805c_c0g_50v_5pct
     basis: "Kemet-generated part spec sheet for the exact ordering code"
     source: &kemet_ledger
       url: https://search.kemet.com/download/specsheet/C0805C183J5GACTU
@@ -68,18 +100,18 @@ listing_seen:
     proves: ["Kemet's own catalogue tool produced a specification sheet for this exact code on 2026-11-17 (0.018 uF, 5 %, 50 VDC, C0G, 0805)"]
     does_not_prove: ["stock", "price", "that the code is Active (the sheet does not state lifecycle)", "that the code is orderable from any distributor"]
     caveats: ["a spec sheet can exist for catalogue entries that are not stocked", "sheet carries no lifecycle field"]
-  - {mpn: C0805C102J5GACTU, family_id: null, basis: "Kemet-generated part spec sheet for the exact ordering code",
+  - {mpn: C0805C102J5GACTU, family_id: kemet_c0805c_c0g_50v_5pct, basis: "Kemet-generated part spec sheet for the exact ordering code",
      source: {url: https://search.kemet.com/download/specsheet/C0805C102J5GACTU, doc_id: "Kemet part spec sheet C0805C102J5GACTU (evidence/datasheets/kemet_parts/C0805C102J5GACTU.pdf)", revision: "generated 2026-11-17, no revision number on the sheet", sha256: 7cf5a1d05bff9114cee72c3619eb8e3a55d455547bb50ae759ddbee3c667b2b1, retrieved: 2026-11-17},
      proves: ["Kemet's own catalogue tool produced a specification sheet for this exact code on 2026-11-17 (1000 pF, 5 %, 50 VDC, C0G, 0805)"],
      does_not_prove: ["stock", "price", "that the code is Active (the sheet does not state lifecycle)", "that the code is orderable from any distributor"], caveats: ["a spec sheet can exist for catalogue entries that are not stocked", "sheet carries no lifecycle field"]}
-  - {mpn: C0805C562J5GACTU, family_id: null, basis: "Kemet-generated part spec sheet for the exact ordering code",
+  - {mpn: C0805C562J5GACTU, family_id: kemet_c0805c_c0g_50v_5pct, basis: "Kemet-generated part spec sheet for the exact ordering code",
      source: {url: https://search.kemet.com/download/specsheet/C0805C562J5GACTU, doc_id: "Kemet part spec sheet C0805C562J5GACTU (evidence/datasheets/kemet_parts/C0805C562J5GACTU.pdf)", revision: "generated 2026-11-17, no revision number on the sheet", sha256: e93d98ff1ed0a06b3ac7784b7a9af1c8df1a05b4b05ae69f931f28245706758c, retrieved: 2026-11-17},
      proves: ["Kemet's own catalogue tool produced a specification sheet for this exact code on 2026-11-17 (5600 pF, 5 %, 50 VDC, C0G, 0805)"],
      does_not_prove: ["stock", "price", "that the code is Active (the sheet does not state lifecycle)", "that the code is orderable from any distributor"], caveats: ["a spec sheet can exist for catalogue entries that are not stocked", "sheet carries no lifecycle field"]}
-  - {mpn: C0805C331J5GACTU, family_id: null, basis: "Kemet-generated part spec sheet for the exact ordering code",
+  - {mpn: C0805C331J5GACTU, family_id: kemet_c0805c_c0g_50v_5pct, basis: "Kemet-generated part spec sheet for the exact ordering code",
      source: {url: https://search.kemet.com/download/specsheet/C0805C331J5GACTU, doc_id: "Kemet part spec sheet C0805C331J5GACTU (evidence/datasheets/kemet_parts/C0805C331J5GACTU.pdf)", revision: "generated 2026-11-17, no revision number on the sheet", sha256: 4a854f7ed3c5290823aee9cf7336f0ef90519e4d5c6b622e6af58d9c6a647347, retrieved: 2026-11-17},
      proves: ["Kemet's own catalogue tool produced a specification sheet for this exact code on 2026-11-17 (330 pF, 5 %, 50 VDC, C0G, 0805)"],
      does_not_prove: ["stock", "price", "that the code is Active (the sheet does not state lifecycle)", "that the code is orderable from any distributor"], caveats: ["a spec sheet can exist for catalogue entries that are not stocked", "sheet carries no lifecycle field"]}
 known_gaps:
   - family: "kemet_c0805c_c0g_50v_5pct"
-    reason: "No legitimately readable Kemet capacitance-range statement (C0G, 0805, 50 V: min/max capacitance, offered E24 values) was obtained on 2026-11-20. The current C0G data sheet host had an expired TLS certificate; distributor pages were not fetched; the only catalogue copy reached (CERN-hosted, 2005/2006 vintage) was too old and garbled to cite. So no range entry is made: unseen capacitor values return 'unknown', never 'catalogue_range_covered'."
+    reason: "Only the 7/21/2016 KEMET C1003_C0G table was readable (third-party host). The current revision could not be read (expired TLS certificate on content.kemet.com). Values above 22 nF, below 10 pF, or the 11/13/16/20 nF style odd E24 values of the 10 nF decade are unlisted there and therefore reported as unknown, not as non-existent."

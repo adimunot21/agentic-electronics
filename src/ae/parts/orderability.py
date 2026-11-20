@@ -32,7 +32,10 @@ Status = Literal["catalogue_range_covered", "listing_evidenced", "unknown"]
 ALLOWED_STATUSES: tuple[str, ...] = ("catalogue_range_covered", "listing_evidenced", "unknown")
 # Any of these keys anywhere in the cache means someone tried to store volatile commercial data: refuse the whole file.
 FORBIDDEN_KEYS = frozenset({"stock", "in_stock", "price", "unit_price", "availability", "lead_time", "quantity_available", "lifecycle", "lifecycle_status"})
-FAMILY_REQUIRED = ("family_id", "manufacturer", "mpn_template", "kind", "value_series", "value_min", "value_max", "tolerance_pct", "package", "basis", "source", "proves", "does_not_prove", "caveats")
+FAMILY_REQUIRED = ("family_id", "manufacturer", "mpn_template", "kind", "tolerance_pct", "package", "basis", "source", "proves", "does_not_prove", "caveats")
+# A family states coverage in ONE of two honest ways: a continuous series+range statement (resistors) or an explicit per-value table (capacitors).
+KEMET_MPN = re.compile(r"C0805C(\d{2})(\d)J5GACTU")
+KEMET_TEMPLATE = "C0805C{code}J5GACTU"
 LISTING_REQUIRED = ("mpn", "basis", "source", "proves", "does_not_prove", "caveats")
 SOURCE_REQUIRED = ("doc_id", "revision", "retrieved")
 RC_MPN = re.compile(r"RC(\d{4})([FJ])R-07(\w+?)L")
@@ -115,6 +118,20 @@ def parse_cache(raw: Any) -> OrderabilityCache:
     families: dict[str, dict[str, Any]] = {}
     for index, family in enumerate(raw.get("families") or []):
         _check_entry(family, FAMILY_REQUIRED, f"families[{index}]")
+        if family.get("listed_values_pf") is not None:
+            listed = family["listed_values_pf"]
+            if not (isinstance(listed, list) and listed and all(isinstance(v, (int, float)) and v > 0 for v in listed)):
+                raise CacheError(f"families[{index}]: listed_values_pf must be a non-empty list of positive numbers")
+            if family["kind"] != "capacitor" or family.get("voltage_v") in (None, "") or not family.get("dielectric"):
+                raise CacheError(f"families[{index}]: a listed_values_pf family needs kind=capacitor, voltage_v and dielectric")
+            family["listed_values_pf"] = sorted(float(v) for v in listed)
+            if family["family_id"] in families:
+                raise CacheError(f"duplicate family_id {family['family_id']!r}")
+            families[family["family_id"]] = family
+            continue
+        for key in ("value_series", "value_min", "value_max"):
+            if family.get(key) in (None, ""):
+                raise CacheError(f"families[{index}]: missing required field(s) {[key]}")
         if family["value_series"] not in SERIES:
             raise CacheError(f"families[{index}]: unsupported value_series {family['value_series']!r}")
         try:
@@ -181,6 +198,12 @@ def _unknown(reason: str, cache: OrderabilityCache) -> OrderabilityResult:
     return OrderabilityResult("unknown", reason, caveats=gap_notes, does_not_prove=("anything about this part",))
 
 
+def _listed_capacitor_result(family: dict[str, Any], picofarads: float, cache: OrderabilityCache) -> OrderabilityResult:
+    if any(math.isclose(picofarads, listed, rel_tol=1e-6) for listed in family["listed_values_pf"]):
+        return _result("catalogue_range_covered", family, f"{family['basis']}: {picofarads:g} pF is a listed value for {family['family_id']}")
+    return _unknown(f"{picofarads:g} pF is not a value listed in the cached table for {family['family_id']} (unlisted is not the same as non-existent)", cache)
+
+
 Query = Union[str, tuple[str, str]]
 
 
@@ -202,6 +225,8 @@ def orderability_of(query: Query, cache: OrderabilityCache | None = None) -> Ord
             ohms = parse_si(value_text)
         except (ValueError, TypeError):
             return _unknown(f"cannot parse value {value_text!r}", cache)
+        if "listed_values_pf" in family:
+            return _listed_capacitor_result(family, ohms * 1e12, cache)
         if not _in_range_and_series(family, ohms):
             return _unknown(f"{value_text} is outside the stated range or not a {family['value_series']} value for {family_id}", cache)
         return _result("catalogue_range_covered", family, f"{family['basis']}: {family['value_series']} value inside {family['value_min']:g}-{family['value_max']:g} (ordering scheme {family['mpn_template']})")
@@ -211,6 +236,15 @@ def orderability_of(query: Query, cache: OrderabilityCache | None = None) -> Ord
     listing = cache.listings.get(mpn)
     if listing is not None:
         return _result("listing_evidenced", listing, f"exact code recorded in held evidence: {listing['basis']}")
+    kemet = KEMET_MPN.fullmatch(mpn)
+    if kemet:
+        significant, zeros = kemet.groups()
+        if int(zeros) > 5:                                                    # 8/9 are the sub-10 pF codes, 6+ is beyond the table: not decoded here
+            return _unknown(f"capacitance multiplier digit {zeros} is not in the cached table", cache)
+        picofarads = int(significant) * 10 ** int(zeros)
+        for family in cache.families.values():
+            if family["mpn_template"] == KEMET_TEMPLATE and "listed_values_pf" in family:
+                return _listed_capacitor_result(family, float(picofarads), cache)
     match = RC_MPN.fullmatch(mpn)
     if match:
         size, tolerance_letter, code = match.groups()
@@ -245,10 +279,12 @@ def _sanity_report() -> int:
     for ref in ("R1", "R2", "R3", "R4", "R5", "C1", "C2", "C3"):
         mpn = parts[ref]["mpn_candidate"]
         by_mpn = orderability_of(mpn, cache)
-        by_value = orderability_of(("yageo_rc_l_0603_1pct", str(parts[ref]["value"])), cache) if ref.startswith("R") else None
-        print(f"{ref}: value={parts[ref]['value']:>6} mpn={mpn:<18} by_mpn={by_mpn.status:<24} by_value={by_value.status if by_value else 'n/a (no cached family)'}")
+        family_id = "yageo_rc_l_0603_1pct" if ref.startswith("R") else "kemet_c0805c_c0g_50v_5pct"
+        by_value = orderability_of((family_id, str(parts[ref]["value"])), cache)
+        print(f"{ref}: value={parts[ref]['value']:>6} mpn={mpn:<18} by_mpn={by_mpn.status:<24} by_value={by_value.status}")
     assert orderability_of("RC0603FR-0759K6L", cache).status == "unknown"        # 59.6k is not E96 (the improve-live-6 case)
     assert orderability_of("RC0603FR-0760K4L", cache).status == "catalogue_range_covered"
+    assert orderability_of(("kemet_c0805c_c0g_50v_5pct", "21n"), cache).status == "unknown"  # not an E24 value
     print("sanity ok: 59.6k -> unknown, 60.4k -> catalogue_range_covered; no 'in_stock' status exists")
     return 0
 

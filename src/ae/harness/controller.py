@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Callable
 
 from ae.harness.checks import run_fast
+from ae.harness.circuit import FE_AAF_001, CircuitProfile, resolve_callable
 from ae.harness.contracts import ToolRegistry
 from ae.harness.evaluator import TrustedEvaluator
 from ae.harness.designstate import canonical_state
@@ -88,7 +89,7 @@ Return nothing but that single JSON object (two actions in one reply are rejecte
 Rules: you cannot read or write files; requirements, thresholds, the frozen policy and the evaluator are protected. Your only design edit is `propose_patch`
 (scope: value and mpn_candidate of the parts named in the task's allowed_edits; changing an MPN resets its verification status; a value edit without a matching MPN edit fails the BOM check).
 Patch format: {{"summary": str, "base_sha256": <manifest_sha256 from get_design>, "ops": [{{"op":"set_field","part":"R4","field":"value","to":"..."}}]}}.
-The task has ONE objective with a minimum improvement and hard constraints; the evaluator re-runs the full pipeline over all tolerance corners and judges against the frozen policy. `ac_response` is nominal only. `run_check preview` is the recommended single check (ONE budget unit): it runs the corner sweep AND the nominal requirements and projects the policy rules (objective gain, corner limits, REQ-STAB, REQ-BIAS and the other guarded margins) as ok / WOULD_BE_REJECTED. `run_check corner_preview` runs the evaluator's own worst-case sweep over ALL tolerance corners on your current design
+The task has ONE objective with a minimum improvement and hard constraints; the evaluator re-runs the full pipeline over all tolerance corners and judges against the frozen policy. `ac_response` is nominal only. `run_check preview` is the recommended single check (ONE budget unit): it runs the corner sweep AND the nominal requirements and projects the policy rules (objective gain, corner limits, REQ-STAB, REQ-BIAS and the other guarded margins) as ok / WOULD_BE_REJECTED; this is an advisory projection from nominal and corner numbers, not a verdict, and it does not cover the BOM, status, series or row rules. `run_check edit_sanity` is a free, instant, advisory prediction (ideal op-amp model, no simulator, no budget) of your current design's corner gain window, flatness and stopband and of the R4/R5 stage-2 gain ratio; it can be off by a small margin (see the 'borderline' warnings) and cannot see REQ-STAB, bias or headroom. `run_check corner_preview` runs the evaluator's own worst-case sweep over ALL tolerance corners on your current design
 (about a minute, advisory: the evaluator still decides and also applies further rules). `run_check requirements_preview` shows the nominal value of EVERY requirement, including REQ-STAB, bias, noise and settling,
 which the non-regression rules guard and which corner_preview does not report (compare with the baseline values in the brief). Both previews are limited in number per task; use them before submitting. Pre-existing failures (e.g. REQ-STAB) are not yours to fix or hide and must not get worse. A rejection reports policy violations separately from failed circuit requirements.
 Do not guess hidden answers; do not try to weaken checks. If you cannot find a justified improvement, call `declare_no_improvement` with your reasons: it ends the run, spends no evaluation and is recorded as its own outcome.
@@ -177,7 +178,9 @@ class Controller:
         if MODE_STATUS[mode] != "implemented":
             raise NotImplementedError(f"mode {mode.value} is {MODE_STATUS[mode]}; only {Mode.ENGINEERED_SINGLE.value} exists")
         self.run_dir, self.task, self.provider, self.evaluator, self.limits, self.mode = run_dir, task, provider, evaluator, limits, mode
-        self.repo, self.pristine = repo, pristine_manifest or repo / "designs/fe-aaf-001/components.yaml"
+        self.repo, self.pristine = repo, pristine_manifest or repo / FE_AAF_001.baseline_design
+        self._pristine_given = pristine_manifest is not None
+        self.profile: CircuitProfile = FE_AAF_001          # replaced by the policy's profile once an improvement policy is loaded (_adopt_profile)
         self.baseline_record, self.checks_fn, self.evaluate_defect = baseline_record, checks_fn, evaluate_defect
         self.baseline_dir = baseline_dir or run_dir / "baseline"
         self.policy = None                      # frozen ImprovementPolicy (improvement tasks only; loaded + verified in prepare)
@@ -188,6 +191,17 @@ class Controller:
                       "usage": {"input_tokens": 0, "output_tokens": 0, "cost_usd_reported": 0.0, "cost_unknown_calls": 0, "model_seconds": 0.0, "tool_seconds": 0.0, "eval_seconds": 0.0},
                       "provider": provider.name, "fixture": provider.fixture, "mode": mode.value}
         self.messages: list[dict] = []
+
+    def _adopt_profile(self) -> None:
+        """Take the circuit profile from the loaded policy. FE keeps every default untouched; for another circuit the baseline design and the checks function default to the profile's
+        (an explicitly passed pristine_manifest / checks_fn always wins), and the evaluator must have been built for the same circuit (its digest must cover the profile's trusted globs)."""
+        self.profile = self.policy.profile
+        if self.profile.id == FE_AAF_001.id:
+            return
+        if not self._pristine_given:
+            self.pristine = self.repo / self.profile.baseline_design
+        if self.checks_fn is run_fast:
+            self.checks_fn = resolve_callable(self.profile.checks)
 
     # ---------------------------------------------------------------- recording
     def _event(self, type_: str, **data) -> None:
@@ -227,6 +241,12 @@ class Controller:
     # ---------------------------------------------------------------- phases
     def prepare(self) -> dict | None:
         self.run_dir.mkdir(parents=True, exist_ok=True)
+        if self.task.kind == "improvement":                  # the policy names the circuit, which decides the baseline design hashed into task.json (a bad policy is reported below)
+            try:
+                self.policy = load_policy(Path(self.task.policy_path), self.repo)
+                self._adopt_profile()
+            except PolicyError:
+                self.policy = None
         (self.run_dir / "task.json").write_text(json.dumps({**asdict(self.task), "limits": asdict(self.limits), "mode_status": MODE_STATUS[self.mode], "trusted_digest": self.evaluator.digest_at_start["combined"],
                                                             "pristine_manifest_sha256": __import__("hashlib").sha256(self.pristine.read_bytes()).hexdigest()}, indent=1))
         if self.task.kind == "improvement":
@@ -234,6 +254,10 @@ class Controller:
                 self.policy = load_policy(Path(self.task.policy_path), self.repo)
             except PolicyError as exc:
                 return self._stop("policy_blocked", detail=str(exc))
+            self._adopt_profile()
+            missing_globs = [g for g in self.profile.extra_trusted_globs if g not in getattr(self.evaluator, "extra_globs", ())]
+            if missing_globs:
+                return self._stop("policy_blocked", detail=f"evaluator was not built for circuit {self.profile.id!r}: trusted globs {missing_globs} are not in its digest")
             (self.run_dir / "policy_frozen.yaml").write_text(Path(self.task.policy_path).read_text())
         if self.baseline_record is None:
             try:
@@ -277,13 +301,13 @@ class Controller:
             return self._stop("policy_blocked", detail="pristine manifest differs from the frozen baseline")
         self.ws = Workspace(self.run_dir / "workspace", scope=pol.scope())
         self.ws.init(self.pristine)                                        # improvement starts FROM the adopted reference: there is no seeded defect
-        self.ctx = AgentContext(self.ws, self.run_dir / "scratch", failure_report={}, checks_fn=self.checks_fn, repo=self.repo, trusted_combined=self.evaluator.digest_at_start["combined"], improvement=True)
+        self.ctx = AgentContext(self.ws, self.run_dir / "scratch", failure_report={}, checks_fn=self.checks_fn, repo=self.repo, trusted_combined=self.evaluator.digest_at_start["combined"], improvement=True, profile=self.profile)
         self.state["baseline_state"] = canonical_state(self.ws.text())
         self.state["visited_states"] = [self.state["baseline_state"]]
         self.ctx.guard = guard_context(pol, self.baseline_record)
         self.ctx.baseline_manifest_text = self.pristine.read_text()
         by = {c["id"]: c for c in self.baseline_record["checks"]}
-        keys = [pol.objective_check, "REQ-FLAT-CORNERS", "REQ-GAIN-CORNERS", "REQ-FLAT", "REQ-GAIN", "REQ-ALIAS", "REQ-STAB", "REQ-BIAS", "REQ-IQ", "REQ-ZIN", "REQ-HEADROOM", "REQ-SETTLE", "REQ-NOISE"]
+        keys = [pol.objective_check, *self.profile.brief_keys]
         brief = {"design_manifest_sha256": self.ws.sha256(), "policy_id": pol.task_id, "policy_version": pol.version, "policy_sha256": pol.sha256,
                  "objective": pol.raw["objective"], "hard_constraints": pol.raw["hard_constraints"], "allowed_edits": pol.raw["allowed_edits"], "non_regression": pol.raw["nonregression"],
                  "claims_never_made": pol.raw["claims_never_made"],
@@ -522,20 +546,20 @@ class Controller:
         if self.policy is not None:
             shutil.copy(self.ws.manifest, out / "components.yaml")
             (out / "candidate_vs_adopted_reference.diff").write_text("".join(difflib.unified_diff(self.pristine.read_text().splitlines(True), self.ws.text().splitlines(True),
-                                                                                                 "designs/fe-aaf-001/components.yaml", "candidate/components.yaml")))
+                                                                                                 self.profile.labels["reference_path"], "candidate/components.yaml")))
             (out / "patches.json").write_text(json.dumps(self.ws.history, indent=1))
             (out / "evaluator_decision.json").write_text(json.dumps(decision, indent=1, default=str))
-            (out / "README.txt").write_text("ACCEPTED FOR THE FROZEN OBJECTIVE ONLY (improve-stage2-alias, policy sha256 " + self.policy.sha256[:12] + "). Isolated output; the adopted reference was NOT modified; merging is a human decision. "
-                                            "NOT a released or validated board: release_ready is false; REQ-STAB stays failed; new MPNs are unverified_candidate; MODEL_* stay not_tested. Blocked claims: "
+            (out / "README.txt").write_text(f"ACCEPTED FOR THE FROZEN OBJECTIVE ONLY ({self.profile.labels['improvement_readme_task']}, policy sha256 " + self.policy.sha256[:12] + "). Isolated output; the adopted reference was NOT modified; merging is a human decision. "
+                                            + self.profile.labels["improvement_readme_caveats"]
                                             + "; ".join(c["claim"] for c in decision.get("blocked_claims", [])) + "\n")
             return
         shutil.copy(self.ws.manifest, out / "components.yaml")
         pristine, defective, final = self.pristine.read_text().splitlines(True), (self.run_dir / "defect_manifest.yaml").read_text().splitlines(True), self.ws.text().splitlines(True)
         (out / "agent_patch_vs_defect.diff").write_text("".join(difflib.unified_diff(defective, final, "defect/components.yaml", "candidate/components.yaml")))
-        (out / "candidate_vs_adopted_reference.diff").write_text("".join(difflib.unified_diff(pristine, final, "designs/fe-aaf-001/components.yaml", "candidate/components.yaml")))
+        (out / "candidate_vs_adopted_reference.diff").write_text("".join(difflib.unified_diff(pristine, final, self.profile.labels["reference_path"], "candidate/components.yaml")))
         (out / "patches.json").write_text(json.dumps(self.ws.history, indent=1))
         (out / "evaluator_decision.json").write_text(json.dumps(decision, indent=1, default=str))
-        (out / "README.txt").write_text("Integrated result in an ISOLATED output workspace. The adopted reference (designs/fe-aaf-001/components.yaml) was NOT modified. "
+        (out / "README.txt").write_text(f"Integrated result in an ISOLATED output workspace. The adopted reference ({self.profile.labels['reference_path']}) was NOT modified. "
                                         "Review agent_patch_vs_defect.diff / patches.json; merging is a human decision. release_ready is false: unresolved baseline failures remain "
                                         f"({', '.join(decision['unresolved_baseline_failures'])}).\n")
 
@@ -554,10 +578,12 @@ class Controller:
         improvement = c.task.kind == "improvement"
         if improvement:
             c.policy = load_policy(Path(c.task.policy_path), c.repo)
+        if improvement:
+            c._adopt_profile()
         c.ws = Workspace(run_dir / "workspace", scope=c.policy.scope() if improvement else None)
         c.ws.history = [json.loads(p.read_text()) for p in sorted((run_dir / "workspace" / "patches").glob("*.json"))]
         report = json.loads((run_dir / ("task_brief.json" if improvement else "defect_failure_report.json")).read_text())
-        c.ctx = AgentContext(c.ws, run_dir / "scratch", failure_report=report, checks_fn=c.checks_fn, repo=c.repo, trusted_combined=c.evaluator.digest_at_start["combined"], improvement=improvement)
+        c.ctx = AgentContext(c.ws, run_dir / "scratch", failure_report=report, checks_fn=c.checks_fn, repo=c.repo, trusted_combined=c.evaluator.digest_at_start["combined"], improvement=improvement, profile=c.profile)
         if improvement and c.state["baseline_state"] is None:                       # state files written before the state-based protection
             c.state["baseline_state"] = canonical_state(c.pristine.read_text())
             c.state["visited_states"] = c.state["visited_states"] or [c.state["baseline_state"]]

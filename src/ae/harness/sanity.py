@@ -55,6 +55,27 @@ class SanityLimits:
     model_error_alias_db: float = 0.1
 
 
+def limits_from_policy(policy: "str | Path | dict") -> SanityLimits:
+    """Build SanityLimits from a policy's hard_constraints (yaml only; no dependency on ae.harness.improvement). Accepts a yaml path or an already-loaded dict.
+    Mapping (v4 ids, matched by `check`/min/max fields so renumbering is tolerated): REQ-FLAT-CORNERS max -> flat_max_db; REQ-GAIN-CORNERS min/max -> gain_min/gain_max;
+    REQ-ALIAS max -> alias_max_db. model_error_* keep their defaults.
+    The FIRST matching hard constraint wins for each field (e.g. alias comes from the first REQ-ALIAS entry with a numeric `max`, H6 in v4). Raises ValueError when a
+    needed constraint is missing or the policy has no hard_constraints list: callers MUST catch it (the advisory check should fall back to SanityLimits() or skip)."""
+    import yaml
+    raw = yaml.safe_load(Path(policy).read_text()) if isinstance(policy, (str, Path)) else policy
+    constraints = raw.get("hard_constraints") if isinstance(raw, dict) else None
+    if not isinstance(constraints, list):
+        raise ValueError("policy has no hard_constraints list")
+
+    def find(check: str, field: str) -> float:
+        for item in constraints:
+            if isinstance(item, dict) and item.get("check") == check and isinstance(item.get(field), (int, float)):
+                return float(item[field])
+        raise ValueError(f"policy hard_constraints has no {check} {field}")
+    return SanityLimits(gain_min=find("REQ-GAIN-CORNERS", "min"), gain_max=find("REQ-GAIN-CORNERS", "max"),
+                        flat_max_db=find("REQ-FLAT-CORNERS", "max"), alias_max_db=find("REQ-ALIAS", "max"))
+
+
 _IDEAL_MODULE: Any = None
 
 
@@ -207,10 +228,13 @@ def _edit_sanity(candidate_text: str, baseline_text: str, previous_text: str | N
         if w:
             warnings.append(w)
     nominal_gain = predicted["nominal_gain_rs100"]
-    out_of_window = nominal_gain < limits.gain_min or nominal_gain > limits.gain_max
-    if out_of_window:
-        warnings.append(_warning("GAIN_NOMINAL", "warn", f"nominal gain (Rs=100) predicted {nominal_gain:.4f} V/V is outside {limits.gain_min}..{limits.gain_max}; "
-                                 "move the stage gain toward the window centre", predicted=nominal_gain))
+    for upper, limit in ((False, limits.gain_min), (True, limits.gain_max)):
+        beyond_or_near = nominal_gain < limit + e_g if not upper else nominal_gain > limit - e_g
+        if beyond_or_near:
+            w = _limit_check("GAIN_NOMINAL", "nominal gain (Rs=100)", nominal_gain, limit, e_g, upper, " V/V",
+                             "raise the stage gain (R2/R1 or R5/R4)" if not upper else "lower the stage gain (R2/R1 or R5/R4)")
+            if w:
+                warnings.append(w)
     w = _limit_check("FLAT_CORNERS", "worst corner passband flatness", predicted["corner_flat_worst_db"], limits.flat_max_db, limits.model_error_flat_db, True, " dB",
                      "re-balance the MFB C1/C2/R3 or stage-2 pole (R5*C3) toward the baseline values")
     if w:

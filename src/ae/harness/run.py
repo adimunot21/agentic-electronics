@@ -14,6 +14,7 @@ from pathlib import Path
 
 from ae.harness.controller import Controller, Limits, Mode
 from ae.harness.evaluator import TrustedEvaluator
+from ae.harness.improvement import PolicyError, load_policy
 from ae.harness.providers import ClaudeCliProvider, ScriptedProvider
 from ae.harness.tasks import list_tasks, load_task
 from ae.harness.workspace import REPO_ROOT
@@ -56,7 +57,14 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     provider = ClaudeCliProvider(a.model, a.max_budget_usd) if a.provider == "claude-cli" else scripted_reference_agent()
     run_id = a.run_id or f"{a.task}-{a.provider}-{time.strftime('%Y%m%d-%H%M%S')}"
-    ctl = Controller(REPO_ROOT / "runs/agent" / run_id, task, provider, TrustedEvaluator(), Limits(max_iterations=a.max_iterations, max_model_calls=a.max_model_calls),
+    profile = None                                  # improvement tasks: the policy names its circuit; the evaluator's digest must cover that circuit's trusted files
+    if task.kind == "improvement":
+        try:
+            profile = load_policy(Path(task.policy_path)).profile
+        except PolicyError as exc:
+            print(f"policy refused: {exc}", file=sys.stderr)
+            return 2
+    ctl = Controller(REPO_ROOT / "runs/agent" / run_id, task, provider, TrustedEvaluator(profile=profile), Limits(max_iterations=a.max_iterations, max_model_calls=a.max_model_calls),
                      Mode.ENGINEERED_SINGLE, evaluate_defect=a.evaluate_defect)
     summary = ctl.run()
     print(json.dumps(summary, indent=1, default=str))
