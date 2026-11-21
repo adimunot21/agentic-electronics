@@ -101,3 +101,32 @@ def test_hook_uses_the_policy_limits_and_falls_back_to_defaults(tmp_path, monkey
     ctl.ctx.guard = {**ctl.ctx.guard, "policy_raw": {"hard_constraints": []}}
     advisory_sanity(ctl.ctx)
     assert seen[-1] is None                                                                                                                   # incomplete policy -> module defaults, still advisory
+
+
+def test_restoration_mode_refuses_but_never_offers_edit_sanity_or_previews(tmp_path):
+    from tests.unit.test_harness import make
+    ctl = make(tmp_path, [])
+    ctl.prepare()
+    for check in ("edit_sanity", "preview", "corner_preview", "nonsense"):
+        res = ctl.registry.call("run_check", {"check": check})
+        assert not res.ok
+        avail = res.to_json()["error"]["details"]["available"]
+        assert avail == ["bom_consistency", "ac_response"], (check, avail)
+
+
+def test_improvement_mode_still_offers_edit_sanity(tmp_path):
+    rig, ctl = ready(tmp_path)
+    res = ctl.registry.call("run_check", {"check": "nonsense"})
+    assert not res.ok and "edit_sanity" in json.dumps(res.to_json())
+
+
+def test_readme_names_the_policy_task_not_a_fixed_label(tmp_path):
+    from ae.harness.tasks import load_task
+    for tid, expected in (("improve-stage2-alias", "improve-stage2-alias"), ("improve-wide-retune-alias-v4", "improve-wide-retune-alias-v4"), ("improve-wide-retune-alias-v3", "improve-wide-retune-alias-v3")):
+        rig = Rig(tmp_path / tid)
+        ctl = rig.controller([], Limits())
+        ctl.task = load_task(tid)
+        assert ctl.prepare() is None
+        ctl._finalize({"blocked_claims": [{"claim": "X"}]})
+        text = (ctl.run_dir / "output" / "README.txt").read_text()
+        assert text.startswith(f"ACCEPTED FOR THE FROZEN OBJECTIVE ONLY ({expected}, policy sha256 ") and text.endswith("X\n")

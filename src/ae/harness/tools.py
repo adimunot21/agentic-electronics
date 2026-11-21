@@ -34,6 +34,11 @@ class AgentContext:
     max_corner_previews: int = 12      # fresh sweeps of EITHER preview check (corner ~50 s, requirements ~40 s); cache hits are free
 
 
+def _available_checks(ctx: "AgentContext") -> tuple:
+    """Checks offered in error messages: restoration mode never lists the improvement-only checks (previews, edit_sanity), which stay refused there."""
+    return tuple(CHECKS) if ctx.improvement else tuple(c for c in CHECKS if c not in PREVIEW_CHECKS and c != "edit_sanity")
+
+
 def advisory_sanity(ctx: AgentContext, manifest_text: str | None = None, full: bool = False) -> dict | None:
     """ADVISORY ideal-op-amp edit check (ae.harness.sanity) of the current (or given) design. Never raises, never changes acceptance or refusal; None when not applicable
     (restoration task, no baseline text). Compact form = status + warnings (code, severity, message); full adds the predicted numbers."""
@@ -101,13 +106,13 @@ def build_registry(ctx: AgentContext) -> ToolRegistry:
 
     def run_check(check: str) -> dict:
         if check not in CHECKS:
-            raise ToolError("invalid_arguments", f"unknown check {check!r}", {"available": list(CHECKS)})
+            raise ToolError("invalid_arguments", f"unknown check {check!r}", {"available": list(_available_checks(ctx))})
         if check in PREVIEW_CHECKS and not ctx.improvement:
-            raise ToolError("invalid_arguments", f"{check} is available only in improvement tasks", {"available": [c for c in CHECKS if c not in PREVIEW_CHECKS]})
+            raise ToolError("invalid_arguments", f"{check} is available only in improvement tasks", {"available": list(_available_checks(ctx))})
         if check == "edit_sanity":                                 # free (~0.1 s, ideal model, no simulator), advisory, no budget
             res = advisory_sanity(ctx, full=True)
             if res is None:
-                raise ToolError("invalid_arguments", "edit_sanity is available only in improvement tasks", {"available": [c for c in CHECKS if c not in PREVIEW_CHECKS]})
+                raise ToolError("invalid_arguments", "edit_sanity is available only in improvement tasks", {"available": list(_available_checks(ctx))})
             return {**res, "cache_hit": False}
         key = (check, ctx.workspace.sha256(), ctx.trusted_combined)
         if check == "preview":

@@ -1,5 +1,5 @@
 {
- "provenance": "Real ae.mc.run_corners + ae.sim.ac_run (docker ngspice, TI model) on candidate manifests = baseline designs/fe-aaf-001/components.yaml with the listed value edits; produced by the S-engineer validation batch 2026-11-20. nominal_* = Rs=100 gain, worst flat/alias over Rs 0.01 and 100. Batch 3 added 12 alias-region designs (nominal alias -58.1..-52.3 dB real).",
+ "provenance": "Real ae.mc.run_corners + ae.sim.ac_run (docker ngspice, TI model) on candidate manifests = baseline designs/fe-aaf-001/components.yaml with the listed value edits; produced by the S-engineer validation batch 2026-11-20. nominal_* = Rs=100 gain, worst flat/alias over Rs 0.01 and 100. Batch 3 added 12 alias-region designs (nominal alias -58.1..-52.3 dB real). Batch 4 added 9 R1/R2(/R3) E96 designs.",
  "designs": {
   "baseline": {
    "edits": {},
@@ -328,6 +328,138 @@
     "nominal_gain_rs100": 1.3006486572095934,
     "nominal_flat_db_worst_rs": 0.09979187626845087,
     "nominal_alias_db_worst_rs": -54.13314250502835
+   }
+  },
+  "r1_62k": {
+   "edits": {
+    "R1": "62k"
+   },
+   "real": {
+    "corner_gain_min": 1.1836052125661614,
+    "corner_gain_max": 1.2980352195412566,
+    "corner_flat_worst_db": 0.3874198809335079,
+    "corner_alias_worst_db": -59.165724303234065,
+    "nominal_gain_rs100": 1.2385636981854047,
+    "nominal_flat_db_worst_rs": 0.08396538725505853,
+    "nominal_alias_db_worst_rs": -60.76080289496311
+   }
+  },
+  "r1_56k2": {
+   "edits": {
+    "R1": "56.2k"
+   },
+   "real": {
+    "corner_gain_min": 1.304891675995116,
+    "corner_gain_max": 1.4312210323117498,
+    "corner_flat_worst_db": 0.4175035734279948,
+    "corner_alias_worst_db": -58.31329756337503,
+    "nominal_gain_rs100": 1.3655154049629117,
+    "nominal_flat_db_worst_rs": 0.11239467412954429,
+    "nominal_alias_db_worst_rs": -59.90829734608666
+   }
+  },
+  "r2_71k5": {
+   "edits": {
+    "R2": "71.5k"
+   },
+   "real": {
+    "corner_gain_min": 1.1576097073321223,
+    "corner_gain_max": 1.2691667714882395,
+    "corner_flat_worst_db": 0.3251761465399705,
+    "corner_alias_worst_db": -58.72974403168832,
+    "nominal_gain_rs100": 1.210957400534814,
+    "nominal_flat_db_worst_rs": 0.0421799976013717,
+    "nominal_alias_db_worst_rs": -60.32541782775838
+   }
+  },
+  "r2_80k6": {
+   "edits": {
+    "R2": "80.6k"
+   },
+   "real": {
+    "corner_gain_min": 1.3046693135752365,
+    "corner_gain_max": 1.4314634113868914,
+    "corner_flat_worst_db": 0.46879775772451326,
+    "corner_alias_worst_db": -58.7387766521378,
+    "nominal_gain_rs100": 1.3656167575353888,
+    "nominal_flat_db_worst_rs": 0.1495008583308226,
+    "nominal_alias_db_worst_rs": -60.33341350006383
+   }
+  },
+  "r2_71k5_r1_54k9": {
+   "edits": {
+    "R2": "71.5k",
+    "R1": "54.9k"
+   },
+   "real": {
+    "corner_gain_min": 1.2434951029956742,
+    "corner_gain_max": 1.3634612560443926,
+    "corner_flat_worst_db": 0.3455195028831288,
+    "corner_alias_worst_db": -58.104673280827186,
+    "nominal_gain_rs100": 1.3008221771687254,
+    "nominal_flat_db_worst_rs": 0.06128578680186525,
+    "nominal_alias_db_worst_rs": -59.70028650867805
+   }
+  },
+  "r2_80k6_r1_61k9": {
+   "edits": {
+    "R2": "80.6k",
+    "R1": "61.9k"
+   },
+   "real": {
+    "corner_gain_min": 1.243967674525677,
+    "corner_gain_max": 1.3647158639443957,
+    "corner_flat_worst_db": 0.453319210059139,
+    "corner_alias_worst_db": -59.155226655399495,
+    "nominal_gain_rs100": 1.3020628676486783,
+    "nominal_flat_db_worst_rs": 0.1348081269026946,
+    "nominal_alias_db_worst_rs": -60.749900849225725
+   }
+  },
+  "r2_61k9_r1_47k5": {
+   "edits": {
+    "R2": "61.9k",
+    "R1": "47.5k"
+   },
+   "real": {
+    "corner_gain_min": 1.2421300111591573,
+    "corner_gain_max": 1.3618371324242613,
+    "corner_flat_worst_db": 0.2867904618944159,
+    "corner_alias_worst_db": -56.83589458842488,
+    "nominal_gain_rs100": 1.2991002466815262,
+    "nominal_flat_db_worst_rs": 0.03851922264056329,
+    "nominal_alias_db_worst_rs": -58.43279354827503
+   }
+  },
+  "r2_53k6_r1_41k2": {
+   "edits": {
+    "R2": "53.6k",
+    "R1": "41.2k"
+   },
+   "real": {
+    "corner_gain_min": 1.237489469350416,
+    "corner_gain_max": 1.3566398748813453,
+    "corner_flat_worst_db": 0.28261805526082284,
+    "corner_alias_worst_db": -55.58707810888321,
+    "nominal_gain_rs100": 1.2939892705298435,
+    "nominal_flat_db_worst_rs": 0.06396329694736069,
+    "nominal_alias_db_worst_rs": -57.185457097407706
+   }
+  },
+  "r2_56k2_r1_43k2_r3_4k75": {
+   "edits": {
+    "R2": "56.2k",
+    "R1": "43.2k",
+    "R3": "4.75k"
+   },
+   "real": {
+    "corner_gain_min": 1.2297741469229249,
+    "corner_gain_max": 1.3457975355569831,
+    "corner_flat_worst_db": 0.5819976806941707,
+    "corner_alias_worst_db": -53.71349302551384,
+    "nominal_gain_rs100": 1.2849281842744942,
+    "nominal_flat_db_worst_rs": 0.37538398258245187,
+    "nominal_alias_db_worst_rs": -55.31126491986686
    }
   }
  }

@@ -162,7 +162,11 @@ def test_validation_fixture_real_pipeline() -> None:
         for code, breached in expected.items():
             if breached:
                 breaches += 1
-                assert code in warned, (name, code)       # false negative
+                key, limit, error = measured[code]
+                if abs(real[key] - limit) > error:
+                    assert code in warned, (name, code)       # clear breach: must be a warn (false negative otherwise)
+                else:                                          # breach smaller than the model error: warn or info 'borderline' is acceptable, silence is not
+                    assert code in codes(result), (name, code)
             else:
                 key, limit, error = measured[code]
                 if code in warned:                        # a warn without a real breach is only tolerated inside the model-error band (conservative edge call)

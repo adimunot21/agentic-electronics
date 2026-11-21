@@ -40,3 +40,25 @@ A) Implemented by H-engineer, reviewed by H-lead (read circuit.py and the contro
    i. Rejection feedback (`findings` with values and limits) is not filtered; the draft's leak rules (no route leakage) need a profile-level feedback policy.
    j. Preview budget and tool timeouts (150 s) fit a 25-45 s evaluator; no change needed. sanity: set edit_sanity False. Trusted digest: extra_trusted_globs covers designs/<id>/ and requirements; mc/sim refdes-agnostic bench is S-lane.
    S-lead confirms additional needs: DC-corner (384 decks) + AC/noise/tran nominal, no gain_min/max pair; no REQ-STAB analogue; pass/fail objective; no closed-form sanity model; tran needs explicit `op`; mc/sim.dc_corners/load_ideal hard-wired. S-lead also flags: move docs/second-circuit/OWNER-ONLY-witness.md (and owner-only/) out of agent-visible trees before any agent run (project-lead action; agents have no file access today, but trusted globs and the repo are visible to humans).
+
+## Batch 5: trusted-tree freeze items (H-lead, 2026-11-21)
+1) README label: controller `_finalize` (improvement) now prints `self.policy.task_id` instead of the fixed label; v1 output is byte-identical (its task_id is improve-stage2-alias), v3/v4 now print their own id. The unused profile label key stays. Test: test_readme_names_the_policy_task_not_a_fixed_label.
+2) `edit_sanity` (and the previews) are no longer listed in restoration mode's `available` lists (new `tools._available_checks`); they stay refused there. Tests in test_sanity_hook.py. Improvement mode still lists it. Unit suite: 418 passed.
+3) Review of S-lead's ALIAS_CORNERS (commit 93eaac6, read-only): stays advisory (same `_limit_check`, never raises, status only). The corner alias limit equals the nominal REQ-ALIAS limit (-55.8) in the contract, so reusing alias_max_db is right. Caveat: ideal reads ~0.05 dB higher than real, so a "warn" within 0.05 dB beyond the limit may still pass the real model; the borderline band (0.1 dB) covers the passing side only. Low severity, wording could say "may be a false alarm within ~0.05 dB".
+4) Launch checklist for improve-live-9: see below. Supervisor dry run against improve-live-8 (stand-in; improve-live-9 does not exist yet): reported stop_reason provider_error, parsed 5-hour limit, reset 2026-11-20T14:10:00+00:00, seconds_to_wait 0.0 (past), model_calls 34, iteration 2.
+
+### Launch checklist: improve-live-9 (v4 task, subscription, no API key)
+0. Freeze: coordinator supersedes the trusted digest after my two src edits (current combined digest of the working tree: cd468c6a04cc855f48bd7d15c93f9f12ec76dfbb85f34a1171c9b0f71d886aaf, 62 files; the last recorded f045d845... is superseded by it). Commit; `git status` clean for src/, requirements/, tasks/.
+1. Env clean: `env -i HOME="$HOME" PATH="$PATH" LANG=C.UTF-8 python3 -c "import os; print(sorted(k for k in os.environ if k.startswith(('CLAUDE_CODE','ANTHROPIC'))))"` must print []. `env -i ... claude auth status` shows loggedIn true, authMethod claude.ai. ANTHROPIC_API_KEY unset.
+2. `docker version` works; `ls runs/agent/improve-live-9` must not exist (fresh id).
+3. Launch (first leg, same bounds as live-8: 3 evaluations, 45 calls, per-call cap 0.5 as before):
+```
+env -i HOME="$HOME" PATH="$PATH" LANG=C.UTF-8 uv run python -m ae.harness.run --task improve-wide-retune-alias-v4 --provider claude-cli --model claude-sonnet-5-5 --run-id improve-live-9 --max-iterations 3 --max-model-calls 45 --max-budget-usd 0.5
+```
+4. If it stops on provider_usage_limit (exit 1), supervise (sleeps only, then resumes; bound 3 resumes, refuses waits > 6 h):
+```
+env -i HOME="$HOME" PATH="$PATH" LANG=C.UTF-8 uv run python scripts/supervise_improvement_run.py improve-live-9 improve-wide-retune-alias-v4 claude-sonnet-5-5 3 45 --max-resumes 3 --dry-run     # first check the plan
+env -i HOME="$HOME" PATH="$PATH" LANG=C.UTF-8 uv run python scripts/supervise_improvement_run.py improve-live-9 improve-wide-retune-alias-v4 claude-sonnet-5-5 3 45 --max-resumes 3
+```
+5. Known details: (a) the resume path builds ClaudeCliProvider(model, 1000000.0) (per-call dollar cap effectively off) while the first leg uses 0.5; both are subscription calls, cost is list-basis only. (b) model_calls/iterations continue across resumes (caps are not raised; the refused call is not charged). (c) The wall budget (2400 s) restarts per process, so a resumed leg gets a fresh wall clock. (d) The first message and policy are v4; `preview` and `edit_sanity` are offered; budget 12 preview units shared. (e) A supervisor run ends exit 0 only on accepted; exit 1 on any other final stop; exit 2 if it refuses (read its message).
+6. After: record `runs/agent/improve-live-9/{summary.json,state.json,trace.jsonl}`; check task.json trusted_digest equals the superseded digest; no run record under runs/agent is edited.

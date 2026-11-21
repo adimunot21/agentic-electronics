@@ -549,7 +549,7 @@ class Controller:
                                                                                                  self.profile.labels["reference_path"], "candidate/components.yaml")))
             (out / "patches.json").write_text(json.dumps(self.ws.history, indent=1))
             (out / "evaluator_decision.json").write_text(json.dumps(decision, indent=1, default=str))
-            (out / "README.txt").write_text(f"ACCEPTED FOR THE FROZEN OBJECTIVE ONLY ({self.profile.labels['improvement_readme_task']}, policy sha256 " + self.policy.sha256[:12] + "). Isolated output; the adopted reference was NOT modified; merging is a human decision. "
+            (out / "README.txt").write_text(f"ACCEPTED FOR THE FROZEN OBJECTIVE ONLY ({self.policy.task_id}, policy sha256 " + self.policy.sha256[:12] + "). Isolated output; the adopted reference was NOT modified; merging is a human decision. "
                                             + self.profile.labels["improvement_readme_caveats"]
                                             + "; ".join(c["claim"] for c in decision.get("blocked_claims", [])) + "\n")
             return
