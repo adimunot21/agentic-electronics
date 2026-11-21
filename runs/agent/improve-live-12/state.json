@@ -1,0 +1,81 @@
+{
+ "state": "ACCEPTED",
+ "iteration": 1,
+ "model_calls": 37,
+ "tool_calls": 32,
+ "evaluations": 1,
+ "invalid_replies": 4,
+ "identical_patch_hits": 0,
+ "no_progress": 0,
+ "refused_submits": 0,
+ "pending_feedback": false,
+ "best_objective": 0.0,
+ "best_infeasible_checks": null,
+ "evaluated_states": [
+  "e0dab7a0f2b063bd22f32087cce3dcc48e7b966f52d90044a897b7dcae77acc7"
+ ],
+ "visited_states": [
+  "aef08b2a4017be62e1c6d2273816a0d64844888c3de6f55cf68bc55a07b4c0ed",
+  "f70d4ff4b15bcd435b8cde1d022f979e1a177b04bc5efcd51c2a48389b4336fa",
+  "1cf0138c8ef89e776073fc41a125a2c61e7b3ccb711155b9d1c7b9be0d90ce2b",
+  "2a0523939152f1a9cd5124d4c2a4d88aba7b410a4763a1b3814556c8014c939e",
+  "5e704933d2388d644e640679bb76f9bdbf87369b57a6359122f2ed6798777554",
+  "ba8f70702ba599cd2ba22fc77acf52eacdd2fb79f1097d13db30de276749395d",
+  "c3230e92d95eadbd530cf8c53b9a9e4c0a4c2710434255b84aab98db49ed0eca",
+  "f007498f287c440e3e0351fb5343b77b1dd35d3a486391c0f0b7d4936f757f0d",
+  "be8d094ae3f3027e71dabbecef65710179568ac6a21a470fc3dd9c87d70e610d",
+  "3f77af93cf69fd4fb5172f0636ca796b41b237c84d1870dffeaa35f4d32cdeb0",
+  "53b08955d9c934f796c6c9f105a1386f66139dcc8ecd8726cac4a934521c85c5",
+  "fe4595036d178c88c92acaa762c86449b9a5071fcd8753e056477d85273fb270",
+  "e98909341dca2050898766f1270fb3994289a04ff23852fe8f38792285583c8b",
+  "e0dab7a0f2b063bd22f32087cce3dcc48e7b966f52d90044a897b7dcae77acc7"
+ ],
+ "state_revisits": 0,
+ "baseline_state": "aef08b2a4017be62e1c6d2273816a0d64844888c3de6f55cf68bc55a07b4c0ed",
+ "stop_reason": "accepted",
+ "evaluated_manifest_sha256": [
+  "02dd624996d38efaaf3f03bb62a2cf563836e6b9170789fd38a2830721289903"
+ ],
+ "patch_fingerprints": [
+  "c243a3bbd45f5d719470049f0911ec7fa0db07e53c5afee0abd047b0cc0f477f",
+  "fe4d0823500708bddb0e6025d7ac145a75b7c763d629f9ae88ca6f2e4993d855",
+  "ef5fe09d25ab008efe98589f8440e795643d546da9dee0c53784be8b19d04d9f",
+  "2883a2b781b9512683fba5a3409614ac397173ec6475aa82c12727f7ac3acde2",
+  "35529dbf3ca720a6a927eb5e4ca31afe1353fd444dbe23bef162a5090d1b9e44",
+  "dd303f59c2dc6155e41aeb3ef706ef59c3e323efad00ab4c6b2f6b5a0f48bfc8",
+  "b48c29a47ee030d7fe86ba408fc8190182621c55ebea470474138b6015de57d5",
+  "09310caab6073cd883c73691352ff665bf0e0c82ab052c3964f3f6605c172e62",
+  "ef5fe09d25ab008efe98589f8440e795643d546da9dee0c53784be8b19d04d9f",
+  "1a67c0a01363b26cbf830b47bae627c24b801cdd9f1f60ff8f5fed224f658b44",
+  "3d85f312925442ea274f4e7dbacbbaab769683776600fb86205b0d91800ffb5f",
+  "6b2b354e4eb22cd6fef09075ba764c46fb5da8022d16e058c956744225f78b4c",
+  "14635c875d0940b9d499468636493e36ec604fd033903d97b915393d94f6d29e"
+ ],
+ "best_violation_count": null,
+ "usage": {
+  "input_tokens": 74,
+  "output_tokens": 23350,
+  "cost_usd_reported": 3.8292016,
+  "cost_unknown_calls": 0,
+  "model_seconds": 253.60592598107178,
+  "tool_seconds": 222.9214764990611,
+  "eval_seconds": 89.74551108200103
+ },
+ "provider": "claude-cli",
+ "fixture": false,
+ "mode": "engineered_single_agent",
+ "corner_previews_used": 4,
+ "usage_limit": {
+  "kind": "5-hour limit",
+  "message": "You've hit your 5-hour limit \u00b7 resets 5:40am (Europe/London)",
+  "api_error_status": 429,
+  "reset_text": "5:40am (Europe/London)",
+  "reset_at_iso": "2026-11-21T05:40:00+00:00"
+ },
+ "usage_limit_hits": 1,
+ "final_feedback_delivered": null,
+ "nudges_sent": 1,
+ "consecutive_invalid": 0,
+ "had_feedback": true,
+ "free_check_calls": 13
+}

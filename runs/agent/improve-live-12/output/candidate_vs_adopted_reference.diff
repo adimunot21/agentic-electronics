@@ -1,0 +1,28 @@
+--- designs/fe-aaf-001/components.yaml
++++ candidate/components.yaml
+@@ -16,18 +16,18 @@
+        limits_used: {supply_v: "1.8-5.5 recommended, 7 abs max", iq_ua_per_amp: "150 typ / 190 max @5V", vos_mv: "0.5 typ / 2.5 max @25C", ib_pa: "+-0.2 typ / +-10 max",
+                      gbw_mhz: 3, phase_margin_deg: 65, en_nv_rthz_1k: 14, swing_from_rail_mv_10k: "5 typ / 20 max", zo_ohm_100hz: 570},
+        model: OPA2314-TI-RevC}
+-  R1: {role: "MFB input resistor", value: "59k", tol: "1%", package: "0603", series: E96, mpn_candidate: "RC0603FR-0759KL", mpn_status: listing_verified, manufacturer_candidate: "Yageo"}
++  R1: {role: "MFB input resistor", value: "59k", tol: "1%", package: "0603", series: E96, mpn_candidate: "RC0603FR-0759KL", mpn_status: unverified_candidate, manufacturer_candidate: "Yageo"}
+   R2: {role: "MFB feedback resistor", value: "76.8k", tol: "1%", package: "0603", series: E96, mpn_candidate: "RC0603FR-0776K8L", mpn_status: listing_verified, manufacturer_candidate: "Yageo"}
+-  R3: {role: "MFB series resistor", value: "6.19k", tol: "1%", package: "0603", series: E96, mpn_candidate: "RC0603FR-076K19L", mpn_status: listing_verified, manufacturer_candidate: "Yageo"}
+-  R4: {role: "stage-2 input resistor", value: "16.5k", tol: "1%", package: "0603", series: E96, mpn_candidate: "RC0603FR-0716K5L", mpn_status: listing_verified, manufacturer_candidate: "Yageo"}
+-  R5: {role: "stage-2 feedback resistor", value: "16.5k", tol: "1%", package: "0603", series: E96, mpn_candidate: "RC0603FR-0716K5L", mpn_status: listing_verified, manufacturer_candidate: "Yageo"}
++  R3: {role: "MFB series resistor", value: "6.81k", tol: "1%", package: "0603", series: E96, mpn_candidate: "RC0603FR-076K81L", mpn_status: unverified_candidate, manufacturer_candidate: "Yageo"}
++  R4: {role: "stage-2 input resistor", value: "18.2k", tol: "1%", package: "0603", series: E96, mpn_candidate: "RC0603FR-0718K2L", mpn_status: unverified_candidate, manufacturer_candidate: "Yageo"}
++  R5: {role: "stage-2 feedback resistor", value: "18.2k", tol: "1%", package: "0603", series: E96, mpn_candidate: "RC0603FR-0718K2L", mpn_status: unverified_candidate, manufacturer_candidate: "Yageo"}
+   R7: {role: "VREF/2 divider (top)", value: "10k", tol: "0.1%", package: "0603", series: E96, mpn_candidate: "RT0603BRD0710KL", mpn_status: listing_verified, manufacturer_candidate: "Yageo"}
+   R8: {role: "VREF/2 divider (bottom)", value: "10k", tol: "0.1%", package: "0603", series: E96, mpn_candidate: "RT0603BRD0710KL", mpn_status: listing_verified, manufacturer_candidate: "Yageo"}
+   R6: {role: "ADC isolation resistor", value: "475", tol: "1%", package: "0603", series: E96, mpn_candidate: "RC0603FR-07475RL", mpn_status: listing_verified, manufacturer_candidate: "Yageo"}
+-  C1: {role: "MFB node-X capacitor (to GND)", value: "18n", tol: "5%", dielectric: C0G, package: "0805", mpn_candidate: "C0805C183J5GACTU", mpn_status: verified, manufacturer_candidate: "Kemet",
++  C1: {role: "MFB node-X capacitor (to GND)", value: "18n", tol: "5%", dielectric: C0G, package: "0805", mpn_candidate: "C0805C183J5GACTU", mpn_status: unverified_candidate, manufacturer_candidate: "Kemet",
+        note: "C0G 18 nF in 0805 at 50 V is an UNVERIFIED availability assumption (earlier '0603 up to 22 nF' claim in analysis/derive_filter.py CONFIG was NOT evidence-based)"}
+-  C2: {role: "MFB feedback capacitor", value: "1n", tol: "5%", dielectric: C0G, package: "0805", mpn_candidate: "C0805C102J5GACTU", mpn_status: verified, manufacturer_candidate: "Kemet"}
+-  C3: {role: "stage-2 feedback capacitor", value: "5.6n", tol: "5%", dielectric: C0G, package: "0805", mpn_candidate: "C0805C562J5GACTU", mpn_status: verified, manufacturer_candidate: "Kemet"}
++  C2: {role: "MFB feedback capacitor", value: "910p", tol: "5%", dielectric: C0G, package: "0805", mpn_candidate: "C0805C911J5GACTU", mpn_status: unverified_candidate, manufacturer_candidate: "Kemet"}
++  C3: {role: "stage-2 feedback capacitor", value: "5.6n", tol: "5%", dielectric: C0G, package: "0805", mpn_candidate: "C0805C562J5GACTU", mpn_status: unverified_candidate, manufacturer_candidate: "Kemet"}
+   C5: {role: "ADC charge-bucket capacitor", value: "330p", tol: "5%", dielectric: C0G, package: "0805", mpn_candidate: "C0805C331J5GACTU", mpn_status: verified, manufacturer_candidate: "Kemet"}
+   C4: {role: "AC coupling", value: "2.2u", tol: "20%", dielectric: X7R, voltage: "16V", package: "1206", mpn_candidate: "C1206C225K4RACTU", mpn_status: verified, manufacturer_candidate: "Kemet"}
+   C6: {role: "VMID bias decoupling", value: "10u", tol: "20%", dielectric: X7R, voltage: "10V", package: "1206", mpn_candidate: "C1206C106K8RACTU", manufacturer_candidate: "Kemet", mpn_status: verified}

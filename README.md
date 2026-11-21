@@ -10,6 +10,7 @@ This is research code. Nothing here is a board ready to manufacture.
 
 Newest first. New entries are added on top; old entries are not rewritten.
 
+* **2026-11-21. improve-live-12: ACCEPTED (v4).** After two honest no-improvement declarations the agent submitted one design that the independent evaluator accepted for the objective (alias -58.74 -> -59.58 dB, no policy violations; E96/E24 values, part numbers still unverified, REQ-STAB/REQ-BOM failures pre-existing). One accepted run in four on v4; advisory aids were visible (docs sections 25-26).
 * **2026-11-21. improve-live-10 and v4 attainability.** Run 10 declared no improvement after reading its own previews (honest, not accepted). An offline search showed policy v4 is attainable (designs withheld from the repo). The advisory sanity check now also predicts REQ-BIAS; digest superseded with proof (docs sections 23-24).
 * **2026-11-21. improve-live-9: no evaluation.** The agent spent all 45 model calls on 21 patches and 17 free sanity checks and never submitted (a usage limit hit mid-run and the new supervisor resumed it). Not accepted. Fix: the agent now sees its call budget in every reply; acceptance and policies unchanged. Digest superseded with proof (docs section 22).
 * **2026-11-21. Pre-trial freeze.** README task labels, restoration-mode check list and E96 alias coverage for the advisory sanity check are done; trusted digest superseded with proof (docs section 21). Next: a live v4 trial under the hardened harness.

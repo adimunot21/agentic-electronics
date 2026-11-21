@@ -1,0 +1,535 @@
+[
+ {
+  "seq": 1,
+  "summary": "C3 5.6n -> 6.2n to lower stage-2 pole for more stopband rejection",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "value",
+    "to": "6.2n",
+    "from": "5.6n"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "mpn_candidate",
+    "to": "C0805C622J5GACTU",
+    "from": "C0805C562J5GACTU"
+   }
+  ],
+  "fingerprint": "c243a3bbd45f5d719470049f0911ec7fa0db07e53c5afee0abd047b0cc0f477f",
+  "forced_side_effects": [
+   "C3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "e6970b1f206274d7898b3290f7d70f1806281e4c34a04904e345cd56518d6c6d",
+  "after_sha256": "9c7615bd20c8091de275b13725b25d0814928d7d48316e1471f6f3fbdc62bac0"
+ },
+ {
+  "seq": 2,
+  "summary": "C2 1n -> 910p to rebalance flatness with C3 6.2n",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C2",
+    "field": "value",
+    "to": "910p",
+    "from": "1n"
+   },
+   {
+    "op": "set_field",
+    "part": "C2",
+    "field": "mpn_candidate",
+    "to": "C0805C911J5GACTU",
+    "from": "C0805C102J5GACTU"
+   }
+  ],
+  "fingerprint": "fe4d0823500708bddb0e6025d7ac145a75b7c763d629f9ae88ca6f2e4993d855",
+  "forced_side_effects": [
+   "C2.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "9c7615bd20c8091de275b13725b25d0814928d7d48316e1471f6f3fbdc62bac0",
+  "after_sha256": "126a0e864c435662cb0d422231236b32dd494379e275c3a1d0b8f89f8969dcb1"
+ },
+ {
+  "seq": 3,
+  "summary": "revert C3 to 5.6n, keep C2 910p to test stage-1-only retune",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "value",
+    "to": "5.6n",
+    "from": "6.2n"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "mpn_candidate",
+    "to": "C0805C562J5GACTU",
+    "from": "C0805C622J5GACTU"
+   }
+  ],
+  "fingerprint": "ef5fe09d25ab008efe98589f8440e795643d546da9dee0c53784be8b19d04d9f",
+  "forced_side_effects": [
+   "C3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "126a0e864c435662cb0d422231236b32dd494379e275c3a1d0b8f89f8969dcb1",
+  "after_sha256": "934024efd72f4baf5130aa5e81c75f3eb5b997608c3f071d65146a2ad66c9725"
+ },
+ {
+  "seq": 4,
+  "summary": "C2 -> 1.1n, C1 -> 16n to change stage-1 Q at similar corner frequency",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C2",
+    "field": "value",
+    "to": "1.1n",
+    "from": "910p"
+   },
+   {
+    "op": "set_field",
+    "part": "C2",
+    "field": "mpn_candidate",
+    "to": "C0805C112J5GACTU",
+    "from": "C0805C911J5GACTU"
+   },
+   {
+    "op": "set_field",
+    "part": "C1",
+    "field": "value",
+    "to": "16n",
+    "from": "18n"
+   },
+   {
+    "op": "set_field",
+    "part": "C1",
+    "field": "mpn_candidate",
+    "to": "C0805C163J5GACTU",
+    "from": "C0805C183J5GACTU"
+   }
+  ],
+  "fingerprint": "2883a2b781b9512683fba5a3409614ac397173ec6475aa82c12727f7ac3acde2",
+  "forced_side_effects": [
+   "C2.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "C1.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "934024efd72f4baf5130aa5e81c75f3eb5b997608c3f071d65146a2ad66c9725",
+  "after_sha256": "63fe58190a4e3fa9f8ec9d68ac1fcea9d0e24574e9c20d45c400b491e3295342"
+ },
+ {
+  "seq": 5,
+  "summary": "revert C1/C2 to baseline, probe R3 6.81k",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C1",
+    "field": "value",
+    "to": "18n",
+    "from": "16n"
+   },
+   {
+    "op": "set_field",
+    "part": "C1",
+    "field": "mpn_candidate",
+    "to": "C0805C183J5GACTU",
+    "from": "C0805C163J5GACTU"
+   },
+   {
+    "op": "set_field",
+    "part": "C2",
+    "field": "value",
+    "to": "1n",
+    "from": "1.1n"
+   },
+   {
+    "op": "set_field",
+    "part": "C2",
+    "field": "mpn_candidate",
+    "to": "C0805C102J5GACTU",
+    "from": "C0805C112J5GACTU"
+   },
+   {
+    "op": "set_field",
+    "part": "R3",
+    "field": "value",
+    "to": "6.81k",
+    "from": "6.19k"
+   },
+   {
+    "op": "set_field",
+    "part": "R3",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-076K81L",
+    "from": "RC0603FR-076K19L"
+   }
+  ],
+  "fingerprint": "35529dbf3ca720a6a927eb5e4ca31afe1353fd444dbe23bef162a5090d1b9e44",
+  "forced_side_effects": [
+   "C1.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "C2.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "63fe58190a4e3fa9f8ec9d68ac1fcea9d0e24574e9c20d45c400b491e3295342",
+  "after_sha256": "88517008b5c6defde9182ca630c02dbb97b887f0a5eed83eaf562dfd7f55485b"
+ },
+ {
+  "seq": 6,
+  "summary": "add R1 60.4k and R4 16.2k to offset R3 gain rise",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R1",
+    "field": "value",
+    "to": "60.4k",
+    "from": "59k"
+   },
+   {
+    "op": "set_field",
+    "part": "R1",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0760K4L",
+    "from": "RC0603FR-0759KL"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "value",
+    "to": "16.2k",
+    "from": "16.5k"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0716K2L",
+    "from": "RC0603FR-0716K5L"
+   }
+  ],
+  "fingerprint": "dd303f59c2dc6155e41aeb3ef706ef59c3e323efad00ab4c6b2f6b5a0f48bfc8",
+  "forced_side_effects": [
+   "R1.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R4.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "88517008b5c6defde9182ca630c02dbb97b887f0a5eed83eaf562dfd7f55485b",
+  "after_sha256": "5b69956f6a7a11ea56d55299ef0d7a7310f341f129388b65137396d00f63c5ae"
+ },
+ {
+  "seq": 7,
+  "summary": "revert R1/R4 to baseline, R3 6.49k",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R1",
+    "field": "value",
+    "to": "59k",
+    "from": "60.4k"
+   },
+   {
+    "op": "set_field",
+    "part": "R1",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0759KL",
+    "from": "RC0603FR-0760K4L"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "value",
+    "to": "16.5k",
+    "from": "16.2k"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0716K5L",
+    "from": "RC0603FR-0716K2L"
+   },
+   {
+    "op": "set_field",
+    "part": "R3",
+    "field": "value",
+    "to": "6.49k",
+    "from": "6.81k"
+   },
+   {
+    "op": "set_field",
+    "part": "R3",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-076K49L",
+    "from": "RC0603FR-076K81L"
+   }
+  ],
+  "fingerprint": "b48c29a47ee030d7fe86ba408fc8190182621c55ebea470474138b6015de57d5",
+  "forced_side_effects": [
+   "R1.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R4.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "5b69956f6a7a11ea56d55299ef0d7a7310f341f129388b65137396d00f63c5ae",
+  "after_sha256": "1f84a6abb2eef3eba6d842dca4b42879013836888464dd5925ac5ab7284ed595"
+ },
+ {
+  "seq": 8,
+  "summary": "R3 6.81k, C3 6.2n, C2 910p combined retune",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R3",
+    "field": "value",
+    "to": "6.81k",
+    "from": "6.49k"
+   },
+   {
+    "op": "set_field",
+    "part": "R3",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-076K81L",
+    "from": "RC0603FR-076K49L"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "value",
+    "to": "6.2n",
+    "from": "5.6n"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "mpn_candidate",
+    "to": "C0805C622J5GACTU",
+    "from": "C0805C562J5GACTU"
+   },
+   {
+    "op": "set_field",
+    "part": "C2",
+    "field": "value",
+    "to": "910p",
+    "from": "1n"
+   },
+   {
+    "op": "set_field",
+    "part": "C2",
+    "field": "mpn_candidate",
+    "to": "C0805C911J5GACTU",
+    "from": "C0805C102J5GACTU"
+   }
+  ],
+  "fingerprint": "09310caab6073cd883c73691352ff665bf0e0c82ab052c3964f3f6605c172e62",
+  "forced_side_effects": [
+   "R3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "C3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "C2.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "1f84a6abb2eef3eba6d842dca4b42879013836888464dd5925ac5ab7284ed595",
+  "after_sha256": "5eb942b98e97438c6b9de80518122f5c6d833d980bfd452bb2016e3f807da404"
+ },
+ {
+  "seq": 9,
+  "summary": "C3 back to 5.6n to avoid REQ-STAB regression; keep R3 6.81k, C2 910p",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "value",
+    "to": "5.6n",
+    "from": "6.2n"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "mpn_candidate",
+    "to": "C0805C562J5GACTU",
+    "from": "C0805C622J5GACTU"
+   }
+  ],
+  "fingerprint": "ef5fe09d25ab008efe98589f8440e795643d546da9dee0c53784be8b19d04d9f",
+  "forced_side_effects": [
+   "C3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "5eb942b98e97438c6b9de80518122f5c6d833d980bfd452bb2016e3f807da404",
+  "after_sha256": "2805df424bdd7910b4f154b5d02810e6fe26bce39781e3ccf9de38eadd64993b"
+ },
+ {
+  "seq": 10,
+  "summary": "R3 7.5k, C2 820p, C3 6.2n retune",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R3",
+    "field": "value",
+    "to": "7.5k",
+    "from": "6.81k"
+   },
+   {
+    "op": "set_field",
+    "part": "R3",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-077K5L",
+    "from": "RC0603FR-076K81L"
+   },
+   {
+    "op": "set_field",
+    "part": "C2",
+    "field": "value",
+    "to": "820p",
+    "from": "910p"
+   },
+   {
+    "op": "set_field",
+    "part": "C2",
+    "field": "mpn_candidate",
+    "to": "C0805C821J5GACTU",
+    "from": "C0805C911J5GACTU"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "value",
+    "to": "6.2n",
+    "from": "5.6n"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "mpn_candidate",
+    "to": "C0805C622J5GACTU",
+    "from": "C0805C562J5GACTU"
+   }
+  ],
+  "fingerprint": "1a67c0a01363b26cbf830b47bae627c24b801cdd9f1f60ff8f5fed224f658b44",
+  "forced_side_effects": [
+   "R3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "C2.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "C3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "2805df424bdd7910b4f154b5d02810e6fe26bce39781e3ccf9de38eadd64993b",
+  "after_sha256": "232f797161e3d16b506f46cc40ff9b29b14f11bbf0fc68824c7fd060b705adc1"
+ },
+ {
+  "seq": 11,
+  "summary": "R3 7.15k, keep C2 820p, C3 6.2n",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R3",
+    "field": "value",
+    "to": "7.15k",
+    "from": "7.5k"
+   },
+   {
+    "op": "set_field",
+    "part": "R3",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-077K15L",
+    "from": "RC0603FR-077K5L"
+   }
+  ],
+  "fingerprint": "3d85f312925442ea274f4e7dbacbbaab769683776600fb86205b0d91800ffb5f",
+  "forced_side_effects": [
+   "R3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "232f797161e3d16b506f46cc40ff9b29b14f11bbf0fc68824c7fd060b705adc1",
+  "after_sha256": "1dd42357f47656463d2a23ef5d49d514a3f171bce93b9c5b5b1a2c417d7ab30e"
+ },
+ {
+  "seq": 12,
+  "summary": "R3 6.81k, C2 820p, C3 6.2n",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "R3",
+    "field": "value",
+    "to": "6.81k",
+    "from": "7.15k"
+   },
+   {
+    "op": "set_field",
+    "part": "R3",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-076K81L",
+    "from": "RC0603FR-077K15L"
+   }
+  ],
+  "fingerprint": "6b2b354e4eb22cd6fef09075ba764c46fb5da8022d16e058c956744225f78b4c",
+  "forced_side_effects": [
+   "R3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "1dd42357f47656463d2a23ef5d49d514a3f171bce93b9c5b5b1a2c417d7ab30e",
+  "after_sha256": "fea1696e81b20f0ec5deb0947968fcbaddeb006e28a6dfaffc21b05a1fbc7aef"
+ },
+ {
+  "seq": 13,
+  "summary": "R3 6.81k, C2 910p, C3 5.6n, R4=R5=18.2k (stage-2 pole via R instead of C)",
+  "ops": [
+   {
+    "op": "set_field",
+    "part": "C2",
+    "field": "value",
+    "to": "910p",
+    "from": "820p"
+   },
+   {
+    "op": "set_field",
+    "part": "C2",
+    "field": "mpn_candidate",
+    "to": "C0805C911J5GACTU",
+    "from": "C0805C821J5GACTU"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "value",
+    "to": "5.6n",
+    "from": "6.2n"
+   },
+   {
+    "op": "set_field",
+    "part": "C3",
+    "field": "mpn_candidate",
+    "to": "C0805C562J5GACTU",
+    "from": "C0805C622J5GACTU"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "value",
+    "to": "18.2k",
+    "from": "16.5k"
+   },
+   {
+    "op": "set_field",
+    "part": "R4",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0718K2L",
+    "from": "RC0603FR-0716K5L"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "value",
+    "to": "18.2k",
+    "from": "16.5k"
+   },
+   {
+    "op": "set_field",
+    "part": "R5",
+    "field": "mpn_candidate",
+    "to": "RC0603FR-0718K2L",
+    "from": "RC0603FR-0716K5L"
+   }
+  ],
+  "fingerprint": "14635c875d0940b9d499468636493e36ec604fd033903d97b915393d94f6d29e",
+  "forced_side_effects": [
+   "C2.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "C3.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R4.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)",
+   "R5.mpn_status -> unverified_candidate (agent cannot assert manufacturer verification)"
+  ],
+  "before_sha256": "fea1696e81b20f0ec5deb0947968fcbaddeb006e28a6dfaffc21b05a1fbc7aef",
+  "after_sha256": "02dd624996d38efaaf3f03bb62a2cf563836e6b9170789fd38a2830721289903"
+ }
+]

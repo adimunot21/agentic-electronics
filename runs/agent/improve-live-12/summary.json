@@ -1,0 +1,30 @@
+{
+ "run_dir": "/home/adimunot21/dev/agentic-electronics/runs/agent/improve-live-12",
+ "task": "improve-wide-retune-alias-v4",
+ "split": "dev",
+ "mode": "engineered_single_agent",
+ "provider": "claude-cli",
+ "fixture": false,
+ "task_kind": "improvement",
+ "final_feedback_delivered": null,
+ "refused_submits": 0,
+ "final_state": "ACCEPTED",
+ "stop_reason": "accepted",
+ "iterations": 1,
+ "model_calls": 37,
+ "tool_calls": 32,
+ "evaluations": 1,
+ "elapsed_s": 565.3,
+ "usage": {
+  "input_tokens": 74,
+  "output_tokens": 23350,
+  "cost_usd_reported": 3.8292016,
+  "cost_unknown_calls": 0,
+  "model_seconds": 253.60592598107178,
+  "tool_seconds": 222.9214764990611,
+  "eval_seconds": 89.74551108200103,
+  "cost_note": "cost is a provider-reported list-basis estimate; unknown calls make the total unknown (None), never 0"
+ },
+ "live_agent_success": true,
+ "accepted_by_independent_evaluator": true
+}
