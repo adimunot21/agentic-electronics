@@ -172,7 +172,7 @@ def test_feedback_after_rejected_regression_has_verdict_reasons_and_summary_metr
     h = Harness(tmp_path)
     ctl, seen = run_to_next_call(h, REGRESSION)
     fb = last_tool_result(seen["transcript"])
-    assert set(fb) - {"advisory_sanity"} == {"ok", "evaluator_verdict", "findings", "objective", "circuit_requirement_failures", "unresolved_baseline_failures_not_yours", "note"}     # advisory_sanity: optional, ideal-model advisory (see test_sanity_hook)
+    assert set(fb) - {"advisory_sanity", "budget"} == {"ok", "evaluator_verdict", "findings", "objective", "circuit_requirement_failures", "unresolved_baseline_failures_not_yours", "note"}     # advisory_sanity: optional, ideal-model advisory (see test_sanity_hook)
     assert fb["ok"] is False and fb["evaluator_verdict"] == "rejected"
     assert fb["objective"]["check"] == "REQ-ALIAS-CORNERS" and fb["objective"]["candidate"] == -57.9 and fb["objective"]["improvement"] < 0     # the corner-based summary VALUE is disclosed
     assert {f["rule"] for f in fb["findings"]} >= {"objective_improvement"}
@@ -424,7 +424,7 @@ def test_feedback_payload_for_real_recorded_decisions_fits_and_has_the_documente
     fb = last_tool_result(seen["t"])
     raw = seen["t"].rsplit("TOOL RESULT:\n", 1)[1].split("\n\n[", 1)[0]
     assert len(raw) < 6000, f"{label}: payload {len(raw)} chars would be truncated into invalid JSON"
-    assert set(fb) == {"ok", "evaluator_verdict", "findings", "objective", "circuit_requirement_failures", "unresolved_baseline_failures_not_yours", "note"}
+    assert set(fb) - {"budget"} == {"ok", "evaluator_verdict", "findings", "objective", "circuit_requirement_failures", "unresolved_baseline_failures_not_yours", "note"}     # budget: shown in every improvement-mode feedback
     assert set(fb["objective"]) == {"check", "unit", "direction", "baseline", "candidate", "improvement", "min_improvement", "met", "jitter_tolerance_dB"}
     print(f"\n[{label}] payload {len(raw)} chars; findings rules: {[f['rule'] for f in fb['findings']]}")
 

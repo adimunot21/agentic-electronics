@@ -57,6 +57,7 @@ class Limits:
     max_invalid_replies_total: int = 12  # improvement mode: cumulative backstop (live runs of 30-45 calls emit an occasional prose reply; improve-live-7 ended on 3 scattered ones)
     max_refused_submits: int = 3         # improvement mode: zero-diff / duplicate submissions refused BEFORE evaluation; cumulative bound so a refuse-loop cannot run forever
     max_state_revisits: int = 6          # improvement mode: re-entering an already visited design state while exploring is legitimate; this bounds endless explore-revert cycling WITHOUT a submission (reset at every submission)
+    nudge_fractions: tuple = (0.4, 0.7)  # improvement mode: advisory reminders when this fraction of max_model_calls is spent with ZERO evaluations (improve-live-9 spent 45 calls on free checks, 0 submissions); never refuses or changes anything
     progress_eps_db: float = 0.05        # improvement mode: a new best objective must beat the previous best by this much (10 % of the 0.5 dB target) to count as progress
 
 
@@ -320,7 +321,7 @@ class Controller:
         self.registry = build_registry(self.ctx)
         specs = "\n".join(json.dumps(sp.schema()) for sp in self.registry.specs())
         self.system = IMPROVEMENT_PROMPT.replace("{tools}", specs)
-        self.messages = [{"role": "user", "content": f"TASK ({self.task.id}): {self.task.description}\nFrozen objective, constraints and baseline:\n{json.dumps(brief, indent=1, default=str)[:12000]}\nBegin. Reply with one JSON action."}]
+        self.messages = [{"role": "user", "content": f"TASK ({self.task.id}): {self.task.description}\nFrozen objective, constraints and baseline:\n{json.dumps(brief, indent=1, default=str)[:12000]}\n{self._budget_line()}\nBegin. Reply with one JSON action."}]
         self._event("message", role="user", content=self.messages[0]["content"])
         return None
 
@@ -425,9 +426,45 @@ class Controller:
                         self.state["visited_states"].append(cs)
             elif action["tool"] == "propose_patch" and not res.ok:
                 pass
-            self._feedback(res.to_json())
+            payload = res.to_json()
+            if self.policy is not None:
+                if action["tool"] == "run_check" and action["args"].get("check") == "edit_sanity":
+                    self.state["free_check_calls"] = self.state.get("free_check_calls", 0) + 1
+                nudge = self._nudge()
+                if nudge:
+                    payload["reminder"] = nudge
+            self._feedback(payload)
+
+    def _budget_line(self) -> str:
+        L = self.limits
+        return (f"BUDGET: {L.max_model_calls} model calls in total (EVERY reply costs one, free checks such as edit_sanity included), {L.max_iterations} evaluations (a design is judged only when you submit), "
+                f"{self.ctx.max_corner_previews} preview units. Every tool result shows what is left.")
+
+    def _budget_status(self) -> dict:
+        """What is left, shown after every improvement-mode tool result so a bounded call budget cannot be spent unnoticed on free checks (advisory display only)."""
+        L = self.limits
+        return {"model_calls_left": max(0, L.max_model_calls - self.state["model_calls"]), "evaluations_left": max(0, L.max_iterations - self.state["iteration"]),
+                "evaluations_spent": self.state["evaluations"], "previews_left": max(0, self.ctx.max_corner_previews - self.ctx.corner_previews), "edit_sanity_calls": self.state.get("free_check_calls", 0)}
+
+    def _nudge(self) -> str | None:
+        """ADVISORY reminder (feedback only; no refusal, no change to acceptance or any cap): when a set fraction of the model-call cap is used and nothing was ever submitted, say so once per level.
+        Free checks (edit_sanity, previews) are never judged; only a submission gives real evidence."""
+        if self.state["evaluations"] > 0 or self.state["iteration"] >= self.limits.max_iterations:
+            return None
+        sent = self.state.get("nudges_sent", 0)
+        fractions = tuple(self.limits.nudge_fractions)
+        if sent >= len(fractions) or self.state["model_calls"] < math.ceil(fractions[sent] * self.limits.max_model_calls):
+            return None
+        self.state["nudges_sent"] = sent + 1
+        left = self.limits.max_model_calls - self.state["model_calls"]
+        self._event("budget_reminder", level=sent + 1, model_calls=self.state["model_calls"], model_calls_left=left, edit_sanity_calls=self.state.get("free_check_calls", 0))
+        return (f"REMINDER (facts only): {self.state['model_calls']} of {self.limits.max_model_calls} model calls used, {left} left; evaluations used: {self.state['evaluations']} of {self.limits.max_iterations}; "
+                f"edit_sanity checks so far: {self.state.get('free_check_calls', 0)}. Only `submit` produces an evaluator verdict. edit_sanity and `preview` are free in evaluations but each reply costs a model call, "
+                "and the preview is a projection that does not cover the BOM, status, series or row rules. Available actions are unchanged (including declare_no_improvement).")
 
     def _feedback(self, payload: dict) -> None:
+        if self.policy is not None and "budget" not in payload:
+            payload = {"budget": self._budget_status(), **payload}                 # first key: survives the 6000-character cut; EVERY improvement-mode feedback shows what is left
         text = json.dumps(payload, default=str)
         self.state["pending_feedback"], self.state["had_feedback"] = True, True
         content = f"TOOL RESULT:\n{text[:6000]}"
@@ -572,6 +609,8 @@ class Controller:
             raise RuntimeError(f"run {run_dir} already ended in state ACCEPTED (stop_reason={c.state['stop_reason']!r}); a finished run cannot be resumed")
         previous_stop = c.state.get("stop_reason")
         c.state["stop_reason"] = None
+        if c.task.kind == "improvement" and "nudges_sent" not in c.state:                  # state predating the guard (e.g. improve-live-9): levels already passed must not fire back-to-back
+            c.state["nudges_sent"] = sum(1 for f in c.limits.nudge_fractions if c.state.get("model_calls", 0) >= math.ceil(f * c.limits.max_model_calls))
         for key, default in (("refused_submits", 0), ("pending_feedback", False), ("best_objective", 0.0), ("best_infeasible_checks", None), ("evaluated_states", []), ("visited_states", []), ("state_revisits", 0), ("baseline_state", None)):
             c.state.setdefault(key, default)                                    # state files written before the feedback-loop fix lack these keys
         c.baseline_record = json.loads((run_dir / "baseline_record.json").read_text())

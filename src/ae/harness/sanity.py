@@ -186,7 +186,7 @@ def _limit_check(code: str, label: str, predicted: float, limit: float, error: f
     """warn when beyond the limit; info ('borderline') when within the model error band on the passing side."""
     excess = predicted - limit if upper else limit - predicted
     if excess > 0:
-        return _warning(code, "warn", f"{label} predicted {predicted:.4f}{unit} is beyond the limit {limit}{unit} (by {excess:.4f}{unit}){' [within the ideal-model error band: may be a false alarm]' if excess <= error else ''}; {hint}",
+        return _warning(code, "warn", f"{label} predicted {predicted:.4f}{unit} is beyond the limit {limit}{unit} (by {excess:.4f}{unit}){' [within the ideal-model error band: may or may not be a real breach; the evaluator decides]' if excess <= error else ''}; {hint}",
                         predicted=predicted, limit=limit, excess=excess)
     if -excess <= error:
         return _warning(code, "info", f"{label} predicted {predicted:.4f}{unit} is borderline vs the limit {limit}{unit} (margin {-excess:.4f}{unit} <= model error {error}{unit}); "
