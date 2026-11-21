@@ -1,0 +1,180 @@
+{
+ "provenance": "REQ-BIAS worst-corner output error (mV): real 32-corner DC sweep (ae.sim dc_corners logic: supply x VREF x Vos_A x Vos_B x divider skew, shim model, ngspice 44.2), 35 designs run offline 2026-11-21; edits are relative to designs/fe-aaf-001/components.yaml. live10_final is the final design of runs/agent/improve-live-10 (pipeline value 9.742, margin 0.258).",
+ "designs": {
+  "baseline": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c1_22n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c1_15n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c2_1p2n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c2_820p": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c3_6p8n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c3_4p7n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r2_80k6_r1_56k2": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r3_7k5_c2_1p1n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r2_69k8": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "combo": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c3_4p3n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c3_3p6n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c3_3p3n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c3_3p0n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c3_2p2n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c1_12n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c1_10n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c2_680p": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r45_12k1_c3_4p7n": {
+   "R4": 12100.0,
+   "R5": 12100.0,
+   "real_bias_mv": 9.65
+  },
+  "c1_15n_c3_4p7n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "c1_12n_c3_3p3n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r3_4k32_c3_3p9n": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r1_62k": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r1_56k2": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r2_71k5": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r2_80k6": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r2_71k5_r1_54k9": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r2_80k6_r1_61k9": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r2_61k9_r1_47k5": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r2_53k6_r1_41k2": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "r2_56k2_r1_43k2_r3_4k75": {
+   "R4": 16500.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.65
+  },
+  "live10_final": {
+   "R4": 16200.0,
+   "R5": 16500.0,
+   "real_bias_mv": 9.742
+  },
+  "r4_15k_r5_17k4": {
+   "R4": 15000.0,
+   "R5": 17400.0,
+   "real_bias_mv": 10.45
+  },
+  "r5_lower": {
+   "R4": 19100.0,
+   "R5": 18200.0,
+   "real_bias_mv": 9.414
+  }
+ }
+}

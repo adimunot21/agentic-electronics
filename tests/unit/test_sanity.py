@@ -69,7 +69,7 @@ def test_stage2_ratio_partial_pair_edit() -> None:
 def test_eval1_has_no_gain_warning() -> None:
     result = edit_sanity(manifest_with(EVAL1_EDITS), BASELINE_TEXT)
     assert not [c for c in codes(result, "warn") if c.startswith("GAIN_")]
-    assert result["status"] == "ok"
+    assert codes(result, "warn") == ["REQ_BIAS_MARGIN"]       # R5/R4 = 1.0185: improve-live-8 eval 1 was in fact rejected on REQ-BIAS margin (real 9.742 mV); the only warn
 
 
 def test_unchanged_baseline_is_ok() -> None:
@@ -194,3 +194,62 @@ def test_mpn_only_edit_and_baseline_as_previous_are_quiet():
     text = (Path(__file__).resolve().parents[2] / "designs" / "fe-aaf-001" / "components.yaml").read_text()
     out = edit_sanity(text.replace("RC0603FR-0716K5L", "RC0603FR-0716K5X"), text, previous_manifest_text=text)
     assert out["status"] == "ok" and out["warnings"] == []
+
+
+# --- REQ-BIAS margin prediction (advisory; added 2026-11-21) -------------------------------------------------------------------------------------------------------------
+import json as _json
+
+BIAS_FIXTURE = _json.loads((Path(__file__).parent / "data" / "sanity_bias_validation.json").read_text())["designs"]
+
+
+def _manifest_with_values(r4: float, r5: float) -> str:
+    def fmt(v: float) -> str:
+        return f"{v / 1e3:g}k"
+    return manifest_with({"R4": fmt(r4), "R5": fmt(r5)})
+
+
+def test_bias_prediction_matches_real_dc_sweep_on_35_designs() -> None:
+    """Predicted REQ-BIAS error vs the real 32-corner DC sweep: max abs error well inside model_error_bias_mv (0.01 mV)."""
+    errors = []
+    for name, d in BIAS_FIXTURE.items():
+        out = edit_sanity(_manifest_with_values(d["R4"], d["R5"]), BASELINE_TEXT)
+        assert out["status"] in ("ok", "warn"), name
+        errors.append(abs(out["predicted"]["bias_mv"] - d["real_bias_mv"]))
+    assert len(errors) >= 35 and max(errors) < SanityLimits().model_error_bias_mv and max(errors) < 0.002
+
+
+def test_bias_warning_for_live10_final_design() -> None:
+    """improve-live-10 final: pipeline REQ-BIAS 9.742 mV, margin 0.258 < 0.315 -> REQ_BIAS_MARGIN warn."""
+    d = BIAS_FIXTURE["live10_final"]
+    out = edit_sanity(_manifest_with_values(d["R4"], d["R5"]), BASELINE_TEXT)
+    w = [x for x in out["warnings"] if x["code"] == "REQ_BIAS_MARGIN"]
+    assert len(w) == 1 and w[0]["severity"] == "warn"
+    assert abs(out["predicted"]["bias_mv"] - 9.742) < 0.002 and abs(out["predicted"]["bias_margin_mv"] - 0.258) < 0.002
+    assert w[0]["detail"]["required_margin_mv"] == pytest.approx(0.315)
+
+
+def test_bias_no_warning_for_baseline_and_lower_ratio_and_hard_breach_warns() -> None:
+    base = edit_sanity(BASELINE_TEXT, BASELINE_TEXT)
+    assert "REQ_BIAS_MARGIN" not in codes(base) and base["predicted"]["bias_mv"] == pytest.approx(9.65)
+    low = BIAS_FIXTURE["r5_lower"]
+    assert "REQ_BIAS_MARGIN" not in codes(edit_sanity(_manifest_with_values(low["R4"], low["R5"]), BASELINE_TEXT))
+    hard = BIAS_FIXTURE["r4_15k_r5_17k4"]                                            # real 10.45 mV: beyond the 10 mV requirement itself
+    assert "REQ_BIAS_MARGIN" in codes(edit_sanity(_manifest_with_values(hard["R4"], hard["R5"]), BASELINE_TEXT), "warn")
+
+
+def test_bias_warning_text_is_value_only_no_design_advice() -> None:
+    d = BIAS_FIXTURE["live10_final"]
+    text = [x["message"] for x in edit_sanity(_manifest_with_values(d["R4"], d["R5"]), BASELINE_TEXT)["warnings"] if x["code"] == "REQ_BIAS_MARGIN"][0]
+    assert "predicted REQ-BIAS" in text and "0.257" in text and "0.315" in text
+    assert not re.search(r"\b(R[1-8]|C[1-8]|raise|lower|increase|decrease|change|reduce|swap|ratio)\b", text)
+
+
+def test_bias_borderline_is_info_and_policy_fraction_is_read() -> None:
+    lim = SanityLimits(model_error_bias_mv=0.05)
+    out = edit_sanity(_manifest_with_values(16500.0, 16500.0 * 1.0066), BASELINE_TEXT, limits=lim)     # predicted 9.683: margin 0.317 vs required 0.315, inside the band
+    w = [x for x in out["warnings"] if x["code"] == "REQ_BIAS_MARGIN"]
+    assert w and w[0]["severity"] == "info" and "borderline" in w[0]["message"]
+    policy = _json.loads(_json.dumps(yaml.safe_load((REPO_ROOT / "src/ae/harness/tasks/improve_wide_retune_alias_v4.yaml").read_text())))
+    assert limits_from_policy(policy) == SanityLimits() and limits_from_policy(policy).bias_margin_fraction == 0.10
+    policy["nonregression"]["generic_margin_fraction"] = 0.2
+    assert limits_from_policy(policy).bias_margin_fraction == 0.2

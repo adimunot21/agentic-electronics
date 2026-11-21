@@ -10,6 +10,7 @@ This is research code. Nothing here is a board ready to manufacture.
 
 Newest first. New entries are added on top; old entries are not rewritten.
 
+* **2026-11-21. improve-live-10 and v4 attainability.** Run 10 declared no improvement after reading its own previews (honest, not accepted). An offline search showed policy v4 is attainable (designs withheld from the repo). The advisory sanity check now also predicts REQ-BIAS; digest superseded with proof (docs sections 23-24).
 * **2026-11-21. improve-live-9: no evaluation.** The agent spent all 45 model calls on 21 patches and 17 free sanity checks and never submitted (a usage limit hit mid-run and the new supervisor resumed it). Not accepted. Fix: the agent now sees its call budget in every reply; acceptance and policies unchanged. Digest superseded with proof (docs section 22).
 * **2026-11-21. Pre-trial freeze.** README task labels, restoration-mode check list and E96 alias coverage for the advisory sanity check are done; trusted digest superseded with proof (docs section 21). Next: a live v4 trial under the hardened harness.
 * **2026-11-20. Second-circuit groundwork.** A circuit-profile seam lets a second task be added by data (FE-AAF-001 behaviour unchanged), a supervisor resumes runs after provider usage limits, advisory edit-sanity is validated on 11 real designs, and a capacitor orderability table exists. A second-circuit contract is only a draft awaiting owner approval and is not published.

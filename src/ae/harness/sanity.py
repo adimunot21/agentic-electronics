@@ -34,7 +34,7 @@ STAGE2_CHANGE_PCT = 0.2             # STAGE2_RATIO_CHANGED threshold (% change o
 NOT_ACCEPTANCE = "Advisory ideal-op-amp prediction only; it does not change acceptance, the evaluator (real op-amp model) decides."
 MODEL_TEXT = ("Ideal op-amp cascade (Rs-C4-MFB(R1,R2,R3,C1,C2)-active 1st order(R4,R5,C3)) over all 1024 tolerance-box corners; measured vs the real-op-amp "
               "evaluator on improve-live-8 (baseline, eval 1, eval 2): corner gain min/max within ~0.0005 V/V, worst flatness within ~0.016 dB (limit band {flat} dB), "
-              "worst alias within ~0.05 dB (band {alias} dB; ideal reads ~0.05 dB higher than real). Cannot see REQ-STAB, bias or headroom.")
+              "worst alias within ~0.05 dB (band {alias} dB; ideal reads ~0.05 dB higher than real). Predicts REQ-BIAS only from R5/R4 (stage-2 DC gain); cannot see REQ-STAB, headroom or any other requirement.")
 
 
 @dataclass(frozen=True)
@@ -53,12 +53,21 @@ class SanityLimits:
     model_error_gain: float = 0.001
     model_error_flat_db: float = 0.02
     model_error_alias_db: float = 0.1
+    # REQ-BIAS (v4): requirement limit 10 mV (requirements/fe-aaf-001.yaml), baseline measurement 9.65 mV (policy baseline record, margin 0.35), non-regression margin rule
+    # generic_margin_fraction 0.10 (policy nonregression: a candidate may lose at most 10 % of the baseline margin -> margin >= 0.315 mV).
+    # Model: worst-corner output DC error = baseline + slope * (R5/R4 - baseline R5/R4); slope 5.0 mV per unit ratio, measured on the real 32-corner DC sweep (depends on R4, R5 only;
+    # verified independent of R1, R2, R3, C1-C3 on 32 fixture designs). model_error_bias_mv 0.01: measured max error 0.0006 mV on 35 real designs (rounding of the 0.002 mV-grid sweep).
+    bias_limit_mv: float = 10.0
+    bias_baseline_mv: float = 9.65
+    bias_margin_fraction: float = 0.10
+    bias_slope_mv_per_ratio: float = 5.0
+    model_error_bias_mv: float = 0.01
 
 
 def limits_from_policy(policy: "str | Path | dict") -> SanityLimits:
     """Build SanityLimits from a policy's hard_constraints (yaml only; no dependency on ae.harness.improvement). Accepts a yaml path or an already-loaded dict.
     Mapping (v4 ids, matched by `check`/min/max fields so renumbering is tolerated): REQ-FLAT-CORNERS max -> flat_max_db; REQ-GAIN-CORNERS min/max -> gain_min/gain_max;
-    REQ-ALIAS max -> alias_max_db. model_error_* keep their defaults.
+    REQ-ALIAS max -> alias_max_db; nonregression.generic_margin_fraction -> bias_margin_fraction (when present). model_error_* and the other bias_* fields keep their defaults.
     The FIRST matching hard constraint wins for each field (e.g. alias comes from the first REQ-ALIAS entry with a numeric `max`, H6 in v4). Raises ValueError when a
     needed constraint is missing or the policy has no hard_constraints list: callers MUST catch it (the advisory check should fall back to SanityLimits() or skip)."""
     import yaml
@@ -72,8 +81,12 @@ def limits_from_policy(policy: "str | Path | dict") -> SanityLimits:
             if isinstance(item, dict) and item.get("check") == check and isinstance(item.get(field), (int, float)):
                 return float(item[field])
         raise ValueError(f"policy hard_constraints has no {check} {field}")
+    fraction = SanityLimits().bias_margin_fraction
+    nonreg = raw.get("nonregression")
+    if isinstance(nonreg, dict) and isinstance(nonreg.get("generic_margin_fraction"), (int, float)):
+        fraction = float(nonreg["generic_margin_fraction"])        # the REQ-BIAS margin rule is the policy's generic non-regression margin fraction
     return SanityLimits(gain_min=find("REQ-GAIN-CORNERS", "min"), gain_max=find("REQ-GAIN-CORNERS", "max"),
-                        flat_max_db=find("REQ-FLAT-CORNERS", "max"), alias_max_db=find("REQ-ALIAS", "max"))
+                        flat_max_db=find("REQ-FLAT-CORNERS", "max"), alias_max_db=find("REQ-ALIAS", "max"), bias_margin_fraction=fraction)
 
 
 _IDEAL_MODULE: Any = None
@@ -209,6 +222,10 @@ def _edit_sanity(candidate_text: str, baseline_text: str, previous_text: str | N
     except ValueError as exc:
         return _skipped(str(exc))
     predicted, baseline_predicted = predict(candidate), predict(baseline)
+    ratio_baseline = baseline["R5"] / baseline["R4"]
+    for target, vals in ((predicted, candidate), (baseline_predicted, baseline)):
+        target["bias_mv"] = limits.bias_baseline_mv + limits.bias_slope_mv_per_ratio * (vals["R5"] / vals["R4"] - ratio_baseline)
+        target["bias_margin_mv"] = limits.bias_limit_mv - target["bias_mv"]
     previous_predicted = predict(previous) if previous is not None else None
     ratio = {k: v["R5"] / v["R4"] for k, v in (("candidate", candidate), ("baseline", baseline))}
     ratio["change_pct"] = (ratio["candidate"] / ratio["baseline"] - 1) * 100
@@ -251,6 +268,16 @@ def _edit_sanity(candidate_text: str, baseline_text: str, previous_text: str | N
                      "lower the filter corner frequency (larger R*C) to gain stopband attenuation")
     if w:
         warnings.append(w)
+
+    baseline_margin = limits.bias_limit_mv - limits.bias_baseline_mv
+    required_margin = (1.0 - limits.bias_margin_fraction) * baseline_margin
+    bias_margin, bias_err = predicted["bias_margin_mv"], limits.model_error_bias_mv
+    if bias_margin < required_margin or bias_margin - required_margin <= bias_err:
+        beyond = bias_margin < required_margin
+        text = (f"predicted REQ-BIAS worst-corner output error {predicted['bias_mv']:.3f} mV leaves a margin of {bias_margin:.3f} mV to the {limits.bias_limit_mv:g} mV limit; "
+                f"the non-regression rule requires a margin of at least {required_margin:.3f} mV"
+                + ("" if beyond else f" (borderline, within the {bias_err:g} mV model error)") + ".")
+        warnings.append(_warning("REQ_BIAS_MARGIN", "warn" if beyond else "info", text, predicted_bias_mv=predicted["bias_mv"], predicted_margin_mv=bias_margin, required_margin_mv=required_margin))
 
     changed = {k for k in ("R4", "R5") if candidate[k] != baseline[k]}
     if abs(ratio["change_pct"]) > STAGE2_CHANGE_PCT:
